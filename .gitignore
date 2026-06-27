@@ -1,0 +1,50 @@
+# ===== Секреты и локальные данные =====
+.env
+.env.local
+.env.*.local
+# .env.example НЕ игнорируем — это шаблон, он нужен в репозитории
+
+# База данных SQLite (и временные файлы движка)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Логи
+*.log
+logs/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Кэши инструментов
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# ===== Редакторы и ОС =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
