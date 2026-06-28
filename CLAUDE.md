@@ -99,7 +99,13 @@ Any new screen transition must go through these helpers, not raw `edit_text`. Th
   and SQLite `DATE('now')`); keep new date logic UTC to stay consistent.
 - **Playlist-of-the-day** is a shared rotating queue. `playlist_state` (single row, id=1)
   holds a pointer that advances by `+1` per elapsed calendar day (UTC) and clamps at the
-  end of `playlists.json` until an admin uploads more.
+  end of the queue until an admin uploads more. The queue file is `config.PLAYLISTS_PATH`
+  (default `content/playlists.json`; point it at a persistent disk like `/data/playlists.json`
+  in production — see README "Плейлисты: очередь и поведение на сервере"). `config.seed_playlists()`
+  copies the repo file onto the disk **once**, on first boot when the disk file is absent;
+  after that the disk copy wins and repo/git edits no longer change the live queue — update
+  it via the admin `.json` upload. Admin `/backup` sends a `VACUUM INTO` copy of `bot.db` to
+  the requesting admin.
 
 ### Output conventions
 

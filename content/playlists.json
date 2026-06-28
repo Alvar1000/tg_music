@@ -1,12 +1,127 @@
 [
   {
-    "title": "Рок-волна",
-    "desc": "Свежая подборка — врубай погромче",
-    "url": "https://music.yandex.ru/playlists/3e4075bb-cbba-dd4c-9056-022211e12326?ref_id=28D31471-D7B1-4612-87A5-7FF7D6DCDE94&utm_medium=copy_link"
+    "title": "Плейлист погрустить",
+    "desc": "Тихая грусть на вечер: помолчать, повздыхать и немного раствориться.",
+    "url": "https://music.yandex.ru/playlists/6a9ad235-607c-c40d-8e51-0e1e8e7adffa?utm_source=web&utm_medium=copy_link"
   },
   {
-    "title": "Вечерний драйв",
-    "desc": "Погромче к ночи",
-    "url": "https://music.yandex.ru/playlists/a8fbe29b-a301-24b0-aa27-5e8a8143995b?ref_id=14FDA2DF-4DD9-40D2-A00D-E66651618B0A&utm_medium=copy_link"
+    "title": "Плейлист для летнего настроения",
+    "desc": "Тёплый воздух и полный расслабон — чистое летнее настроение.",
+    "url": "https://music.yandex.ru/playlists/4a3c79c6-6752-9924-b619-a225ae27c04d?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Для поднятия боевого духа",
+    "desc": "Когда надо собраться и поверить в себя — заряд боевого духа на весь день.",
+    "url": "https://music.yandex.ru/playlists/5c6c97ac-6bf9-8fcb-9b33-4efab8a251b2"
+  },
+  {
+    "title": "Плейлист для драки (с учителем)",
+    "desc": "Внутри полыхает, терпение кончилось — звук для разборки с учителем.",
+    "url": "https://music.yandex.ru/playlists/977f1d34-7f5c-d17a-b60b-f6ea27c34464?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для революции",
+    "desc": "Самообладание трещит, смелость зашкаливает — музыка, под которую поднимают бунт.",
+    "url": "https://music.yandex.ru/playlists/f9ae9804-b108-cdde-a5fb-26915d409d90?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист поплакать",
+    "desc": "Когда хочется выпустить слёзы — повод не нужен, музыка всё сделает сама.",
+    "url": "https://music.yandex.ru/playlists/4821f130-301c-6150-b43f-0a44a52a60d2?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Я рождён чтобы еб@шить",
+    "desc": "Ноль сомнений, максимум напора: ты буквально рождён, чтобы это делать.",
+    "url": "https://music.yandex.ru/playlists/0803c1fd-cba7-0c41-b8c9-6ef3fb0725a2"
+  },
+  {
+    "title": "Плейлист для отпуска",
+    "desc": "Ни дедлайнов, ни спешки — только тёплый ленивый отдых в отпускном настроении.",
+    "url": "https://music.yandex.ru/playlists/a7d26e6a-9330-c7b2-b08d-6e5c94f041cf?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для эмо-настроения",
+    "desc": "Чёлка на глаза, сердце наружу — то самое эмо-настроение.",
+    "url": "https://music.yandex.ru/playlists/c00cba4b-814c-afea-b46e-a69dde91bfb7?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для драки (с дедом)",
+    "desc": "Когда искрит даже от деда — раздуваем этот пожар и идём в бой.",
+    "url": "https://music.yandex.ru/playlists/c8a325ec-4e0c-92f5-b46e-a69dde91bfb7?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для путешествий",
+    "desc": "Солнце греет, дорога зовёт — музыка, под которую хочется ехать за горизонт.",
+    "url": "https://music.yandex.ru/playlists/3dbf3084-7d46-f506-a717-86774594250b?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для эвакуации",
+    "desc": "Когда пора срочно уносить ноги, настроение смелеет — даже побег звучит дерзко.",
+    "url": "https://music.yandex.ru/playlists/542ac2e9-393e-1098-a717-86774594250b?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для прогулок",
+    "desc": "Медленный день и горячее солнце — то, что нужно для неспешной прогулки.",
+    "url": "https://music.yandex.ru/playlists/e0895e4e-4829-5443-b063-c22a964983c7?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для завоеваний",
+    "desc": "Сегодня завоёвываем мир. Не обсуждается — врубай и иди забирать своё.",
+    "url": "https://music.yandex.ru/playlists/47deba5b-4857-bd1c-aa3b-ae5cc55eea21"
+  },
+  {
+    "title": "Плейлист для эволюции",
+    "desc": "Контроль слегка отпускает — и ты эволюционируешь: обычные моменты становятся опасно-интересными.",
+    "url": "https://music.yandex.ru/playlists/3188e3f3-c276-723b-b619-a225ae27c04d?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист подраматизировать",
+    "desc": "Для настоящих драмаквин: добавь драмы и страдай красиво под хороший звук.",
+    "url": "https://music.yandex.ru/playlists/22d14cb2-c306-66de-a717-86774594250b?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для драки (с братом)",
+    "desc": "Всё раздражает, а сильнее всех — брат: громко и зло, под хорошую заварушку.",
+    "url": "https://music.yandex.ru/playlists/376848e8-1d00-1f9d-b205-324511fc7bd7?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для поездок",
+    "desc": "Тёплый воздух, никто никуда не спешит — идеальный саундтрек для долгой поездки.",
+    "url": "https://music.yandex.ru/playlists/18561f38-5cb1-de48-a84d-7a1c61a3f1e8?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист пострадать",
+    "desc": "Для тех, кто любит пострадать под хороший звук, — садись и наслаждайся болью.",
+    "url": "https://music.yandex.ru/playlists/fb1f0d93-abe1-ee79-94c4-6a219858b61d?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для экзекуции",
+    "desc": "Меньше контроля, больше нерва — саундтрек, под который вершишь расправу.",
+    "url": "https://music.yandex.ru/playlists/64bcf150-bb0b-5edd-95c9-022fff52ab8a?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для побед",
+    "desc": "Только вперёд и только в плюс — саундтрек чистых побед.",
+    "url": "https://music.yandex.ru/playlists/e76da9ed-8f90-439c-a5fb-26915d409d90"
+  },
+  {
+    "title": "Спокойный и тёплый летний вечер",
+    "desc": "Когда день остыл и спешить уже некуда — спокойный тёплый летний вечер.",
+    "url": "https://music.yandex.ru/playlists/027b561c-d25c-f55f-83c9-3ab5ea45bb3c"
+  },
+  {
+    "title": "Плейлист для драки (с одноклассником)",
+    "desc": "Всё бесит, кулаки чешутся — музыка для честной драки с одноклассником.",
+    "url": "https://music.yandex.ru/playlists/c6203dfd-a1e3-5a04-b619-a225ae27c04d?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для тильта",
+    "desc": "Когда всё валится из рук и накрывает тильт — переживём это под музыку.",
+    "url": "https://music.yandex.ru/playlists/c57e6b60-083f-1987-b8c9-6ef3fb0725a2?utm_source=web&utm_medium=copy_link"
+  },
+  {
+    "title": "Плейлист для драки (с руководителем)",
+    "desc": "День, когда внутри пожар и бесит начальство, — самое то, чтобы мысленно сойтись с руководителем.",
+    "url": "https://music.yandex.ru/playlists/598707ca-898b-a2f1-b8c9-6ef3fb0725a2?utm_source=web&utm_medium=copy_link"
   }
 ]
