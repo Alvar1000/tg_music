@@ -219,6 +219,28 @@ async def main() -> None:
 
 При long polling, наоборот, убедись, что webhook снят: `await bot.delete_webhook()`.
 
+## Деплой на Render (Blueprint, «одной кнопкой»)
+
+В репозитории есть [`render.yaml`](render.yaml) — он описывает весь сервис разом:
+background worker, постоянный диск `/data` (для `bot.db` и очереди плейлистов) и
+переменные окружения. Благодаря ему деплой с нуля не нужно собирать руками в дашборде.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Alvar1000/tg_music)
+
+Или вручную: **Render Dashboard → New → Blueprint → выбрать этот репозиторий**.
+Render прочитает `render.yaml`, создаст worker + диск + переменные и **один раз спросит
+значения секретов** (`BOT_TOKEN`, `CHANNEL_ID`, `CHANNEL_URL`, `COMMUNITY_CHAT_URL`,
+`ADMIN_IDS` — они помечены `sync: false` и в git не хранятся). Пути `DB_PATH` и
+`PLAYLISTS_PATH` уже прописаны в файле.
+
+После первого запуска бот сам создаёт таблицы в `/data/bot.db` и засевает 25 стартовых
+плейлистов из `content/playlists.json` на диск. Дальше плейлисты добавляются загрузкой
+`.json` через бота (см. «Плейлисты: очередь и поведение на сервере»).
+
+> **Один экземпляр на токен.** Telegram разрешает только один `getUpdates`, поэтому
+> перед деплоем Blueprint удали старый сервис на том же `BOT_TOKEN` — иначе два бота
+> подерутся за апдейты (ошибка `409 Conflict`).
+
 ## Хостинг
 
 Для long polling подойдёт любой дешёвый VPS или платформа вроде Railway/Render.
