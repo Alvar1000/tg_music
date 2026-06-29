@@ -71,9 +71,12 @@ inside `callback_data`, so keep them short.
 - `handlers/menu.py` — main menu + simple link screens (playlist, chat). Owns the shared
   UI helpers `safe_edit()` and `show_main_menu()` imported across other handlers.
 - `handlers/facts.py` — random fact, no repeats per user (`seen_facts` table).
-- `handlers/tests.py` — three quizzes: zodiac (stateless lookup), style test (FSM,
-  accumulates per-style scores), and the "Save the concert" quest (FSM, generic graph
-  engine driving `quest_concert.json`).
+- `handlers/tests.py` — three quizzes: zodiac (stateless lookup), "guess the band by
+  album cover" (FSM, two 15-question tests `quiz_covers_1/2.json`; each question is a
+  photo of an album cover with band-name options, scored), and the "Save the concert"
+  quest (FSM, generic graph engine driving `quest_concert.json`). The cover quiz sends
+  each question as a **new photo message** (delete-and-resend), shows the answer via
+  `edit_caption`, and caches each cover's `file_id` after first upload (`_cover_file_id_cache`).
 - `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/playlists`, and **playlist upload**
   (admin sends a `.json` document; it's appended to the queue, deduped by url, written
   atomically via `tmp.replace`).
@@ -89,7 +92,7 @@ Any new screen transition must go through these helpers, not raw `edit_text`. Th
 
 ### State and data
 
-- **FSM:** `states/states.py` defines `StyleTest.answering` and `Quest.playing`; storage is
+- **FSM:** `states/states.py` defines `CoverQuiz.answering` and `Quest.playing`; storage is
   in-memory (`MemoryStorage`), so restarting the bot drops in-progress tests/quests.
   Handlers `state.clear()` on returning to menu and on finishing.
 - **DB:** `database/db.py` holds a *single* shared `aiosqlite` connection (`_db` global)
@@ -116,7 +119,9 @@ Quest/content JSON is authored as **plain text** (no HTML); the code escapes and
 ## Content files (`content/`)
 
 Edited live, UTF-8, re-read per request. `facts.json` (objects with stable `id`),
-`quiz_zodiac.json` (12 signs), `quiz_style.json` (scored questions + `results`),
+`quiz_zodiac.json` (12 signs), `quiz_covers_1.json`/`quiz_covers_2.json`
+(`{title, questions:[{photo, group, album, options, correct}]}`; `photo` names a file in
+`content/covers/`, `correct` indexes `options`),
 `quest_concert.json` (branching graph: story node = `text`+`choices`, pass-through =
 `text`+`next`, ending = `"ending": true` + optional `title`/`verdict`/`rank`/`rarity`/`score`),
 and `events.json` (optional; absent → placeholder). The README documents each format in

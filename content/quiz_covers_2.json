@@ -1,0 +1,185 @@
+{
+  "title": "Угадай группу по обложке — Часть 2",
+  "questions": [
+    {
+      "photo": "bauhaus-mask.jpeg",
+      "group": "Bauhaus",
+      "album": "Mask",
+      "options": [
+        "Siouxsie and the Banshees",
+        "Bauhaus",
+        "The Sisters of Mercy",
+        "Echo & the Bunnymen"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "black-sabbath-heaven-and-hell.jpeg",
+      "group": "Black Sabbath",
+      "album": "Heaven and Hell",
+      "options": [
+        "Judas Priest",
+        "Iron Maiden",
+        "Black Sabbath",
+        "Dio"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "david-bowie-ziggy-stardust.jpg",
+      "group": "David Bowie",
+      "album": "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+      "options": [
+        "Lou Reed",
+        "David Bowie",
+        "Iggy Pop",
+        "Bryan Ferry"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "duran-duran-rio.jpeg",
+      "group": "Duran Duran",
+      "album": "Rio",
+      "options": [
+        "Spandau Ballet",
+        "Depeche Mode",
+        "Culture Club",
+        "Duran Duran"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "joy-division-unknown-pleasures.jpeg",
+      "group": "Joy Division",
+      "album": "Unknown Pleasures",
+      "options": [
+        "Gang of Four",
+        "Joy Division",
+        "Wire",
+        "Television"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "led-zeppelin-in-through-the-out-door.jpeg",
+      "group": "Led Zeppelin",
+      "album": "In Through the Out Door",
+      "options": [
+        "Bad Company",
+        "Free",
+        "The Who",
+        "Led Zeppelin"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "megadeth-rust-in-peace.jpeg",
+      "group": "Megadeth",
+      "album": "Rust in Peace",
+      "options": [
+        "Metallica",
+        "Megadeth",
+        "Slayer",
+        "Anthrax"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "oasis-be-here-now.jpg",
+      "group": "Oasis",
+      "album": "Be Here Now",
+      "options": [
+        "Blur",
+        "Pulp",
+        "The Verve",
+        "Oasis"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "rammstein.png",
+      "group": "Rammstein",
+      "album": "Rammstein",
+      "options": [
+        "Nine Inch Nails",
+        "Rammstein",
+        "Marilyn Manson",
+        "Ministry"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "scorpions-love-at-first-sting.jpeg",
+      "group": "Scorpions",
+      "album": "Love at First Sting",
+      "options": [
+        "Accept",
+        "Dokken",
+        "Whitesnake",
+        "Scorpions"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "the-beatles-abbey-road.jpeg",
+      "group": "The Beatles",
+      "album": "Abbey Road",
+      "options": [
+        "The Kinks",
+        "The Beatles",
+        "The Who",
+        "The Doors"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "the-doors-strange-days.jpeg",
+      "group": "The Doors",
+      "album": "Strange Days",
+      "options": [
+        "Jefferson Airplane",
+        "The Byrds",
+        "Grateful Dead",
+        "The Doors"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "the-rolling-stones-let-it-bleed.jpeg",
+      "group": "The Rolling Stones",
+      "album": "Let It Bleed",
+      "options": [
+        "The Rolling Stones",
+        "The Faces",
+        "The Animals",
+        "The Kinks"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "the-white-stripes-elephant.jpg",
+      "group": "The White Stripes",
+      "album": "Elephant",
+      "options": [
+        "The Black Keys",
+        "Royal Blood",
+        "Death From Above 1979",
+        "The White Stripes"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "three-days-grace-one-x.jpeg",
+      "group": "Three Days Grace",
+      "album": "One-X",
+      "options": [
+        "Breaking Benjamin",
+        "Three Days Grace",
+        "Nickelback",
+        "Staind"
+      ],
+      "correct": 1
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "title": "Угадай группу по обложке — Часть 1",
+  "questions": [
+    {
+      "photo": "aerosmith-toys-in-the-attic.jpeg",
+      "group": "Aerosmith",
+      "album": "Toys in the Attic",
+      "options": [
+        "Aerosmith",
+        "Guns N' Roses",
+        "Bon Jovi",
+        "Mötley Crüe"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "black-sabbath-paranoid.jpeg",
+      "group": "Black Sabbath",
+      "album": "Paranoid",
+      "options": [
+        "Deep Purple",
+        "Led Zeppelin",
+        "Uriah Heep",
+        "Black Sabbath"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "cage-the-elephant-melophobia.jpeg",
+      "group": "Cage the Elephant",
+      "album": "Melophobia",
+      "options": [
+        "Cage the Elephant",
+        "Arctic Monkeys",
+        "Kings of Leon",
+        "Foster the People"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "deep-purple-burn.jpeg",
+      "group": "Deep Purple",
+      "album": "Burn",
+      "options": [
+        "Rainbow",
+        "Whitesnake",
+        "Deep Purple",
+        "Uriah Heep"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "guns-n-roses-appetite-for-destruction.jpeg",
+      "group": "Guns N' Roses",
+      "album": "Appetite for Destruction",
+      "options": [
+        "Guns N' Roses",
+        "Mötley Crüe",
+        "Def Leppard",
+        "Poison"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "lana-del-rey-norman-fucking-rockwell.jpeg",
+      "group": "Lana Del Rey",
+      "album": "Norman Fucking Rockwell!",
+      "options": [
+        "Lorde",
+        "Halsey",
+        "Lana Del Rey",
+        "Billie Eilish"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "led-zeppelin-led-zeppelin.jpeg",
+      "group": "Led Zeppelin",
+      "album": "Led Zeppelin",
+      "options": [
+        "Led Zeppelin",
+        "Cream",
+        "The Yardbirds",
+        "The Jimi Hendrix Experience"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "nirvana-in-utero.jpg",
+      "group": "Nirvana",
+      "album": "In Utero",
+      "options": [
+        "Pearl Jam",
+        "Soundgarden",
+        "Nirvana",
+        "Alice in Chains"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "radiohead-ok-computer.jpeg",
+      "group": "Radiohead",
+      "album": "OK Computer",
+      "options": [
+        "Radiohead",
+        "Coldplay",
+        "Muse",
+        "R.E.M."
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "red-hot-chili-peppers-californication.jpeg",
+      "group": "Red Hot Chili Peppers",
+      "album": "Californication",
+      "options": [
+        "Jane's Addiction",
+        "Rage Against the Machine",
+        "Red Hot Chili Peppers",
+        "Incubus"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "tame-impala-the-slow-rush.jpeg",
+      "group": "Tame Impala",
+      "album": "The Slow Rush",
+      "options": [
+        "Tame Impala",
+        "MGMT",
+        "Pond",
+        "Unknown Mortal Orchestra"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "the-cure-disintegration.jpeg",
+      "group": "The Cure",
+      "album": "Disintegration",
+      "options": [
+        "The Smiths",
+        "Depeche Mode",
+        "The Cure",
+        "New Order"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "the-rolling-stones-sticky-fingers.jpeg",
+      "group": "The Rolling Stones",
+      "album": "Sticky Fingers",
+      "options": [
+        "The Who",
+        "The Rolling Stones",
+        "The Faces",
+        "Bad Company"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "the-velvet-underground-and-nico.jpeg",
+      "group": "The Velvet Underground",
+      "album": "The Velvet Underground & Nico",
+      "options": [
+        "The Stooges",
+        "MC5",
+        "The Velvet Underground",
+        "Love"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "the-zombies-odessey-and-oracle.jpeg",
+      "group": "The Zombies",
+      "album": "Odessey and Oracle",
+      "options": [
+        "The Zombies",
+        "The Hollies",
+        "The Moody Blues",
+        "Procol Harum"
+      ],
+      "correct": 0
+    }
+  ]
+}

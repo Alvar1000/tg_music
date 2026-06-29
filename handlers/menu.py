@@ -51,9 +51,21 @@ def _banner_source():
 
 
 async def _send_photo(target: Message, banner, caption: str, reply_markup) -> None:
-    """Шлёт фото-меню и кеширует file_id баннера после первой загрузки."""
+    """Шлёт фото-меню и кеширует file_id баннера после первой загрузки.
+
+    Если отправка фото падает (битая картинка, сеть, удалённый чат) — деградируем
+    до текстового меню без баннера, чтобы пользователь не остался без ответа.
+    """
     global _banner_file_id
-    sent = await target.answer_photo(banner, caption=caption, reply_markup=reply_markup)
+    try:
+        sent = await target.answer_photo(banner, caption=caption, reply_markup=reply_markup)
+    except TelegramBadRequest as e:
+        logger.warning("Не удалось отправить баннер меню: %s", e)
+        try:
+            await target.answer(caption, reply_markup=reply_markup)
+        except TelegramBadRequest as e2:
+            logger.warning("Не удалось отправить текст меню даже без баннера: %s", e2)
+        return
     if _banner_file_id is None and sent.photo:
         _banner_file_id = sent.photo[-1].file_id
 
@@ -115,14 +127,9 @@ async def show_main_menu(event: Message | CallbackQuery, greeting: bool = False)
     if banner is None:
         await safe_edit(event, text, kb)
         return
-    # Баннер есть: фото-меню обновляем подписью, иначе пересоздаём.
-    if msg.photo:
-        try:
-            await msg.edit_caption(caption=text, reply_markup=kb)
-            return
-        except TelegramBadRequest as e:
-            if "message is not modified" in str(e):
-                return
+    # Баннер есть. Текущим сообщением может быть и фото-меню, и фото-вопрос теста
+    # по обложкам — поэтому не редактируем подпись (рискуем оставить чужую
+    # картинку под текстом меню), а удаляем и шлём баннер заново.
     try:
         await msg.delete()
     except TelegramBadRequest:

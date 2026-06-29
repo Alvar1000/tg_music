@@ -2,8 +2,8 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class StyleTest(StatesGroup):
-    """Тест «Какой стиль рока тебе подходит» (копим очки по стилям)."""
+class CoverQuiz(StatesGroup):
+    """Тест «Угадай группу по обложке» (храним текущий вопрос, счёт и фазу)."""
     answering = State()
 
 

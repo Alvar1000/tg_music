@@ -4,9 +4,11 @@
   check_sub                 — перепроверить подписку (гейт)
   go_menu                   — вернуться в главное меню
   menu_playlist / menu_fact / menu_chat / menu_tests / menu_events — пункты меню
-  test_zodiac / test_style / quest_concert — выбор/перезапуск теста или квеста
+  test_zodiac / quest_concert — выбор/перезапуск теста или квеста
+  test_covers:<номер>       — запуск/перезапуск теста по обложкам (1 или 2)
   zodiac:<индекс>           — выбранный знак зодиака (0..11)
-  style_ans:<индекс>        — выбранный вариант ответа в тесте на стиль
+  cover_ans:<индекс>        — выбранный вариант ответа в тесте по обложкам
+  cover_next                — перейти к следующей обложке (или к результату)
   quest:<id_узла>           — переход к следующему узлу квеста
 """
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -70,7 +72,8 @@ def fact_kb() -> InlineKeyboardMarkup:
 def tests_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="♈ Музыкант по знаку зодиака", callback_data="test_zodiac")],
-        [InlineKeyboardButton(text="🎸 Какой стиль тебе подходит", callback_data="test_style")],
+        [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 1", callback_data="test_covers:1")],
+        [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 2", callback_data="test_covers:2")],
         [InlineKeyboardButton(text="🎤 Квест «Спаси концерт»", callback_data="quest_concert")],
         [_back_button()],
     ])
@@ -86,14 +89,23 @@ def zodiac_kb() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def style_options_kb(options: list) -> InlineKeyboardMarkup:
-    """Кнопки вариантов ответа текущего вопроса (callback style_ans:<индекс>)."""
+def cover_options_kb(options: list) -> InlineKeyboardMarkup:
+    """Кнопки вариантов (названия групп) в тесте по обложкам (callback cover_ans:<индекс>)."""
     builder = InlineKeyboardBuilder()
     for i, opt in enumerate(options):
-        builder.button(text=opt["text"], callback_data=f"style_ans:{i}")
-    builder.button(text="⬅ В меню", callback_data="go_menu")
-    builder.adjust(1)  # по одной кнопке в ряд (тексты длинные)
+        builder.button(text=opt, callback_data=f"cover_ans:{i}")
+    builder.adjust(2)  # названия групп короткие — по 2 в ряд
+    builder.row(_back_button())  # кнопка «В меню» отдельным рядом
     return builder.as_markup()
+
+
+def cover_feedback_kb(is_last: bool) -> InlineKeyboardMarkup:
+    """После ответа: перейти к следующей обложке или к результату (callback cover_next)."""
+    nxt = "🏁 Результат" if is_last else "Дальше →"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=nxt, callback_data="cover_next")],
+        [_back_button()],
+    ])
 
 
 def quest_choices_kb(choices: list) -> InlineKeyboardMarkup:
@@ -118,8 +130,9 @@ def zodiac_result_kb() -> InlineKeyboardMarkup:
     return _retry_kb("test_zodiac")
 
 
-def style_result_kb() -> InlineKeyboardMarkup:
-    return _retry_kb("test_style")
+def covers_result_kb(key: str) -> InlineKeyboardMarkup:
+    """Экран результата теста по обложкам: «Пройти заново» перезапускает ту же часть."""
+    return _retry_kb(f"test_covers:{key}")
 
 
 def quest_end_kb() -> InlineKeyboardMarkup:

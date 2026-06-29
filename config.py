@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 # Корень проекта — папка, где лежит этот файл.
 BASE_DIR = Path(__file__).resolve().parent
 CONTENT_DIR = BASE_DIR / "content"
+# Обложки альбомов для теста «Угадай группу по обложке».
+COVERS_DIR = CONTENT_DIR / "covers"
 
 # Загружаем переменные окружения из .env (если файл существует).
 load_dotenv(BASE_DIR / ".env")
