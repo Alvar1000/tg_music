@@ -63,6 +63,12 @@ async def init_db() -> None:
             current_index INTEGER NOT NULL DEFAULT 0,
             last_advance  TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS feature_usage (
+            user_id INTEGER,
+            feature TEXT,
+            used_at TEXT
+        );
         """
     )
     await _db.commit()
@@ -162,8 +168,22 @@ async def count_seen_endings(user_id: int, valid_ids) -> int:
         return (await cur.fetchone())["n"]
 
 
+async def log_feature(user_id: int, feature: str) -> None:
+    """Отмечает разовое использование фичи (для статистики «чем пользовались»)."""
+    await _db.execute(
+        "INSERT INTO feature_usage (user_id, feature, used_at) VALUES (?, ?, ?)",
+        (user_id, feature, _now()),
+    )
+    await _db.commit()
+
+
 async def get_stats() -> dict:
-    """Сводка для админа: всего пользователей, новых за сегодня, подписанных."""
+    """Сводка для админа.
+
+    Общая: всего пользователей, новых за сегодня, подписанных.
+    За сегодня (UTC): сколько пользователей заходило, какими тестами пользовались
+    (завершённые прохождения по видам) и сколько раз открывали «Плейлист дня».
+    """
     async with _db.execute("SELECT COUNT(*) AS n FROM users") as cur:
         total = (await cur.fetchone())["n"]
     async with _db.execute(
@@ -174,7 +194,35 @@ async def get_stats() -> dict:
         "SELECT COUNT(*) AS n FROM users WHERE is_subscribed = 1"
     ) as cur:
         subscribed = (await cur.fetchone())["n"]
-    return {"total": total, "new_today": new_today, "subscribed": subscribed}
+
+    # Посещения сегодня — уникальные пользователи с активностью за текущие сутки.
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM users WHERE DATE(last_active) = DATE('now')"
+    ) as cur:
+        active_today = (await cur.fetchone())["n"]
+
+    # Какими тестами пользовались сегодня (по видам, завершённые прохождения).
+    async with _db.execute(
+        "SELECT quiz_name, COUNT(*) AS n FROM quiz_results "
+        "WHERE DATE(completed_at) = DATE('now') GROUP BY quiz_name"
+    ) as cur:
+        tests_today = {row["quiz_name"]: row["n"] for row in await cur.fetchall()}
+
+    # Сколько раз открывали «Плейлист дня» сегодня.
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'playlist' AND DATE(used_at) = DATE('now')"
+    ) as cur:
+        playlist_today = (await cur.fetchone())["n"]
+
+    return {
+        "total": total,
+        "new_today": new_today,
+        "subscribed": subscribed,
+        "active_today": active_today,
+        "tests_today": tests_today,
+        "playlist_today": playlist_today,
+    }
 
 
 async def get_playlist_pointer() -> tuple[int, str | None]:

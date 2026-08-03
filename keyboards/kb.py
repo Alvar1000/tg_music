@@ -5,10 +5,12 @@
   go_menu                   — вернуться в главное меню
   menu_playlist / menu_fact / menu_chat / menu_tests / menu_events — пункты меню
   test_zodiac / quest_concert — выбор/перезапуск теста или квеста
-  test_covers:<номер>       — запуск/перезапуск теста по обложкам (1 или 2)
+  test_covers:<номер>       — запуск/перезапуск теста по обложкам (1, 2 или 3)
+  test_musician              — запуск/перезапуск теста «Кто ты из рок/метал-музыкантов?»
   zodiac:<индекс>           — выбранный знак зодиака (0..11)
   cover_ans:<индекс>        — выбранный вариант ответа в тесте по обложкам
   cover_next                — перейти к следующей обложке (или к результату)
+  muso_ans:<индекс>         — выбранный вариант ответа в тесте про музыкантов
   quest:<id_узла>           — переход к следующему узлу квеста
 """
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -74,6 +76,8 @@ def tests_menu_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="♈ Музыкант по знаку зодиака", callback_data="test_zodiac")],
         [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 1", callback_data="test_covers:1")],
         [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 2", callback_data="test_covers:2")],
+        [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 3", callback_data="test_covers:3")],
+        [InlineKeyboardButton(text="🎤 Кто ты из рок/метал-музыкантов?", callback_data="test_musician")],
         [InlineKeyboardButton(text="🎤 Квест «Спаси концерт»", callback_data="quest_concert")],
         [_back_button()],
     ])
@@ -108,6 +112,19 @@ def cover_feedback_kb(is_last: bool) -> InlineKeyboardMarkup:
     ])
 
 
+def musician_options_kb(options: list) -> InlineKeyboardMarkup:
+    """Кнопки вариантов ответа в тесте про музыкантов (callback muso_ans:<индекс>).
+
+    Варианты — целые фразы, а не короткие названия, поэтому по одной в ряд.
+    """
+    builder = InlineKeyboardBuilder()
+    for i, opt in enumerate(options):
+        builder.button(text=opt, callback_data=f"muso_ans:{i}")
+    builder.button(text="⬅ В меню", callback_data="go_menu")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
 def quest_choices_kb(choices: list) -> InlineKeyboardMarkup:
     """Кнопки вариантов на узле квеста (callback quest:<id_следующего_узла>)."""
     builder = InlineKeyboardBuilder()
@@ -133,6 +150,10 @@ def zodiac_result_kb() -> InlineKeyboardMarkup:
 def covers_result_kb(key: str) -> InlineKeyboardMarkup:
     """Экран результата теста по обложкам: «Пройти заново» перезапускает ту же часть."""
     return _retry_kb(f"test_covers:{key}")
+
+
+def musician_result_kb() -> InlineKeyboardMarkup:
+    return _retry_kb("test_musician")
 
 
 def quest_end_kb() -> InlineKeyboardMarkup:

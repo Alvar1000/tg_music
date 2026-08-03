@@ -7,6 +7,7 @@
 """
 import html
 import logging
+import random
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -147,6 +148,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
 @router.callback_query(F.data == "menu_playlist")
 async def show_playlist(callback: CallbackQuery) -> None:
     await callback.answer()
+    await db.log_feature(callback.from_user.id, "playlist")
     playlists = config.load_playlists(default=[])
 
     # Очереди ещё нет (плейлисты заливает админ файлом через бота) — запасной экран.
@@ -162,8 +164,11 @@ async def show_playlist(callback: CallbackQuery) -> None:
         return
 
     # Плейлист дня — общий для всех. Указатель сдвигается на +1 за каждый
-    # прошедший календарный день; упёрся в конец очереди — стоит на последнем,
-    # пока админ не дольёт новые плейлисты.
+    # прошедший календарный день и клэмпится к длине очереди — при исчерпании
+    # очереди он «встаёт на паузу» на последнем индексе вместо того, чтобы
+    # улетать вперёд по календарным дням. Благодаря паузе, когда админ дольёт
+    # новые плейлисты, показ продолжится СЛЕДУЮЩИМ по очереди — ни один не
+    # проскочит, сколько бы дней очередь ни простаивала пустой.
     index, last_advance = await db.get_playlist_pointer()
     # День считаем по UTC — как и все остальные даты в БД (см. db._now).
     today = datetime.now(timezone.utc).date().isoformat()
@@ -174,9 +179,14 @@ async def show_playlist(callback: CallbackQuery) -> None:
         days = (date.fromisoformat(today) - date.fromisoformat(last_advance)).days
         index = min(index + days, len(playlists) - 1)
         await db.set_playlist_pointer(index, today)
-    index = min(index, len(playlists) - 1)  # страховка, если очередь стала короче
 
-    pl = playlists[index]
+    if index < len(playlists) - 1:
+        pl = playlists[index]
+    else:
+        # Дошли до конца очереди — вместо залипания на последнем весь день
+        # показываем случайный из уже показанных. Сид — сегодняшняя дата, так
+        # что в течение дня всем пользователям достаётся один и тот же плейлист.
+        pl = random.Random(today).choice(playlists)
     title = html.escape(str(pl.get("title", "Плейлист дня")))
     desc = html.escape(str(pl.get("desc", "")))
     text = f"🎵 <b>Плейлист дня</b>\n\n<b>{title}</b>"

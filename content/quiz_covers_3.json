@@ -1,0 +1,197 @@
+{
+  "title": "Угадай группу по обложке — Часть 3",
+  "questions": [
+    {
+      "photo": "cream-live-cream-vol-2.jpeg",
+      "group": "Cream",
+      "album": "Live Cream, Vol. 2",
+      "options": [
+        "Cream",
+        "Led Zeppelin",
+        "Deep Purple",
+        "The Who"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "rush-moving-pictures.jpeg",
+      "group": "Rush",
+      "album": "Moving Pictures",
+      "options": [
+        "Yes",
+        "Rush",
+        "Kansas",
+        "Triumph"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "david-bowie-lets-dance.jpeg",
+      "group": "David Bowie",
+      "album": "Let's Dance",
+      "options": [
+        "Prince",
+        "Iggy Pop",
+        "David Bowie",
+        "Peter Gabriel"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "grand-funk-railroad-e-pluribus-funk.jpeg",
+      "group": "Grand Funk Railroad",
+      "album": "E Pluribus Funk",
+      "options": [
+        "Steppenwolf",
+        "Bachman-Turner Overdrive",
+        "Foghat",
+        "Grand Funk Railroad"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "jimi-hendrix-axis-bold-as-love.jpeg",
+      "group": "Jimi Hendrix",
+      "album": "Axis: Bold as Love",
+      "options": [
+        "Jimi Hendrix",
+        "Jefferson Airplane",
+        "The Doors",
+        "Janis Joplin"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "dio-holy-diver.jpeg",
+      "group": "Dio",
+      "album": "Holy Diver",
+      "options": [
+        "Judas Priest",
+        "Dio",
+        "Black Sabbath",
+        "Iron Maiden"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "electric-light-orchestra-out-of-the-blue.jpeg",
+      "group": "Electric Light Orchestra",
+      "album": "Out of the Blue",
+      "options": [
+        "Supertramp",
+        "Boston",
+        "Electric Light Orchestra",
+        "Journey"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "pixies-bossanova.jpeg",
+      "group": "Pixies",
+      "album": "Bossanova",
+      "options": [
+        "Sonic Youth",
+        "Dinosaur Jr.",
+        "The Breeders",
+        "Pixies"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "u2-all-that-you-cant-leave-behind.jpeg",
+      "group": "U2",
+      "album": "All That You Can't Leave Behind",
+      "options": [
+        "U2",
+        "Coldplay",
+        "R.E.M.",
+        "INXS"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "talking-heads-more-songs-about-buildings-and-food.jpeg",
+      "group": "Talking Heads",
+      "album": "More Songs About Buildings and Food",
+      "options": [
+        "Devo",
+        "Talking Heads",
+        "Blondie",
+        "The B-52's"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "the-zombies-original-studio-recordings-vol-1.jpeg",
+      "group": "The Zombies",
+      "album": "The Original Studio Recordings, Vol. 1",
+      "options": [
+        "The Kinks",
+        "Herman's Hermits",
+        "The Zombies",
+        "The Hollies"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "fleetwood-mac-tango-in-the-night.jpeg",
+      "group": "Fleetwood Mac",
+      "album": "Tango in the Night",
+      "options": [
+        "Eagles",
+        "Toto",
+        "Chicago",
+        "Fleetwood Mac"
+      ],
+      "correct": 3
+    },
+    {
+      "photo": "grateful-dead-from-the-mars-hotel.jpeg",
+      "group": "Grateful Dead",
+      "album": "From the Mars Hotel",
+      "options": [
+        "Grateful Dead",
+        "The Allman Brothers Band",
+        "Jefferson Airplane",
+        "Phish"
+      ],
+      "correct": 0
+    },
+    {
+      "photo": "nine-inch-nails-pretty-hate-machine.jpeg",
+      "group": "Nine Inch Nails",
+      "album": "Pretty Hate Machine",
+      "options": [
+        "Ministry",
+        "Nine Inch Nails",
+        "Skinny Puppy",
+        "Depeche Mode"
+      ],
+      "correct": 1
+    },
+    {
+      "photo": "rage-against-the-machine.jpeg",
+      "group": "Rage Against the Machine",
+      "album": "Rage Against the Machine",
+      "options": [
+        "Faith No More",
+        "Body Count",
+        "Rage Against the Machine",
+        "Public Enemy"
+      ],
+      "correct": 2
+    },
+    {
+      "photo": "creedence-clearwater-revival-green-river.jpeg",
+      "group": "Creedence Clearwater Revival",
+      "album": "Green River",
+      "options": [
+        "The Doors",
+        "The Beatles",
+        "The Who",
+        "Creedence Clearwater Revival"
+      ],
+      "correct": 3
+    }
+  ]
+}

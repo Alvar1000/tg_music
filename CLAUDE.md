@@ -71,15 +71,24 @@ inside `callback_data`, so keep them short.
 - `handlers/menu.py` — main menu + simple link screens (playlist, chat). Owns the shared
   UI helpers `safe_edit()` and `show_main_menu()` imported across other handlers.
 - `handlers/facts.py` — random fact, no repeats per user (`seen_facts` table).
-- `handlers/tests.py` — three quizzes: zodiac (stateless lookup), "guess the band by
-  album cover" (FSM, two 15-question tests `quiz_covers_1/2.json`; each question is a
-  photo of an album cover with band-name options, scored), and the "Save the concert"
-  quest (FSM, generic graph engine driving `quest_concert.json`). The cover quiz sends
-  each question as a **new photo message** (delete-and-resend), shows the answer via
-  `edit_caption`, and caches each cover's `file_id` after first upload (`_cover_file_id_cache`).
+- `handlers/tests.py` — four quizzes: zodiac (stateless lookup), "guess the band by
+  album cover" (FSM, cover tests `quiz_covers_1/2/3.json` — parts 1–2 have 15 questions,
+  part 3 has 16; each question is a photo of an album cover with band-name options, scored),
+  "which rock/metal musician are you" (FSM, `quiz_musician.json` — 10 text questions, each
+  option casts a point for a musician key; highest score wins, ties broken by
+  `random.choice`), and the "Save the concert" quest (FSM, generic graph engine driving
+  `quest_concert.json`). The cover quiz reads its data by the `key` in `callback_data`, so a
+  **new part is added by a JSON file plus a menu button, with no code change** — same is true
+  for the musician quiz's questions/options. Cover questions are sent as a **new photo
+  message** each time (delete-and-resend, since a photo message can't be edited into text),
+  with the answer shown via `edit_caption` and each cover's `file_id` cached after first
+  upload (`_cover_file_id_cache`); the musician quiz is plain text, so it edits screens in
+  place via `safe_edit()` instead.
 - `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/playlists`, and **playlist upload**
   (admin sends a `.json` document; it's appended to the queue, deduped by url, written
-  atomically via `tmp.replace`).
+  atomically via `tmp.replace`). `/stats` reports totals plus a **today (UTC)** breakdown:
+  visitors, completed quiz runs per type (`TEST_LABELS` maps `quiz_name` → Russian label),
+  and "Playlist of the day" opens.
 
 ### The photo-banner editing gotcha (menu.py)
 
@@ -98,7 +107,9 @@ Any new screen transition must go through these helpers, not raw `edit_text`. Th
 - **DB:** `database/db.py` holds a *single* shared `aiosqlite` connection (`_db` global)
   for the whole process, opened in `init_db()` and closed in `close_db()`. All access goes
   through its async functions — don't open new connections. Tables: `users`, `seen_facts`,
-  `quiz_results`, `seen_endings`, `playlist_state`. **All timestamps are UTC** (`_now()`,
+  `quiz_results`, `seen_endings`, `playlist_state`, `feature_usage` (append-only usage log;
+  written by `log_feature()`, e.g. the `playlist` open, aggregated per-day in `get_stats()`).
+  **All timestamps are UTC** (`_now()`,
   and SQLite `DATE('now')`); keep new date logic UTC to stay consistent.
 - **Playlist-of-the-day** is a shared rotating queue. `playlist_state` (single row, id=1)
   holds a pointer that advances by `+1` per elapsed calendar day (UTC) and clamps at the
@@ -119,9 +130,11 @@ Quest/content JSON is authored as **plain text** (no HTML); the code escapes and
 ## Content files (`content/`)
 
 Edited live, UTF-8, re-read per request. `facts.json` (objects with stable `id`),
-`quiz_zodiac.json` (12 signs), `quiz_covers_1.json`/`quiz_covers_2.json`
+`quiz_zodiac.json` (12 signs), `quiz_covers_1.json`/`quiz_covers_2.json`/`quiz_covers_3.json`
 (`{title, questions:[{photo, group, album, options, correct}]}`; `photo` names a file in
 `content/covers/`, `correct` indexes `options`),
+`quiz_musician.json` (`{title, questions:[{text, options:[{text, result}]}], results:{key:{emoji,
+name, desc}}}`; each option's `result` casts a point for that key in `results`),
 `quest_concert.json` (branching graph: story node = `text`+`choices`, pass-through =
 `text`+`next`, ending = `"ending": true` + optional `title`/`verdict`/`rank`/`rarity`/`score`),
 and `events.json` (optional; absent → placeholder). The README documents each format in

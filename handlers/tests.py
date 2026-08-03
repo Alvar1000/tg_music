@@ -1,6 +1,7 @@
 """Тесты и квест: меню выбора, тест по зодиаку, тест по обложкам (FSM) и квест-граф (FSM)."""
 import html
 import logging
+import random
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -15,13 +16,15 @@ from keyboards.kb import (
     cover_feedback_kb,
     cover_options_kb,
     covers_result_kb,
+    musician_options_kb,
+    musician_result_kb,
     quest_choices_kb,
     quest_end_kb,
     tests_menu_kb,
     zodiac_kb,
     zodiac_result_kb,
 )
-from states.states import CoverQuiz, Quest
+from states.states import CoverQuiz, MusicianQuiz, Quest
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -70,8 +73,10 @@ async def zodiac_result(callback: CallbackQuery) -> None:
 
 
 # ============ (б) Тест «Угадай группу по обложке» ============
-# Два теста по 15 обложек (quiz_covers_1.json / quiz_covers_2.json). Каждый
-# вопрос — это фото обложки с вариантами-кнопками. Так как фото-сообщение нельзя
+# Три теста по обложкам (quiz_covers_1/2/3.json; части 1 и 2 — по 15 вопросов,
+# часть 3 — 16). Каждый вопрос — это фото обложки с вариантами-кнопками. Данные
+# читаются по key из callback_data, так что новую часть добавляют файлом + кнопкой
+# в меню, без правок в коде. Так как фото-сообщение нельзя
 # превратить в текст (и наоборот) редактированием, вопросы шлём как новые фото
 # (старое удаляем), а разбор ответа делаем edit_caption поверх той же обложки.
 
@@ -261,7 +266,100 @@ def _cover_rank(score: int, total: int) -> str:
     return "😅 Пора заряжать вертушку и навёрстывать!"
 
 
-# ============ (в) Квест «Спаси концерт» ============
+# ============ (в) Тест «Кто ты из рок/метал-музыкантов?» ============
+# 10 вопросов, у каждого варианта ответа — свой музыкант (quiz_musician.json:
+# questions[].options[].result). За каждый ответ музыкант получает +1 очко;
+# после последнего вопроса побеждает тот, у кого очков больше (ничьи бьёт
+# random.choice). Вопросы — просто текст с кнопками-вариантами, поэтому
+# экраны редактируются на месте через safe_edit (в отличие от теста по
+# обложкам, где вопрос — это фото).
+
+
+@router.callback_query(F.data == "test_musician")
+async def musician_start(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    quiz = config.load_content("quiz_musician.json", default={})
+    questions = quiz.get("questions") or []
+    if not questions or not quiz.get("results"):
+        await safe_edit(callback, CONTENT_ERROR_TEXT, musician_result_kb())
+        return
+
+    await state.set_state(MusicianQuiz.answering)
+    await state.update_data(question=0, scores={})
+    await _send_musician_question(callback, state, quiz, 0)
+
+
+async def _send_musician_question(
+    callback: CallbackQuery, state: FSMContext, quiz: dict, q_index: int
+) -> None:
+    question = quiz["questions"][q_index]
+    total = len(quiz["questions"])
+    options = [opt.get("text", "") for opt in question.get("options", [])]
+    text = (
+        f"🎤 <b>{html.escape(quiz.get('title', 'Кто ты из рок/метал-музыкантов?'))}</b>\n"
+        f"Вопрос {q_index + 1} из {total}\n\n"
+        f"{html.escape(question.get('text', ''))}"
+    )
+    await safe_edit(callback, text, musician_options_kb(options))
+    await state.update_data(question=q_index)
+
+
+@router.callback_query(MusicianQuiz.answering, F.data.startswith("muso_ans:"))
+async def musician_answer(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    quiz = config.load_content("quiz_musician.json", default={})
+    questions = quiz.get("questions") or []
+    data = await state.get_data()
+    q_index = data.get("question", 0)
+    scores = dict(data.get("scores", {}))
+    chosen = int(callback.data.split(":")[1])
+
+    # Защита от устаревших кнопок и изменившегося контента.
+    if not questions or q_index >= len(questions) or chosen >= len(questions[q_index].get("options", [])):
+        await state.clear()
+        await safe_edit(callback, CONTENT_ERROR_TEXT, musician_result_kb())
+        return
+
+    result_key = questions[q_index]["options"][chosen].get("result")
+    if result_key:
+        scores[result_key] = scores.get(result_key, 0) + 1
+
+    next_index = q_index + 1
+    if next_index < len(questions):
+        await state.update_data(question=next_index, scores=scores)
+        await _send_musician_question(callback, state, quiz, next_index)
+    else:
+        await state.clear()
+        await _show_musician_result(callback, quiz, scores)
+
+
+async def _show_musician_result(callback: CallbackQuery, quiz: dict, scores: dict) -> None:
+    """Итог теста: побеждает музыкант с наибольшим числом очков (ничьи — случайно)."""
+    results = quiz.get("results", {})
+    if not scores or not results:
+        await safe_edit(callback, CONTENT_ERROR_TEXT, musician_result_kb())
+        return
+
+    top_score = max(scores.values())
+    candidates = [key for key, score in scores.items() if score == top_score and key in results]
+    if not candidates:
+        await safe_edit(callback, CONTENT_ERROR_TEXT, musician_result_kb())
+        return
+    winner_key = random.choice(candidates)
+    winner = results[winner_key]
+
+    await db.save_quiz_result(callback.from_user.id, "musician", winner_key)
+    emoji = winner.get("emoji", "🎸")
+    name = html.escape(str(winner.get("name", "")))
+    desc = html.escape(str(winner.get("desc", "")))
+    text = (
+        f"🎤 <b>{html.escape(quiz.get('title', 'Кто ты из рок/метал-музыкантов?'))}</b>\n\n"
+        f"Ты — {emoji} <b>{name}</b>\n\n{desc}"
+    )
+    await safe_edit(callback, text, musician_result_kb())
+
+
+# ============ (г) Квест «Спаси концерт» ============
 @router.callback_query(F.data == "quest_concert")
 async def quest_start(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()

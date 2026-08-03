@@ -38,6 +38,17 @@ def _normalize_playlist(item: dict) -> dict:
     }
 
 
+# Человекочитаемые названия тестов (ключи — quiz_name из quiz_results).
+TEST_LABELS = {
+    "zodiac": "Рок-гороскоп",
+    "covers_1": "Угадай группу по обложке (ч.1)",
+    "covers_2": "Угадай группу по обложке (ч.2)",
+    "covers_3": "Угадай группу по обложке (ч.3)",
+    "musician": "Кто ты из рок/метал-музыкантов?",
+    "quest_concert": "Спаси концерт (квест)",
+}
+
+
 @router.message(Command("stats"))
 async def cmd_stats(message: Message) -> None:
     if message.from_user.id not in config.ADMIN_IDS:
@@ -48,8 +59,27 @@ async def cmd_stats(message: Message) -> None:
         "📊 <b>Статистика</b>\n\n"
         f"👥 Всего пользователей: <b>{stats['total']}</b>\n"
         f"🆕 Новых за сегодня: <b>{stats['new_today']}</b>\n"
-        f"✅ Сейчас подписаны: <b>{stats['subscribed']}</b>"
+        f"✅ Сейчас подписаны: <b>{stats['subscribed']}</b>\n\n"
+        "<b>Сегодня (UTC)</b>\n"
+        f"👀 Заходили: <b>{stats['active_today']}</b>\n"
+        f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_today']}</b>\n"
     )
+
+    tests_today = stats["tests_today"]
+    if tests_today:
+        text += "\n🧩 <b>Тесты сегодня</b> (завершённых прохождений):\n"
+        # Известные тесты — в фиксированном порядке, затем всё прочее.
+        shown = set()
+        for key, label in TEST_LABELS.items():
+            if key in tests_today:
+                text += f"• {html.escape(label)}: <b>{tests_today[key]}</b>\n"
+                shown.add(key)
+        for key, count in tests_today.items():
+            if key not in shown:
+                text += f"• {html.escape(str(key))}: <b>{count}</b>\n"
+    else:
+        text += "\n🧩 Тестами сегодня ещё не пользовались."
+
     await message.answer(text)
 
 
