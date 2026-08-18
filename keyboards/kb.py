@@ -12,6 +12,7 @@
   cover_next                — перейти к следующей обложке (или к результату)
   muso_ans:<индекс>         — выбранный вариант ответа в тесте про музыкантов
   quest:<id_узла>           — переход к следующему узлу квеста
+  broadcast_send / broadcast_cancel — подтверждение/отмена рассылки (админ, FSM Broadcast)
 
 «Найди группу» — не callback, а кнопка web_app (Telegram Mini App), ссылка на
 config.WEBAPP_URL + /rockle/; открывается вне диспетчера aiogram (см. server.py).
@@ -170,4 +171,12 @@ def quest_end_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔁 Сыграть заново", callback_data="quest_concert")],
         [_back_button()],
+    ])
+
+
+def broadcast_confirm_kb() -> InlineKeyboardMarkup:
+    """Подтверждение/отмена рассылки (админ, см. handlers/admin.py)."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Разослать", callback_data="broadcast_send")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="broadcast_cancel")],
     ])

@@ -185,6 +185,13 @@ async def log_feature(user_id: int, feature: str) -> None:
     await _db.commit()
 
 
+async def get_all_user_ids() -> list[int]:
+    """Все id пользователей, когда-либо запускавших бота (для рассылки)."""
+    async with _db.execute("SELECT user_id FROM users") as cur:
+        rows = await cur.fetchall()
+    return [row["user_id"] for row in rows]
+
+
 async def get_stats() -> dict:
     """Сводка для админа.
 

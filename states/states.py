@@ -15,3 +15,9 @@ class MusicianQuiz(StatesGroup):
 class Quest(StatesGroup):
     """Квест «Спаси концерт» (храним текущий узел графа)."""
     playing = State()
+
+
+class Broadcast(StatesGroup):
+    """Рассылка админом сообщения всем пользователям: черновик -> подтверждение."""
+    awaiting_content = State()
+    confirming = State()

@@ -374,6 +374,11 @@
     if (tg) {
       tg.ready();
       tg.expand();
+      // Свайп вниз по сетке иначе распознаётся клиентом Telegram как жест
+      // «свернуть/закрыть мини-апку» поверх любого touch-action в CSS — это
+      // системный жест самого клиента, а не браузера. Метод новый (Bot API 7.7+),
+      // поэтому проверяем, что он вообще есть, прежде чем звать.
+      if (typeof tg.disableVerticalSwipes === "function") tg.disableVerticalSwipes();
       applyTheme();
       tg.onEvent("themeChanged", applyTheme);
     }

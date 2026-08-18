@@ -114,11 +114,21 @@ inside `callback_data`, so keep them short.
   with the answer shown via `edit_caption` and each cover's `file_id` cached after first
   upload (`_cover_file_id_cache`); the musician quiz is plain text, so it edits screens in
   place via `safe_edit()` instead.
-- `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/playlists`, and **playlist upload**
-  (admin sends a `.json` document; it's appended to the queue, deduped by url, written
-  atomically via `tmp.replace`). `/stats` reports totals plus a **today (UTC)** breakdown:
-  visitors, completed quiz runs per type (`TEST_LABELS` maps `quiz_name` → Russian label),
-  and "Playlist of the day" opens.
+- `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/playlists`, `/backup`, `/broadcast`,
+  and **playlist upload** (admin sends a `.json` document; it's appended to the queue,
+  deduped by url, written atomically via `tmp.replace`). `/stats` reports totals plus a
+  **today (UTC)** breakdown: visitors, completed quiz runs per type (`TEST_LABELS` maps
+  `quiz_name` → Russian label), and "Playlist of the day" opens. `/broadcast` is a small
+  FSM (`states.Broadcast`: `awaiting_content` → `confirming`) — admin sends any message
+  (text/photo/video/whatever), bot shows a recipient count + confirm/cancel buttons, then
+  fans it out to every `users.user_id` via `bot.copy_message()` (so it doesn't need to
+  parse content types itself) with a small per-message delay and `TelegramRetryAfter`
+  handling to stay under Telegram's flood limits; `TelegramForbiddenError` (user blocked
+  the bot) is counted separately, not treated as a failure. The draft-capture handler is
+  registered **before** the bare `F.document` playlist-upload handler and filtered to
+  ignore anything starting with `/` — otherwise it would swallow either a broadcasted
+  document or an unrelated admin command typed mid-flow (handlers in a router match in
+  registration order, first filter match wins).
 
 ### The photo-banner editing gotcha (menu.py)
 
