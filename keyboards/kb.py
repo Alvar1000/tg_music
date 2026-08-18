@@ -12,8 +12,11 @@
   cover_next                — перейти к следующей обложке (или к результату)
   muso_ans:<индекс>         — выбранный вариант ответа в тесте про музыкантов
   quest:<id_узла>           — переход к следующему узлу квеста
+
+«Найди группу» — не callback, а кнопка web_app (Telegram Mini App), ссылка на
+config.WEBAPP_URL + /rockle/; открывается вне диспетчера aiogram (см. server.py).
 """
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Канонический порядок знаков зодиака. Индекс в этом списке едет в callback_data.
@@ -71,16 +74,22 @@ def fact_kb() -> InlineKeyboardMarkup:
     ])
 
 
-def tests_menu_kb() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
+def tests_menu_kb(rockle_url: str | None = None) -> InlineKeyboardMarkup:
+    """rockle_url — ссылка на мини-игру «Найди группу» (config.WEBAPP_URL). Пусто —
+    кнопка не показывается (например, при локальном запуске без HTTPS-адреса).
+    """
+    rows = [
         [InlineKeyboardButton(text="♈ Музыкант по знаку зодиака", callback_data="test_zodiac")],
         [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 1", callback_data="test_covers:1")],
         [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 2", callback_data="test_covers:2")],
         [InlineKeyboardButton(text="🖼 Угадай группу по обложке — Часть 3", callback_data="test_covers:3")],
         [InlineKeyboardButton(text="🎤 Кто ты из рок/метал-музыкантов?", callback_data="test_musician")],
         [InlineKeyboardButton(text="🎤 Квест «Спаси концерт»", callback_data="quest_concert")],
-        [_back_button()],
-    ])
+    ]
+    if rockle_url:
+        rows.append([InlineKeyboardButton(text="🧩 Найди группу (афиша дня)", web_app=WebAppInfo(url=rockle_url))])
+    rows.append([_back_button()])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def zodiac_kb() -> InlineKeyboardMarkup:

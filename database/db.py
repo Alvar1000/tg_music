@@ -69,6 +69,14 @@ async def init_db() -> None:
             feature TEXT,
             used_at TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS rockle_results (
+            user_id      INTEGER,
+            play_date    TEXT,
+            seconds      INTEGER,
+            completed_at TEXT,
+            PRIMARY KEY (user_id, play_date)
+        );
         """
     )
     await _db.commit()
@@ -215,6 +223,12 @@ async def get_stats() -> dict:
     ) as cur:
         playlist_today = (await cur.fetchone())["n"]
 
+    # Сколько человек прошли мини-игру «Найди группу» сегодня.
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM rockle_results WHERE play_date = DATE('now')"
+    ) as cur:
+        rockle_today = (await cur.fetchone())["n"]
+
     return {
         "total": total,
         "new_today": new_today,
@@ -222,6 +236,7 @@ async def get_stats() -> dict:
         "active_today": active_today,
         "tests_today": tests_today,
         "playlist_today": playlist_today,
+        "rockle_today": rockle_today,
     }
 
 
@@ -250,6 +265,32 @@ async def set_playlist_pointer(index: int, last_advance: str) -> None:
         (index, last_advance),
     )
     await _db.commit()
+
+
+async def get_rockle_result(user_id: int, play_date: str) -> int | None:
+    """Время (в секундах) уже сохранённого прохождения «Найди группу» за play_date, если есть."""
+    async with _db.execute(
+        "SELECT seconds FROM rockle_results WHERE user_id = ? AND play_date = ?",
+        (user_id, play_date),
+    ) as cur:
+        row = await cur.fetchone()
+    return row["seconds"] if row else None
+
+
+async def save_rockle_result(user_id: int, play_date: str, seconds: int) -> int:
+    """Сохраняет первое прохождение дня; повторные попытки не перезаписывают время.
+
+    Возвращает засчитанное время (может быть не тем, что в этом вызове, — если
+    пользователь уже проходил сегодня, остаётся первый результат).
+    """
+    await _db.execute(
+        "INSERT OR IGNORE INTO rockle_results (user_id, play_date, seconds, completed_at) "
+        "VALUES (?, ?, ?, ?)",
+        (user_id, play_date, seconds, _now()),
+    )
+    await _db.commit()
+    existing = await get_rockle_result(user_id, play_date)
+    return existing if existing is not None else seconds
 
 
 async def backup_database(dest: str) -> None:

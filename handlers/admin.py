@@ -63,6 +63,7 @@ async def cmd_stats(message: Message) -> None:
         "<b>Сегодня (UTC)</b>\n"
         f"👀 Заходили: <b>{stats['active_today']}</b>\n"
         f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_today']}</b>\n"
+        f"🧩 Прошли «Найди группу»: <b>{stats['rockle_today']}</b>\n"
     )
 
     tests_today = stats["tests_today"]

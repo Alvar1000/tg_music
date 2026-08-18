@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import config
+import server
 from database import db
 from handlers import admin, events, facts, fallback, menu, start, tests
 from middlewares.subscription import SubscriptionMiddleware
@@ -64,12 +65,16 @@ async def main() -> None:
     bot = create_bot()
     dp = create_dispatcher()
 
+    # Веб-сервер мини-игры живёт в этом же процессе (см. server.py — почему).
+    runner = await server.start_server()
+
     try:
         logger.info("Бот запускается (long polling)...")
         # drop_pending_updates: при старте отбрасываем накопившиеся за простой
         # апдейты, чтобы не отвечать на устаревшие нажатия («query is too old»).
         await dp.start_polling(bot, drop_pending_updates=True)
     finally:
+        await runner.cleanup()
         await bot.session.close()
         await db.close_db()
         logger.info("Бот остановлен.")

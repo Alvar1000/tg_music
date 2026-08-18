@@ -2,17 +2,19 @@
 #
 # Деплой с нуля:
 #   Render Dashboard → New → Blueprint → выбрать этот репозиторий.
-# Render сам создаст background worker + диск + переменные и один раз спросит
+# Render сам создаст веб-сервис + диск + переменные и один раз спросит
 # значения секретов (тех, что помечены `sync: false`). Документация схемы:
 # https://render.com/docs/blueprint-spec
 services:
-  - type: worker                       # фоновый процесс (long polling), без HTTP-порта
+  - type: web                          # веб-сервис: long polling бота + aiohttp-сервер мини-игры
+                                        # в одном процессе (см. server.py — почему не отдельный сервис)
     name: blackmagicwoman-bot
     runtime: python
-    plan: starter                      # платный тариф ($7) — нужен для worker и диска
+    plan: starter                      # платный тариф ($7) — нужен для web-сервиса и диска
     region: frankfurt                  # ближе к EU; можно oregon/ohio/virginia/singapore
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
+    healthCheckPath: /healthz
 
     # Постоянный диск: bot.db и очередь плейлистов переживают редеплой.
     disk:
@@ -28,6 +30,8 @@ services:
         value: /data/playlists.json
       - key: RESET_FACTS_WHEN_DONE
         value: "false"
+      # WEBAPP_URL не задаём явно — Render сам прокидывает RENDER_EXTERNAL_URL
+      # с публичным адресом сервиса, config.py берёт его как фолбэк (см. комментарий там).
       # Зафиксировать версию Python (по желанию) — раскомментируй с доступной на Render:
       # - key: PYTHON_VERSION
       #   value: "3.13.4"

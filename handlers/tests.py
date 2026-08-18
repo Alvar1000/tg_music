@@ -41,7 +41,8 @@ _cover_file_id_cache: dict[str, str] = {}
 async def tests_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await callback.answer()
-    await safe_edit(callback, "🧠 <b>Тесты</b>\n\nВыбирай:", tests_menu_kb())
+    rockle_url = f"{config.WEBAPP_URL}/rockle/" if config.WEBAPP_URL else None
+    await safe_edit(callback, "🧠 <b>Тесты</b>\n\nВыбирай:", tests_menu_kb(rockle_url))
 
 
 # ============ (а) Тест «Музыкант по знаку зодиака» ============

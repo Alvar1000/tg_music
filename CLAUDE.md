@@ -18,14 +18,17 @@ Russian-speaking rock community). Keep new UI text and comments in Russian to ma
 ```bash
 # from /Users/alfa/envs/tg_env/tg_music
 source ../bin/activate           # activate the surrounding venv (Python 3.13)
-pip install -r requirements.txt  # aiogram, aiosqlite, python-dotenv only
+pip install -r requirements.txt  # aiogram, aiosqlite, python-dotenv, aiohttp
 cp .env.example .env             # then fill BOT_TOKEN, CHANNEL_ID, ADMIN_IDS, links
-python main.py                   # runs the bot (long polling)
+python main.py                   # runs the bot (long polling) + the Mini App web server
 ```
 
 Run `python main.py` from this directory — `config.py` resolves `content/`, `.env`,
 `bot.db`, and `bot.log` relative to `main.py`'s location (`BASE_DIR`), so paths only
-line up when run as `main.py`.
+line up when run as `main.py`. `main.py` also starts an aiohttp server (`server.py`,
+port `config.PORT`, default 8080) for the "Найди группу" Mini App — same process, see
+"Mini App server" below. Without `WEBAPP_URL` (or `RENDER_EXTERNAL_URL`) set, the server
+still runs but the Mini App button just doesn't appear in the menu.
 
 There is **no test suite and no configured linter** in this repo — don't assume `pytest`
 or `ruff` commands exist. Verification is manual (run the bot, drive it in Telegram).
@@ -59,6 +62,33 @@ include order, so `handlers/fallback.py` (a catch-all `@router.callback_query()`
 stay **last** — it answers stale buttons (e.g. a tap on an old message after the FSM
 state was cleared) so Telegram doesn't spin. Putting it earlier would swallow real
 callbacks.
+
+### Mini App server (server.py)
+
+The "Найди группу" (word search) game is a Telegram Mini App, not an aiogram handler —
+it's a self-contained static page (`webapp/rockle/index.html`) served by an aiohttp app
+(`server.py`) that `main.py` starts **in the same process and event loop** as the bot's
+long polling, not as a separate service. This is deliberate: Render's persistent disk
+(`/data`, holding `bot.db` and `playlists.json`) can only be mounted by one service, so a
+second process couldn't reach the same DB/files anyway. If you ever add webhook mode
+(see README "Переключение на webhook"), register it on the *same* `web.Application` that
+`server.py:create_app()` builds — don't spin up a second aiohttp app.
+
+- **Daily puzzle, shared across users.** `GET /api/rockle/today` deterministically picks
+  15 bands from `content/rockle_words.json` via `random.Random(today_iso).sample(...)` —
+  same pattern as the playlist-of-the-day pointer. The letter grid itself is built
+  **client-side**, seeded from that same date string (FNV-1a hash → mulberry32 PRNG in
+  JS), so every player gets a pixel-identical grid that day without the server doing any
+  layout work.
+- **Result integrity.** The client posts `initData` (Telegram's signed payload) along
+  with the elapsed time to `POST /api/rockle/complete`. `server.py:validate_init_data()`
+  verifies the HMAC-SHA256 signature (secret = `HMAC_SHA256("WebAppData", BOT_TOKEN)`,
+  per Telegram's documented algorithm) and rejects stale `auth_date` (>24h) before trusting
+  `user_id` — without this check anyone could POST results under someone else's id. First
+  completion per `(user_id, play_date)` wins (`rockle_results` PK); replays don't overwrite it.
+- The menu button (`keyboards/kb.py:tests_menu_kb()`) only appears when
+  `config.WEBAPP_URL` resolves to something — Mini Apps require HTTPS, so there's nothing
+  useful to link to without it.
 
 ### Handlers and their callback_data
 
@@ -108,7 +138,8 @@ Any new screen transition must go through these helpers, not raw `edit_text`. Th
   for the whole process, opened in `init_db()` and closed in `close_db()`. All access goes
   through its async functions — don't open new connections. Tables: `users`, `seen_facts`,
   `quiz_results`, `seen_endings`, `playlist_state`, `feature_usage` (append-only usage log;
-  written by `log_feature()`, e.g. the `playlist` open, aggregated per-day in `get_stats()`).
+  written by `log_feature()`, e.g. the `playlist` open, aggregated per-day in `get_stats()`),
+  `rockle_results` (one row per `(user_id, play_date)`, see "Mini App server" above).
   **All timestamps are UTC** (`_now()`,
   and SQLite `DATE('now')`); keep new date logic UTC to stay consistent.
 - **Playlist-of-the-day** is a shared rotating queue. `playlist_state` (single row, id=1)
@@ -137,5 +168,7 @@ Edited live, UTF-8, re-read per request. `facts.json` (objects with stable `id`)
 name, desc}}}`; each option's `result` casts a point for that key in `results`),
 `quest_concert.json` (branching graph: story node = `text`+`choices`, pass-through =
 `text`+`next`, ending = `"ending": true` + optional `title`/`verdict`/`rank`/`rarity`/`score`),
+`rockle_words.json` (flat array of `{display, key}` for the "Найди группу" Mini App; `key`
+is uppercase letters only, no spaces/punctuation — that's what gets placed in the grid),
 and `events.json` (optional; absent → placeholder). The README documents each format in
 detail. `DEPLOY_PLAN.md` is a not-yet-implemented Docker/VPS deployment design.

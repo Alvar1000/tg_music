@@ -73,6 +73,20 @@ LOG_FILE = os.getenv("LOG_FILE", str(BASE_DIR / "bot.log"))
 # хостинге обычно эфемерная, а диск — нет.
 PLAYLISTS_PATH = Path(os.getenv("PLAYLISTS_PATH", str(CONTENT_DIR / "playlists.json")))
 
+# Публичный HTTPS-адрес этого же процесса (aiohttp-сервер из server.py), без
+# слеша на конце — например https://blackmagicwoman-bot.onrender.com. Нужен,
+# чтобы собрать ссылку на мини-игру для кнопки web_app. На Render подхватывается
+# сам через RENDER_EXTERNAL_URL (её конкретный сервис заполняет автоматически);
+# WEBAPP_URL в .env — явный оверрайд поверх неё (например, туннель ngrok при
+# локальной разработке). Пусто в обоих — кнопка мини-игры в меню не показывается.
+WEBAPP_URL = (
+    os.getenv("WEBAPP_URL", "").strip().rstrip("/")
+    or os.getenv("RENDER_EXTERNAL_URL", "").strip().rstrip("/")
+)
+
+# Порт, на котором server.py поднимает aiohttp (Render передаёт его через PORT).
+PORT = int(os.getenv("PORT", "8080"))
+
 
 def validate() -> None:
     """Проверяет обязательные переменные. Вызывается один раз при старте."""
