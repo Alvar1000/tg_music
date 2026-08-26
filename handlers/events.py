@@ -31,6 +31,7 @@ async def show_events(callback: CallbackQuery) -> None:
         title = html.escape(str(ev.get("title", "")))
         date = html.escape(str(ev.get("date", "")))
         place = html.escape(str(ev.get("place", "")))
+        desc = html.escape(str(ev.get("desc", "")))
         url = str(ev.get("url", "")).strip()
 
         # Заголовок: ссылкой, если задан url.
@@ -42,6 +43,9 @@ async def show_events(callback: CallbackQuery) -> None:
             lines.append(f"🗓 {date}")
         if place:
             lines.append(f"📍 {place}")
+        if desc:
+            lines.append("")
+            lines.append(desc)
         lines.append("")  # пустая строка между событиями
 
     text = "\n".join(lines).strip()
