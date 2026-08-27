@@ -67,6 +67,7 @@ async def cmd_stats(message: Message) -> None:
         "<b>Сегодня (UTC)</b>\n"
         f"👀 Заходили: <b>{stats['active_today']}</b>\n"
         f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_today']}</b>\n"
+        f"🧩 Заходов в «Найди группу»: <b>{stats['rockle_opens_today']}</b>\n"
         f"🧩 Прошли «Найди группу»: <b>{stats['rockle_today']}</b>\n"
     )
 
@@ -84,6 +85,39 @@ async def cmd_stats(message: Message) -> None:
                 text += f"• {html.escape(str(key))}: <b>{count}</b>\n"
     else:
         text += "\n🧩 Тестами сегодня ещё не пользовались."
+
+    await message.answer(text)
+
+
+@router.message(Command("month"))
+async def cmd_month(message: Message) -> None:
+    """Сводка за последние 30 дней: MAU, средний DAU и суммы по тестам/фичам."""
+    if message.from_user.id not in config.ADMIN_IDS:
+        return  # не-админам не отвечаем
+
+    stats = await db.get_month_stats()
+    text = (
+        f"📅 <b>Статистика за {stats['days']} дней</b>\n\n"
+        f"👥 MAU (уникальных активных): <b>{stats['mau']}</b>\n"
+        f"📈 Средний DAU: <b>{stats['avg_dau']:.1f}</b>\n\n"
+        f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_month']}</b>\n"
+        f"🧩 Заходов в «Найди группу»: <b>{stats['rockle_opens_month']}</b>\n"
+        f"🧩 Прошли «Найди группу»: <b>{stats['rockle_completed_month']}</b>\n"
+    )
+
+    tests_month = stats["tests_month"]
+    if tests_month:
+        text += "\n🧩 <b>Тесты за период</b> (завершённых прохождений):\n"
+        shown = set()
+        for key, label in TEST_LABELS.items():
+            if key in tests_month:
+                text += f"• {html.escape(label)}: <b>{tests_month[key]}</b>\n"
+                shown.add(key)
+        for key, count in tests_month.items():
+            if key not in shown:
+                text += f"• {html.escape(str(key))}: <b>{count}</b>\n"
+    else:
+        text += "\n🧩 Тестами за этот период ещё не пользовались."
 
     await message.answer(text)
 

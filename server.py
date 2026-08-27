@@ -88,6 +88,9 @@ async def rockle_today(request: web.Request) -> web.Response:
         user_id = _extract_user_id(pairs)
         if user_id is not None:
             already_completed = await db.get_rockle_result(user_id, today)
+            # Клиент запрашивает этот эндпоинт ровно раз при открытии мини-аппы —
+            # удобная точка учёта «заходов», отдельно от завершённых прохождений.
+            await db.log_feature(user_id, "rockle_open")
 
     return web.json_response({
         "date": today,

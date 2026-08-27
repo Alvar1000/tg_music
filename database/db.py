@@ -21,6 +21,18 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
+async def _mark_daily_active(user_id: int) -> None:
+    """Отмечает пользователя активным сегодня (для MAU/среднего DAU за месяц).
+
+    INSERT OR IGNORE — за день пишется не больше одной строки на пользователя,
+    сколько бы действий он ни совершил.
+    """
+    await _db.execute(
+        "INSERT OR IGNORE INTO daily_active (user_id, day) VALUES (?, DATE('now'))",
+        (user_id,),
+    )
+
+
 async def init_db() -> None:
     """Открывает соединение и создаёт таблицы, если их ещё нет."""
     global _db
@@ -70,6 +82,12 @@ async def init_db() -> None:
             used_at TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS daily_active (
+            user_id INTEGER,
+            day     TEXT,
+            PRIMARY KEY (user_id, day)
+        );
+
         CREATE TABLE IF NOT EXISTS rockle_results (
             user_id      INTEGER,
             play_date    TEXT,
@@ -105,6 +123,7 @@ async def upsert_user(user_id: int, username: str | None, full_name: str) -> Non
         """,
         (user_id, username, full_name, now, now),
     )
+    await _mark_daily_active(user_id)
     await _db.commit()
 
 
@@ -114,6 +133,7 @@ async def set_subscribed(user_id: int, is_subscribed: bool) -> None:
         "UPDATE users SET is_subscribed = ?, last_active = ? WHERE user_id = ?",
         (1 if is_subscribed else 0, _now(), user_id),
     )
+    await _mark_daily_active(user_id)
     await _db.commit()
 
 
@@ -236,6 +256,13 @@ async def get_stats() -> dict:
     ) as cur:
         rockle_today = (await cur.fetchone())["n"]
 
+    # Сколько раз сегодня открывали мини-игру (заходы, не только завершённые).
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'rockle_open' AND DATE(used_at) = DATE('now')"
+    ) as cur:
+        rockle_opens_today = (await cur.fetchone())["n"]
+
     return {
         "total": total,
         "new_today": new_today,
@@ -244,6 +271,68 @@ async def get_stats() -> dict:
         "tests_today": tests_today,
         "playlist_today": playlist_today,
         "rockle_today": rockle_today,
+        "rockle_opens_today": rockle_opens_today,
+    }
+
+
+async def get_month_stats(days: int = 30) -> dict:
+    """Сводка за последние `days` суток (включая сегодня): MAU, средний DAU
+
+    и суммы по тестам/фичам — аналог get_stats(), но за окно, а не за один день.
+    """
+    since = f"-{days - 1} days"
+
+    # MAU — уникальные пользователи, заходившие хотя бы раз за период.
+    async with _db.execute(
+        "SELECT COUNT(DISTINCT user_id) AS n FROM daily_active WHERE day >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        mau = (await cur.fetchone())["n"]
+
+    # Средний DAU = сумма дневных «активных» строк / длина периода (дни без
+    # активности учитываются как 0, а не выпадают из расчёта).
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM daily_active WHERE day >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        active_day_rows = (await cur.fetchone())["n"]
+    avg_dau = active_day_rows / days
+
+    async with _db.execute(
+        "SELECT quiz_name, COUNT(*) AS n FROM quiz_results "
+        "WHERE DATE(completed_at) >= DATE('now', ?) GROUP BY quiz_name",
+        (since,),
+    ) as cur:
+        tests_month = {row["quiz_name"]: row["n"] for row in await cur.fetchall()}
+
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'playlist' AND DATE(used_at) >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        playlist_month = (await cur.fetchone())["n"]
+
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'rockle_open' AND DATE(used_at) >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        rockle_opens_month = (await cur.fetchone())["n"]
+
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM rockle_results WHERE play_date >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        rockle_completed_month = (await cur.fetchone())["n"]
+
+    return {
+        "days": days,
+        "mau": mau,
+        "avg_dau": avg_dau,
+        "tests_month": tests_month,
+        "playlist_month": playlist_month,
+        "rockle_opens_month": rockle_opens_month,
+        "rockle_completed_month": rockle_completed_month,
     }
 
 
