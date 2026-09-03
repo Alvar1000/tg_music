@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 WEBAPP_DIR = config.BASE_DIR / "webapp" / "rockle"
 INIT_DATA_MAX_AGE = 24 * 60 * 60  # сутки — старее не принимаем (защита от replay)
-WORDS_PER_DAY = 15
+WORDS_PER_DAY = 10
 
 
 def validate_init_data(init_data: str, bot_token: str) -> dict | None:

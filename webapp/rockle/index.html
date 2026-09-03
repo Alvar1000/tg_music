@@ -232,6 +232,17 @@
     text-align: center;
   }
 
+  .hint-row {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 2px;
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
   .words {
     list-style: none;
     margin: 0;
@@ -240,6 +251,7 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 7px 10px;
+    min-height: 18px;
   }
 
   .words li {
@@ -248,6 +260,13 @@
     color: var(--ink);
     position: relative;
     padding-bottom: 2px;
+  }
+
+  .words li.placeholder {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-soft);
+    opacity: 0.75;
   }
 
   .words li.done { color: var(--ink-soft); }
@@ -343,19 +362,27 @@
         <span class="meta-label">Найдено</span>
         <span class="meta-value"><span id="foundCount">0</span>/<span id="totalCount">0</span></span>
       </div>
+      <div class="meta">
+        <span class="meta-label">Жизни</span>
+        <span class="meta-value" id="livesValue">❤️❤️❤️❤️❤️</span>
+      </div>
     </div>
 
     <div class="grid" id="grid" role="img" aria-label="Сетка букв со спрятанными названиями рок-групп"></div>
 
+    <div class="hint-row">
+      <button class="btn" id="hintBtn" type="button">💡 Подсказка</button>
+    </div>
+
     <div class="perforation" aria-hidden="true"></div>
 
-    <p class="setlist-label">Состав вечера</p>
+    <p class="setlist-label">Разгаданные названия</p>
     <ul class="words" id="wordList"></ul>
   </main>
 
   <p class="status" id="status">Загружаем сегодняшнюю афишу…</p>
 
-  <p class="hint" id="hint" hidden>Проведи пальцем (или мышью) по буквам — по горизонтали, вертикали или диагонали, в любую сторону.</p>
+  <p class="hint" id="hint" hidden>Проведи пальцем (или мышью) по буквам — по горизонтали или вертикали, в любую сторону.</p>
 </div>
 
 <div class="win-overlay" id="winOverlay" hidden>
@@ -390,12 +417,14 @@
       }
     }
 
-    var SIZE = 16;
+    var SIZE = 12;
+    // Только по горизонтали/вертикали — без диагоналей: раз список групп
+    // больше не виден целиком, диагональные слова делали игру слишком сложной.
     var DIRS = [
-      [1, 0], [-1, 0], [0, 1], [0, -1],
-      [1, 1], [1, -1], [-1, 1], [-1, -1]
+      [1, 0], [-1, 0], [0, 1], [0, -1]
     ];
     var FILLER = "EEEEAAAARRRTTTOOOIIISSSNNNLLLCCCUUUDDPPMMHHGGBBFFYYWWKKVVXZQJ";
+    var START_LIVES = 5;
 
     // Детерминированный PRNG (FNV-1a хеш строки -> mulberry32), чтобы у всех
     // пользователей в один день была ИДЕНТИЧНАЯ сетка — сид берём из даты,
@@ -429,10 +458,12 @@
     var timerEl = document.getElementById("timer");
     var foundCountEl = document.getElementById("foundCount");
     var totalCountEl = document.getElementById("totalCount");
+    var livesValueEl = document.getElementById("livesValue");
+    var hintBtn = document.getElementById("hintBtn");
     var winOverlay = document.getElementById("winOverlay");
     var winTimeEl = document.getElementById("winTime");
 
-    var grid, cells, placedWords, remaining, foundTotal, startTime, tickHandle, dragging, startCell, path;
+    var grid, cells, placedWords, remaining, foundTotal, lives, revealed, revealOrder, startTime, tickHandle, dragging, startCell, path;
     var initData = tg ? (tg.initData || "") : "";
 
     function emptyGrid() {
@@ -495,15 +526,55 @@
       }
     }
 
+    // Список внизу больше не показывает все группы сразу — только те, что либо
+    // уже найдены, либо открыты подсказкой (взгляд на название не палит клетки).
     function renderWordList() {
       wordListEl.innerHTML = "";
-      placedWords.forEach(function (w) {
+      totalCountEl.textContent = String(placedWords.length);
+      if (!revealOrder.length) {
+        var placeholder = document.createElement("li");
+        placeholder.className = "placeholder";
+        placeholder.textContent = "Пока пусто — ищи на слух или жми «Подсказка»";
+        wordListEl.appendChild(placeholder);
+        return;
+      }
+      revealOrder.forEach(function (key) {
+        var w = revealed[key];
         var li = document.createElement("li");
         li.textContent = w.display;
-        li.dataset.key = w.key;
+        li.dataset.key = key;
+        if (w.done) li.classList.add("done");
         wordListEl.appendChild(li);
       });
-      totalCountEl.textContent = String(placedWords.length);
+    }
+
+    function revealWord(key, done) {
+      var entry = revealed[key];
+      if (!entry) {
+        var w = placedWords.filter(function (p) { return p.key === key; })[0];
+        if (!w) return;
+        entry = revealed[key] = { display: w.display, done: false };
+        revealOrder.push(key);
+      }
+      if (done) entry.done = true;
+      renderWordList();
+    }
+
+    function updateLives() {
+      livesValueEl.textContent = "❤️".repeat(lives) + "🖤".repeat(START_LIVES - lives);
+      var hintsLeft = Object.keys(remaining).some(function (key) { return !revealed[key]; });
+      hintBtn.disabled = lives <= 0 || !hintsLeft;
+    }
+
+    function useHint() {
+      if (hintBtn.disabled) return;
+      var pool = Object.keys(remaining).filter(function (key) { return !revealed[key]; });
+      if (!pool.length) return;
+      var key = pool[Math.floor(rng() * pool.length)];
+      lives--;
+      revealWord(key, false);
+      updateLives();
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
     }
 
     function startTimerLoop() {
@@ -511,6 +582,10 @@
       placedWords.forEach(function (w) { remaining[w.key] = true; });
       foundTotal = 0;
       foundCountEl.textContent = "0";
+      lives = START_LIVES;
+      revealed = {};
+      revealOrder = [];
+      updateLives();
       startTime = Date.now();
       clearInterval(tickHandle);
       tickHandle = setInterval(updateTimer, 500);
@@ -599,13 +674,14 @@
       foundTotal++;
       foundCountEl.textContent = String(foundTotal);
       p.forEach(function (pt) { cells[pt.r][pt.c].classList.add("found"); });
-      var li = wordListEl.querySelector('li[data-key="' + match + '"]');
-      if (li) li.classList.add("done");
+      revealWord(match, true);
+      updateLives();
       if (foundTotal === placedWords.length) finishGame();
     }
 
     function finishGame() {
       clearInterval(tickHandle);
+      hintBtn.disabled = true;
       var seconds = Math.floor((Date.now() - startTime) / 1000);
       winTimeEl.textContent = "Время: " + timerEl.textContent;
       winOverlay.hidden = false;
@@ -632,6 +708,7 @@
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
     document.getElementById("againBtn").addEventListener("click", replay);
+    hintBtn.addEventListener("click", useHint);
 
     function showError(text) {
       statusEl.textContent = text;
@@ -662,8 +739,8 @@
         }
 
         renderGrid();
-        renderWordList();
         startTimerLoop();
+        renderWordList();
       })
       .catch(function () {
         showError("Не получилось загрузить афишу. Проверь связь и попробуй снова 🤘");

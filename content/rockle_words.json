@@ -2,7 +2,7 @@
   {"display": "Beatles", "key": "BEATLES"},
   {"display": "Queen", "key": "QUEEN"},
   {"display": "Kiss", "key": "KISS"},
-  {"display": "The Doors", "key": "DOORS"},
+  {"display": "Doors", "key": "DOORS"},
   {"display": "Rush", "key": "RUSH"},
   {"display": "Cream", "key": "CREAM"},
   {"display": "Eagles", "key": "EAGLES"},
@@ -51,5 +51,17 @@
   {"display": "Thin Lizzy", "key": "THINLIZZY"},
   {"display": "Rainbow", "key": "RAINBOW"},
   {"display": "Whitesnake", "key": "WHITESNAKE"},
-  {"display": "Judas Priest", "key": "JUDASPRIEST"}
+  {"display": "Judas Priest", "key": "JUDASPRIEST"},
+  {"display": "Jimi Hendrix", "key": "JIMIHENDRIX"},
+  {"display": "Talking Heads", "key": "TALKINGHEADS"},
+  {"display": "Zombies", "key": "ZOMBIES"},
+  {"display": "Beach Boys", "key": "BEACHBOYS"},
+  {"display": "King Crimson", "key": "KINGCRIMSON"},
+  {"display": "Cure", "key": "CURE"},
+  {"display": "Sex Pistols", "key": "SEXPISTOLS"},
+  {"display": "Joy Division", "key": "JOYDIVISION"},
+  {"display": "Stooges", "key": "STOOGES"},
+  {"display": "Police", "key": "POLICE"},
+  {"display": "UFO", "key": "UFO"},
+  {"display": "Smokie", "key": "SMOKIE"}
 ]
