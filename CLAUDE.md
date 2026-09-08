@@ -90,6 +90,52 @@ second process couldn't reach the same DB/files anyway. If you ever add webhook 
   `config.WEBAPP_URL` resolves to something — Mini Apps require HTTPS, so there's nothing
   useful to link to without it.
 
+### Analytics dashboard (dashboard.py)
+
+`/dashboard` is a private, owner-only analytics website — plain browser, not a Telegram
+surface. Same deal as the Mini App: its routes (`dashboard.py:register_routes()`) are
+registered onto the *same* `web.Application` inside `server.py:create_app()`, not a
+second app/port. `webapp/dashboard/index.html` follows the exact same convention as
+`webapp/rockle/index.html` — one self-contained file, inline CSS/JS, no build step, one
+pinned CDN script (Chart.js) for the one full-size chart; everything else (KPI cards,
+grouped metric panels, sparklines) is hand-rolled with a small inline-SVG polyline helper
+to avoid instantiating many Chart.js instances.
+
+- **Auth is a shared-secret token, not Telegram identity.** `config.DASHBOARD_TOKEN`
+  compared via `hmac.compare_digest` against an `Authorization: Bearer` header
+  (`dashboard.py:check_dashboard_auth()`). Empty token → every `/api/dashboard/*` route
+  returns 401 and the page just shows an unusable login form — same "degrade quietly,
+  don't crash the bot" pattern as `WEBAPP_URL`/`MENU_IMAGE`. This is a deliberate
+  departure from the `ADMIN_IDS` pattern used everywhere else: the dashboard is meant to
+  open in a plain desktop browser, not launched from inside Telegram.
+- **Subscriber growth needed a new log, because `users.is_subscribed` has no history.**
+  It's a live flag, overwritten in place — there was never a way to know *when* someone
+  (un)subscribed, only their current state. `set_subscribed()` now reads the current value
+  first and only appends to `subscription_events(user_id, is_subscribed, changed_at)` when
+  it actually changes (not on every gate re-check, which is most bot interactions — that
+  would make the table huge for no signal). `init_db()` runs a one-time
+  `_backfill_subscription_events()` that seeds one synthetic "subscribed" event per
+  already-subscribed user so the running-total chart (`db.get_subscriber_growth()`) has a
+  sane starting point instead of jumping from zero. The unavoidable side effect: the chart
+  always shows one big step on day one (everything accumulated before tracking started),
+  then true day-by-day history after that — this is stated in the dashboard UI, not hidden.
+- **Releases are marked by hand — there's no way to infer them.** Content and code ship in
+  the same git commits with no versioning convention (see "Content files" below), so
+  `releases(id, label, kind, released_at, note, created_at)` exists purely because the
+  owner types a label into a dashboard form when they ship something. The before/after
+  traffic delta (`dashboard.py:_compute_impact()`) compares average DAU in the N days
+  before vs. after `released_at` — one query per side via `db.get_daily_metric()`, which is
+  also what powers every chart/sparkline (dispatches on a `metric` string: `"dau"`,
+  `"new_users"`, `"feature:<name>"`, `"quiz:<name>"`, `"quiz_total"`, `"rockle_completed"`).
+- **No giveaway-entry mechanism exists on purpose.** An earlier design had users tap
+  "участвовать" in the bot and an automated winner draw; that was cut as overbuilt. What
+  shipped instead is `db.get_leaderboard()` — a read-only ranking (`metric="rockle"`: most
+  `rockle_results` plays in a date range, tie-broken by best time; `metric="active"`: most
+  `daily_active` days) that the owner reads manually to pick a winner. A giveaway is just a
+  `releases` row with `kind="giveaway"`; announcing it is a normal `/broadcast`, not
+  anything dashboard-triggered — there's no code path where the dashboard sends Telegram
+  messages.
+
 ### Handlers and their callback_data
 
 `keyboards/kb.py` is the single source of truth for every inline keyboard and its

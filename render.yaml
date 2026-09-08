@@ -47,3 +47,5 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
+      - key: DASHBOARD_TOKEN
+        sync: false

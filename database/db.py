@@ -4,7 +4,7 @@
 последовательно в отдельном потоке, поэтому это безопасно и просто.
 """
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import aiosqlite
 
@@ -95,10 +95,61 @@ async def init_db() -> None:
             completed_at TEXT,
             PRIMARY KEY (user_id, play_date)
         );
+
+        CREATE TABLE IF NOT EXISTS releases (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            label       TEXT NOT NULL,
+            kind        TEXT NOT NULL DEFAULT 'content',
+            released_at TEXT NOT NULL,
+            note        TEXT,
+            created_at  TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS subscription_events (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id       INTEGER,
+            is_subscribed INTEGER,
+            changed_at    TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_feature_usage_feature_used_at  ON feature_usage(feature, used_at);
+        CREATE INDEX IF NOT EXISTS idx_quiz_results_name_completed_at ON quiz_results(quiz_name, completed_at);
+        CREATE INDEX IF NOT EXISTS idx_users_first_seen               ON users(first_seen);
+        CREATE INDEX IF NOT EXISTS idx_daily_active_day               ON daily_active(day);
+        CREATE INDEX IF NOT EXISTS idx_rockle_results_play_date       ON rockle_results(play_date);
+        CREATE INDEX IF NOT EXISTS idx_rockle_results_user            ON rockle_results(user_id);
+        CREATE INDEX IF NOT EXISTS idx_subscription_events_changed_at ON subscription_events(changed_at);
         """
     )
     await _db.commit()
+    await _backfill_subscription_events()
     logger.info("База данных готова: %s", DB_PATH)
+
+
+async def _backfill_subscription_events() -> None:
+    """Разовый посев истории подписок для уже подписанных пользователей.
+
+    До появления subscription_events флаг is_subscribed не имел истории —
+    без этого шага график роста подписчиков стартовал бы с нуля, теряя всех,
+    кто уже подписан. Пишет по одной стартовой записи "как есть сейчас";
+    если таблица не пуста, ничего не делает (безопасно на каждом старте).
+    """
+    async with _db.execute("SELECT COUNT(*) AS n FROM subscription_events") as cur:
+        if (await cur.fetchone())["n"] > 0:
+            return
+    now = _now()
+    async with _db.execute(
+        "SELECT user_id FROM users WHERE is_subscribed = 1"
+    ) as cur:
+        rows = await cur.fetchall()
+    if not rows:
+        return
+    await _db.executemany(
+        "INSERT INTO subscription_events (user_id, is_subscribed, changed_at) VALUES (?, 1, ?)",
+        [(row["user_id"], now) for row in rows],
+    )
+    await _db.commit()
+    logger.info("Засеяна стартовая история подписок: %s пользователей", len(rows))
 
 
 async def close_db() -> None:
@@ -128,10 +179,27 @@ async def upsert_user(user_id: int, username: str | None, full_name: str) -> Non
 
 
 async def set_subscribed(user_id: int, is_subscribed: bool) -> None:
-    """Обновляет флаг подписки и время последней активности."""
+    """Обновляет флаг подписки и время последней активности.
+
+    Если значение реально меняется — пишет строку в subscription_events
+    (для графика роста подписчиков на дашборде). set_subscribed вызывается
+    почти на каждое действие пользователя (гейт подписки), поэтому пишем
+    только настоящие переходы, а не каждую сверку.
+    """
+    async with _db.execute(
+        "SELECT is_subscribed FROM users WHERE user_id = ?", (user_id,)
+    ) as cur:
+        row = await cur.fetchone()
+    new_value = 1 if is_subscribed else 0
+    now = _now()
+    if row is None or row["is_subscribed"] != new_value:
+        await _db.execute(
+            "INSERT INTO subscription_events (user_id, is_subscribed, changed_at) VALUES (?, ?, ?)",
+            (user_id, new_value, now),
+        )
     await _db.execute(
         "UPDATE users SET is_subscribed = ?, last_active = ? WHERE user_id = ?",
-        (1 if is_subscribed else 0, _now(), user_id),
+        (new_value, now, user_id),
     )
     await _mark_daily_active(user_id)
     await _db.commit()
@@ -387,6 +455,277 @@ async def save_rockle_result(user_id: int, play_date: str, seconds: int) -> int:
     await _db.commit()
     existing = await get_rockle_result(user_id, play_date)
     return existing if existing is not None else seconds
+
+
+# ============ Релизы (для дашборда: отметки на графике трафика) ============
+
+async def create_release(label: str, kind: str, released_at: str, note: str | None = None) -> int:
+    """Создаёт отметку релиза (контент/фича/розыгрыш), возвращает id."""
+    cur = await _db.execute(
+        "INSERT INTO releases (label, kind, released_at, note, created_at) VALUES (?, ?, ?, ?, ?)",
+        (label, kind, released_at, note, _now()),
+    )
+    await _db.commit()
+    return cur.lastrowid
+
+
+async def list_releases(limit: int = 100) -> list[dict]:
+    async with _db.execute(
+        "SELECT id, label, kind, released_at, note FROM releases ORDER BY released_at DESC LIMIT ?",
+        (limit,),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [dict(row) for row in rows]
+
+
+async def get_release(release_id: int) -> dict | None:
+    async with _db.execute(
+        "SELECT id, label, kind, released_at, note FROM releases WHERE id = ?",
+        (release_id,),
+    ) as cur:
+        row = await cur.fetchone()
+    return dict(row) if row else None
+
+
+# ============ Топ активных (для ручного выбора победителя розыгрыша) ============
+
+async def get_leaderboard(metric: str, since: str, until: str, limit: int = 10) -> list[dict]:
+    """Рейтинг пользователей за период — не механика участия в розыгрыше, а
+    просто список самых активных, из которого владелец сам вручную выбирает
+    победителя.
+
+    metric="rockle" — по числу сыгранных партий в «Найди группу» (лучшее
+    время — тай-брейк). metric="active" — по числу дней активности в боте
+    вообще.
+    """
+    if metric == "rockle":
+        sql = (
+            "SELECT rr.user_id, u.username, u.full_name, "
+            "COUNT(*) AS plays, MIN(rr.seconds) AS best_seconds "
+            "FROM rockle_results rr JOIN users u ON u.user_id = rr.user_id "
+            "WHERE rr.play_date BETWEEN ? AND ? "
+            "GROUP BY rr.user_id ORDER BY plays DESC, best_seconds ASC LIMIT ?"
+        )
+    elif metric == "active":
+        sql = (
+            "SELECT da.user_id, u.username, u.full_name, COUNT(*) AS active_days "
+            "FROM daily_active da JOIN users u ON u.user_id = da.user_id "
+            "WHERE da.day BETWEEN ? AND ? "
+            "GROUP BY da.user_id ORDER BY active_days DESC LIMIT ?"
+        )
+    else:
+        raise ValueError(f"Неизвестная метрика рейтинга: {metric}")
+    async with _db.execute(sql, (since, until, limit)) as cur:
+        rows = await cur.fetchall()
+    return [dict(row) for row in rows]
+
+
+# ============ Аналитика для дашборда ============
+
+def _daily_metric_query(metric: str) -> tuple[str, tuple]:
+    """SQL и доп. параметры для одной метрики get_daily_metric().
+
+    Каждый запрос возвращает строки (day, n), сгруппированные по дню в
+    пределах [since, until] (добавляются вызывающим как последние два "?").
+    Дозаполнение нулями на отсутствующие дни делает сам get_daily_metric.
+    """
+    if metric == "new_users":
+        return (
+            "SELECT DATE(first_seen) AS day, COUNT(*) AS n FROM users "
+            "WHERE DATE(first_seen) BETWEEN ? AND ? GROUP BY day",
+            (),
+        )
+    if metric == "dau":
+        return (
+            "SELECT day, COUNT(*) AS n FROM daily_active WHERE day BETWEEN ? AND ? GROUP BY day",
+            (),
+        )
+    if metric == "rockle_completed":
+        return (
+            "SELECT play_date AS day, COUNT(*) AS n FROM rockle_results "
+            "WHERE play_date BETWEEN ? AND ? GROUP BY day",
+            (),
+        )
+    if metric == "quiz_total":
+        return (
+            "SELECT DATE(completed_at) AS day, COUNT(*) AS n FROM quiz_results "
+            "WHERE DATE(completed_at) BETWEEN ? AND ? GROUP BY day",
+            (),
+        )
+    if metric.startswith("feature:"):
+        return (
+            "SELECT DATE(used_at) AS day, COUNT(*) AS n FROM feature_usage "
+            "WHERE feature = ? AND DATE(used_at) BETWEEN ? AND ? GROUP BY day",
+            (metric.split(":", 1)[1],),
+        )
+    if metric.startswith("quiz:"):
+        return (
+            "SELECT DATE(completed_at) AS day, COUNT(*) AS n FROM quiz_results "
+            "WHERE quiz_name = ? AND DATE(completed_at) BETWEEN ? AND ? GROUP BY day",
+            (metric.split(":", 1)[1],),
+        )
+    raise ValueError(f"Неизвестная метрика: {metric}")
+
+
+def _fill_daily(by_day: dict, since: str, until: str, value_key: str) -> list[dict]:
+    """Дозаполняет разреженный словарь {day: n} нулями на каждый день
+    [since, until] — отсутствующий в SQL-результате день значит "0", а не
+    "пропустить".
+    """
+    start = date.fromisoformat(since)
+    end = date.fromisoformat(until)
+    result = []
+    d = start
+    while d <= end:
+        day_str = d.isoformat()
+        result.append({"day": day_str, value_key: by_day.get(day_str, 0)})
+        d += timedelta(days=1)
+    return result
+
+
+async def get_daily_metric(metric: str, since: str, until: str) -> list[dict]:
+    """Дневной ряд для графика: [{"day": "YYYY-MM-DD", "n": int}, ...] на
+    каждый день [since, until] включительно, недостающие дни — нули.
+
+    metric: "new_users" | "dau" | "rockle_completed" | "feature:<name>" |
+    "quiz:<name>". Один SQL-запрос на вызов — переиспользуется и графиками,
+    и расчётом «до/после» у релизов.
+    """
+    sql, extra_params = _daily_metric_query(metric)
+    async with _db.execute(sql, (*extra_params, since, until)) as cur:
+        rows = await cur.fetchall()
+    by_day = {row["day"]: row["n"] for row in rows}
+    return _fill_daily(by_day, since, until, "n")
+
+
+async def get_subscriber_growth(since: str, until: str) -> list[dict]:
+    """Дневной бегущий итог числа подписчиков: [{"day", "subscribers"}, ...].
+
+    Считается по subscription_events как бухгалтерская книга (+1/-1), а не
+    как снимок users.is_subscribed — так получается настоящая история по
+    дням, а не только текущее значение. base — сумма событий до `since`,
+    дальше на каждый день прибавляется дневная дельта (0, если событий не
+    было).
+    """
+    async with _db.execute(
+        "SELECT COALESCE(SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE -1 END), 0) AS n "
+        "FROM subscription_events WHERE DATE(changed_at) < ?",
+        (since,),
+    ) as cur:
+        running = (await cur.fetchone())["n"]
+
+    async with _db.execute(
+        "SELECT DATE(changed_at) AS day, "
+        "SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE -1 END) AS delta "
+        "FROM subscription_events WHERE DATE(changed_at) BETWEEN ? AND ? GROUP BY day",
+        (since, until),
+    ) as cur:
+        deltas = {row["day"]: row["delta"] for row in await cur.fetchall()}
+
+    start = date.fromisoformat(since)
+    end = date.fromisoformat(until)
+    result = []
+    d = start
+    while d <= end:
+        day_str = d.isoformat()
+        running += deltas.get(day_str, 0)
+        result.append({"day": day_str, "subscribers": running})
+        d += timedelta(days=1)
+    return result
+
+
+async def _subscription_window(since: str, until: str) -> dict:
+    async with _db.execute(
+        "SELECT is_subscribed, COUNT(*) AS n FROM subscription_events "
+        "WHERE DATE(changed_at) BETWEEN ? AND ? GROUP BY is_subscribed",
+        (since, until),
+    ) as cur:
+        by_flag = {row["is_subscribed"]: row["n"] for row in await cur.fetchall()}
+    subscribed = by_flag.get(1, 0)
+    unsubscribed = by_flag.get(0, 0)
+    return {"subscribed": subscribed, "unsubscribed": unsubscribed, "net": subscribed - unsubscribed}
+
+
+async def get_subscription_flow(days: int = 7) -> dict:
+    """Подписалось/отписалось/чистый прирост за последние `days` суток плюс
+    дельта к предыдущему окну такой же длины (тот же принцип до/после, что
+    у релизов, без привязки к конкретной дате события).
+    """
+    today = date.today()
+    cur_since = today - timedelta(days=days - 1)
+    prev_until = cur_since - timedelta(days=1)
+    prev_since = prev_until - timedelta(days=days - 1)
+
+    current = await _subscription_window(cur_since.isoformat(), today.isoformat())
+    previous = await _subscription_window(prev_since.isoformat(), prev_until.isoformat())
+
+    return {
+        "days": days,
+        "subscribed": current["subscribed"],
+        "unsubscribed": current["unsubscribed"],
+        "net": current["net"],
+        "subscribed_delta": current["subscribed"] - previous["subscribed"],
+        "unsubscribed_delta": current["unsubscribed"] - previous["unsubscribed"],
+        "net_delta": current["net"] - previous["net"],
+    }
+
+
+async def get_mau(mau_days: int = 30) -> int:
+    """MAU — та же логика, что уже есть в get_month_stats(), выведенная
+
+    отдельно для дашборда (там же и DAU сегодня уже есть в get_kpi_summary,
+    отдельного запроса за ним тут не дублируем — липкость DAU/MAU считает
+    вызывающая сторона).
+    """
+    since = f"-{mau_days - 1} days"
+    async with _db.execute(
+        "SELECT COUNT(DISTINCT user_id) AS n FROM daily_active WHERE day >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        return (await cur.fetchone())["n"]
+
+
+async def get_kpi_summary(compare_days: int = 7) -> dict:
+    """Сводка для верхних карточек дашборда: текущие числа плюс дельта к
+    среднему за предыдущий период той же длины — там, где дельта честно
+    считается (у "подписано" её нет: это живой флаг-снимок, не временной
+    ряд).
+    """
+    async with _db.execute("SELECT COUNT(*) AS n FROM users") as cur:
+        total = (await cur.fetchone())["n"]
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM users WHERE DATE(first_seen) = DATE('now')"
+    ) as cur:
+        new_today = (await cur.fetchone())["n"]
+    async with _db.execute("SELECT COUNT(*) AS n FROM users WHERE is_subscribed = 1") as cur:
+        subscribed = (await cur.fetchone())["n"]
+    async with _db.execute("SELECT COUNT(*) AS n FROM daily_active WHERE day = DATE('now')") as cur:
+        active_today = (await cur.fetchone())["n"]
+
+    today = date.today()
+    cur_since = today - timedelta(days=compare_days - 1)
+    prev_until = cur_since - timedelta(days=1)
+    prev_since = prev_until - timedelta(days=compare_days - 1)
+
+    new_users_cur = await get_daily_metric("new_users", cur_since.isoformat(), today.isoformat())
+    new_users_prev = await get_daily_metric("new_users", prev_since.isoformat(), prev_until.isoformat())
+    dau_cur = await get_daily_metric("dau", cur_since.isoformat(), today.isoformat())
+    dau_prev = await get_daily_metric("dau", prev_since.isoformat(), prev_until.isoformat())
+
+    def _avg(series: list[dict]) -> float:
+        return sum(r["n"] for r in series) / len(series) if series else 0.0
+
+    def _delta_pct(cur_avg: float, prev_avg: float) -> float | None:
+        return round((cur_avg - prev_avg) / prev_avg * 100, 1) if prev_avg > 0 else None
+
+    return {
+        "total": total,
+        "new_today": new_today,
+        "subscribed": subscribed,
+        "active_today": active_today,
+        "new_users_delta_pct": _delta_pct(_avg(new_users_cur), _avg(new_users_prev)),
+        "dau_delta_pct": _delta_pct(_avg(dau_cur), _avg(dau_prev)),
+    }
 
 
 async def backup_database(dest: str) -> None:

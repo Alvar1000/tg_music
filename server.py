@@ -16,6 +16,7 @@ from urllib.parse import parse_qsl
 from aiohttp import web
 
 import config
+import dashboard
 from database import db
 
 logger = logging.getLogger(__name__)
@@ -134,6 +135,7 @@ def create_app() -> web.Application:
     app.router.add_get("/api/rockle/today", rockle_today)
     app.router.add_post("/api/rockle/complete", rockle_complete)
     app.router.add_get("/healthz", healthz)
+    dashboard.register_routes(app)
     return app
 
 

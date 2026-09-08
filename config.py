@@ -87,6 +87,11 @@ WEBAPP_URL = (
 # Порт, на котором server.py поднимает aiohttp (Render передаёт его через PORT).
 PORT = int(os.getenv("PORT", "8080"))
 
+# Секретный токен для входа на приватный дашборд аналитики (/dashboard).
+# Пусто — дашборд молча выключен (см. dashboard.py), а не падение при старте.
+# Сгенерировать: python -c "import secrets; print(secrets.token_urlsafe(32))"
+DASHBOARD_TOKEN = os.getenv("DASHBOARD_TOKEN", "").strip()
+
 
 def validate() -> None:
     """Проверяет обязательные переменные. Вызывается один раз при старте."""

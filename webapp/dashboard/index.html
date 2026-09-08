@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Аналитика — Black Magic Woman</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f5f8fc;
+    --surface: #ffffff;
+    --surface-alt: #eef3fa;
+    --border: #dde6f2;
+    --text: #13213a;
+    --text-secondary: #57657c;
+    --text-muted: #8b96a8;
+    --accent: #185fa5;
+    --accent-bg: #e6f1fb;
+    --accent-border: #85b7eb;
+    --accent-text: #0c447c;
+    --success: #1a8a4a;
+    --danger: #c23b3b;
+    --shadow: 0 1px 2px rgba(18, 32, 56, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1220;
+      --surface: #111b2e;
+      --surface-alt: #182640;
+      --border: #25334f;
+      --text: #e7edf7;
+      --text-secondary: #a7b3c8;
+      --text-muted: #75839c;
+      --accent: #5b9fe3;
+      --accent-bg: #152a44;
+      --accent-border: #2d4d76;
+      --accent-text: #8ec1f7;
+      --success: #4ade80;
+      --danger: #f87171;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .hidden { display: none !important; }
+  button { font-family: inherit; }
+
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 340px; box-shadow: var(--shadow); text-align: center; }
+  .login-card h1 { font-size: 18px; margin: 0 0 4px; }
+  .login-card .muted { color: var(--text-secondary); font-size: 13px; margin: 0 0 20px; }
+  .login-card input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 12px; }
+  .login-card button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .login-card button:hover { opacity: 0.92; }
+  .error { font-size: 12px; color: var(--danger); margin: 6px 0 0; }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 32px 64px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .brand { font-size: 16px; font-weight: 600; }
+  .pills { display: flex; gap: 6px; }
+  .pill { border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .pill.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); }
+  .ghost-btn { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+
+  .hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .hero-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; box-shadow: var(--shadow); }
+  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .hero-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 6px; }
+  .hero-num { font-size: 34px; font-weight: 700; margin: 0; line-height: 1.1; }
+
+  .delta { font-size: 12px; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; }
+  .delta.up { color: var(--success); }
+  .delta.down { color: var(--danger); }
+  .delta.flat { color: var(--text-muted); }
+
+  .panels-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .panels-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; box-shadow: var(--shadow); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; gap: 10px; flex-wrap: wrap; }
+  .panel-title { font-size: 13px; font-weight: 600; color: var(--accent-text); }
+  .badge { font-size: 11px; background: var(--surface-alt); color: var(--text-secondary); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+
+  .metric-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { font-size: 14px; color: var(--text-secondary); }
+  .metric-sub { font-size: 12px; color: var(--text-muted); }
+  .metric-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .metric-val { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .metric-val.muted { color: var(--text-secondary); font-weight: 500; }
+  .empty { color: var(--text-muted); font-size: 13px; padding: 10px 0; }
+
+  .rank-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-alt); color: var(--text-secondary); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; }
+  .rank-badge.top { background: var(--accent-bg); color: var(--accent-text); }
+
+  .chart-panel { margin-bottom: 16px; }
+  .chart-title { font-size: 13px; color: var(--text-secondary); margin: 0 0 12px; }
+  .chart-wrap { position: relative; width: 100%; height: 260px; }
+  .chart-note { font-size: 11px; color: var(--text-muted); margin: 10px 0 0; }
+
+  .release-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
+  .release-form input[type="text"] { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; margin-bottom: 8px; }
+  .release-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .release-form select, .release-form input[type="datetime-local"] { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; }
+  .release-form button { padding: 8px 14px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .release-form button:hover { opacity: 0.92; }
+  .hint { font-size: 11px; color: var(--text-muted); margin: 6px 0 0; }
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-wrap">
+  <form id="loginForm" class="login-card">
+    <h1>Аналитика бота</h1>
+    <p class="muted">Приватный дашборд — введите токен доступа</p>
+    <input type="password" id="loginToken" placeholder="Токен" autocomplete="off" aria-label="Токен доступа" required />
+    <button type="submit">Войти</button>
+    <p id="loginError" class="error hidden"></p>
+  </form>
+</div>
+
+<div id="app" class="wrap hidden">
+  <div class="topbar">
+    <div class="brand">Аналитика — Black Magic Woman</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="pills" id="rangePills">
+        <button type="button" class="pill" data-days="7">7д</button>
+        <button type="button" class="pill active" data-days="30">30д</button>
+        <button type="button" class="pill" data-days="90">90д</button>
+      </div>
+      <button type="button" id="logoutBtn" class="ghost-btn">Выйти</button>
+    </div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="hero-card">
+      <div class="hero-top">
+        <div>
+          <p class="hero-label">Пользователи</p>
+          <p class="hero-num" id="heroUsersTotal">—</p>
+          <span class="delta" id="heroUsersDelta"></span>
+        </div>
+        <svg id="sparkUsers" width="72" height="30" viewBox="0 0 72 30" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-top">
+        <div>
+          <p class="hero-label">Подписчики</p>
+          <p class="hero-num" id="heroSubsTotal">—</p>
+          <span class="delta" id="heroSubsDelta"></span>
+        </div>
+        <svg id="sparkSubs" width="72" height="30" viewBox="0 0 72 30" aria-hidden="true"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels-3">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">Подписка</span><span class="badge">3 показателя</span></div>
+      <div class="metric-row"><span class="metric-label">Подписалось</span><div class="metric-right"><span class="metric-val" id="flowSub">—</span><span class="delta" id="flowSubDelta"></span></div></div>
+      <div class="metric-row"><span class="metric-label">Отписалось</span><div class="metric-right"><span class="metric-val" id="flowUnsub">—</span><span class="delta" id="flowUnsubDelta"></span></div></div>
+      <div class="metric-row"><span class="metric-label">Чистый прирост</span><div class="metric-right"><span class="metric-val" id="flowNet">—</span><span class="delta" id="flowNetDelta"></span></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">Активность</span><span class="badge">4 показателя</span></div>
+      <div class="metric-row"><span class="metric-label">DAU сегодня</span><div class="metric-right"><span class="metric-val" id="actDau">—</span><span class="delta" id="actDauDelta"></span></div></div>
+      <div class="metric-row"><span class="metric-label">MAU (30 дней)</span><div class="metric-right"><span class="metric-val" id="actMau">—</span></div></div>
+      <div class="metric-row"><span class="metric-label">Липкость (DAU/MAU)</span><div class="metric-right"><span class="metric-val" id="actStickiness">—</span></div></div>
+      <div class="metric-row"><span class="metric-label">Новых сегодня</span><div class="metric-right"><span class="metric-val" id="actNewToday">—</span><span class="delta" id="actNewDelta"></span></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">Фичи</span><span class="badge">3 показателя</span></div>
+      <div class="metric-row"><span class="metric-label">Плейлист дня</span><div class="metric-right"><svg id="sparkPlaylist" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featPlaylist">—</span></div></div>
+      <div class="metric-row"><span class="metric-label">Игра «Найди группу»</span><div class="metric-right"><svg id="sparkRockle" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featRockle">—</span></div></div>
+      <div class="metric-row"><span class="metric-label">Тесты пройдено</span><div class="metric-right"><svg id="sparkTests" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featTests">—</span></div></div>
+    </div>
+  </div>
+
+  <div class="panel chart-panel">
+    <p class="chart-title">Рост подписчиков</p>
+    <div class="chart-wrap">
+      <canvas id="subsChart" role="img" aria-label="Рост числа подписчиков по дням"></canvas>
+    </div>
+    <p class="chart-note">Точная история — с момента запуска аналитики; более ранний прирост виден одним начальным скачком в первый день.</p>
+  </div>
+
+  <div class="panels-2">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">Релизы</span><span class="badge" id="relBadge">— релизов</span></div>
+      <div id="releasesList"></div>
+      <form id="releaseForm" class="release-form">
+        <input type="text" id="relLabel" placeholder="Например: новый тест по обложкам" maxlength="200" aria-label="Метка релиза" required />
+        <div class="release-form-row">
+          <select id="relKind" aria-label="Вид релиза">
+            <option value="content">контент</option>
+            <option value="feature">фича</option>
+            <option value="giveaway">розыгрыш</option>
+          </select>
+          <input type="datetime-local" id="relDate" aria-label="Дата и время релиза (UTC)" required />
+          <button type="submit">Добавить</button>
+        </div>
+        <p class="hint">Дата и время — в UTC.</p>
+        <p id="relError" class="error hidden"></p>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Топ активных</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="pills" id="lbPills">
+            <button type="button" class="pill active" data-metric="rockle">по игре</button>
+            <button type="button" class="pill" data-metric="active">по активности</button>
+          </div>
+          <span class="badge" id="lbBadge">— игроков</span>
+        </div>
+      </div>
+      <div id="lbList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var API = "";
+  var state = {
+    token: localStorage.getItem("dashboard_token") || "",
+    days: 30,
+    lbMetric: "rockle"
+  };
+  var charts = {};
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtPct(v) {
+    if (v === null || v === undefined) return "н/д";
+    return (v > 0 ? "+" : "") + v.toFixed(1) + "%";
+  }
+  function fmtSigned(v) {
+    if (v === null || v === undefined) return "н/д";
+    return (v > 0 ? "+" : "") + Math.round(v);
+  }
+  function deltaClass(v) {
+    if (v === null || v === undefined || v === 0) return "flat";
+    return v > 0 ? "up" : "down";
+  }
+  function arrow(v) {
+    if (v === null || v === undefined || v === 0) return "";
+    return v > 0 ? "▲ " : "▼ ";
+  }
+  function fmtSeconds(s) {
+    if (s === null || s === undefined) return "—";
+    var m = Math.floor(s / 60), sec = s % 60;
+    return m + ":" + String(sec).padStart(2, "0");
+  }
+  function pluralize(n, one, few, many) {
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
+  }
+  function setDelta(id, value, text) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.className = "delta " + deltaClass(value);
+    el.textContent = text;
+  }
+
+  async function apiFetch(path, opts) {
+    opts = opts || {};
+    var headers = Object.assign({}, opts.headers || {}, { Authorization: "Bearer " + state.token });
+    if (opts.body) headers["Content-Type"] = "application/json";
+    var res = await fetch(API + path, Object.assign({}, opts, { headers: headers }));
+    if (res.status === 401) {
+      logout();
+      throw new Error("unauthorized");
+    }
+    if (!res.ok) throw new Error("request_failed:" + path);
+    return res.json();
+  }
+
+  function sparkline(svg, data, color) {
+    if (!svg || !data || !data.length) return;
+    var w = parseFloat(svg.getAttribute("width"));
+    var h = parseFloat(svg.getAttribute("height"));
+    var min = Math.min.apply(null, data), max = Math.max.apply(null, data);
+    var range = max - min || 1;
+    var step = data.length > 1 ? w / (data.length - 1) : 0;
+    var pts = data.map(function (v, i) {
+      return (i * step).toFixed(1) + "," + (h - ((v - min) / range) * h).toFixed(1);
+    }).join(" ");
+    svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+
+  function showApp() {
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+  }
+  function showLogin(errorMsg) {
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("loginScreen").classList.remove("hidden");
+    var err = document.getElementById("loginError");
+    if (errorMsg) {
+      err.textContent = errorMsg;
+      err.classList.remove("hidden");
+    } else {
+      err.classList.add("hidden");
+    }
+  }
+  function logout() {
+    state.token = "";
+    localStorage.removeItem("dashboard_token");
+    showLogin();
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var input = document.getElementById("loginToken");
+    var token = input.value.trim();
+    if (!token) return;
+    try {
+      var res = await fetch(API + "/api/dashboard/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token })
+      });
+      if (!res.ok) {
+        showLogin("Неверный токен");
+        return;
+      }
+      state.token = token;
+      localStorage.setItem("dashboard_token", token);
+      showApp();
+      loadAll();
+    } catch (err) {
+      showLogin("Не удалось подключиться");
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+
+  function wirePills(containerId, dataAttr, onChange) {
+    var container = document.getElementById(containerId);
+    container.querySelectorAll(".pill").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        container.querySelectorAll(".pill").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        onChange(btn.dataset[dataAttr]);
+      });
+    });
+  }
+  wirePills("rangePills", "days", function (days) {
+    state.days = parseInt(days, 10);
+    loadAll();
+  });
+  wirePills("lbPills", "metric", function (metric) {
+    state.lbMetric = metric;
+    loadLeaderboard();
+  });
+
+  document.getElementById("releaseForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var label = document.getElementById("relLabel").value.trim();
+    var kind = document.getElementById("relKind").value;
+    var releasedAt = document.getElementById("relDate").value;
+    var errEl = document.getElementById("relError");
+    errEl.classList.add("hidden");
+    if (!label || !releasedAt) {
+      errEl.textContent = "Заполните метку и дату.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    try {
+      await apiFetch("/api/dashboard/releases", {
+        method: "POST",
+        body: JSON.stringify({ label: label, kind: kind, released_at: releasedAt })
+      });
+      document.getElementById("relLabel").value = "";
+      loadReleases();
+    } catch (err) {
+      errEl.textContent = "Не удалось сохранить релиз.";
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  function renderHeroes(kpiData, newUsersSeries, subsSeries) {
+    document.getElementById("heroUsersTotal").textContent = kpiData.total;
+    setDelta("heroUsersDelta", kpiData.new_users_delta_pct,
+      arrow(kpiData.new_users_delta_pct) + fmtPct(kpiData.new_users_delta_pct) + " к пред. периоду");
+    sparkline(document.getElementById("sparkUsers"), newUsersSeries.slice(-14).map(function (r) { return r.n; }), "#378add");
+
+    document.getElementById("heroSubsTotal").textContent = kpiData.subscribed;
+    var tail = subsSeries.slice(-8).map(function (r) { return r.subscribers; });
+    var weekDelta = tail.length >= 2 ? tail[tail.length - 1] - tail[0] : null;
+    setDelta("heroSubsDelta", weekDelta, weekDelta === null ? "н/д" : arrow(weekDelta) + fmtSigned(weekDelta) + " за неделю");
+    sparkline(document.getElementById("sparkSubs"), subsSeries.slice(-14).map(function (r) { return r.subscribers; }), "#378add");
+  }
+
+  function renderSubscriptionFlow(flow) {
+    document.getElementById("flowSub").textContent = flow.subscribed;
+    setDelta("flowSubDelta", flow.subscribed_delta, arrow(flow.subscribed_delta) + fmtSigned(flow.subscribed_delta));
+    document.getElementById("flowUnsub").textContent = flow.unsubscribed;
+    setDelta("flowUnsubDelta", -flow.unsubscribed_delta, arrow(flow.unsubscribed_delta) + fmtSigned(flow.unsubscribed_delta));
+    document.getElementById("flowNet").textContent = fmtSigned(flow.net);
+    setDelta("flowNetDelta", flow.net_delta, arrow(flow.net_delta) + fmtSigned(flow.net_delta));
+  }
+
+  function renderActivity(kpiData) {
+    document.getElementById("actDau").textContent = kpiData.active_today;
+    setDelta("actDauDelta", kpiData.dau_delta_pct, arrow(kpiData.dau_delta_pct) + fmtPct(kpiData.dau_delta_pct));
+    document.getElementById("actMau").textContent = kpiData.mau;
+    document.getElementById("actStickiness").textContent = kpiData.stickiness_pct === null ? "н/д" : kpiData.stickiness_pct.toFixed(1) + "%";
+    document.getElementById("actNewToday").textContent = kpiData.new_today;
+    setDelta("actNewDelta", kpiData.new_users_delta_pct, arrow(kpiData.new_users_delta_pct) + fmtPct(kpiData.new_users_delta_pct));
+  }
+
+  function avgPerDay(series) {
+    if (!series.length) return 0;
+    var sum = series.reduce(function (a, r) { return a + r.n; }, 0);
+    return sum / series.length;
+  }
+
+  function renderFeatures(playlist, rockle, tests) {
+    document.getElementById("featPlaylist").textContent = avgPerDay(playlist).toFixed(1) + "/день";
+    sparkline(document.getElementById("sparkPlaylist"), playlist.slice(-14).map(function (r) { return r.n; }), "#378add");
+    document.getElementById("featRockle").textContent = avgPerDay(rockle).toFixed(1) + "/день";
+    sparkline(document.getElementById("sparkRockle"), rockle.slice(-14).map(function (r) { return r.n; }), "#185fa5");
+    document.getElementById("featTests").textContent = avgPerDay(tests).toFixed(1) + "/день";
+    sparkline(document.getElementById("sparkTests"), tests.slice(-14).map(function (r) { return r.n; }), "#0c447c");
+  }
+
+  function renderSubsChart(series) {
+    var labels = series.map(function (r) {
+      var parts = r.day.split("-");
+      return parts[2] + "." + parts[1];
+    });
+    var values = series.map(function (r) { return r.subscribers; });
+    var isDark = matchMedia("(prefers-color-scheme: dark)").matches;
+    var grid = isDark ? "#25334f" : "#e1e6ee";
+    var tick = isDark ? "#7d8aa3" : "#8b96a8";
+    if (charts.subs) {
+      charts.subs.data.labels = labels;
+      charts.subs.data.datasets[0].data = values;
+      charts.subs.update();
+      return;
+    }
+    charts.subs = new Chart(document.getElementById("subsChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{ data: values, borderColor: "#185fa5", backgroundColor: "rgba(55,138,221,0.12)", borderWidth: 2, pointRadius: 0, tension: 0.3, fill: true }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tick, maxTicksLimit: 10, font: { size: 11 } } },
+          y: { grid: { color: grid }, ticks: { color: tick, font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  function renderReleases(rows) {
+    document.getElementById("relBadge").textContent = rows.length + " " + pluralize(rows.length, "релиз", "релиза", "релизов");
+    var kindLabels = { content: "контент", feature: "фича", giveaway: "розыгрыш" };
+    var html = rows.map(function (r) {
+      var dateParts = r.released_at.slice(0, 10).split("-");
+      var dateLabel = dateParts[2] + "." + dateParts[1] + "." + dateParts[0].slice(2);
+      var right;
+      if (!r.impact || r.impact.delta_pct === null) {
+        right = '<span class="metric-val muted">н/д</span>';
+      } else if (r.impact.days_elapsed_after < r.impact.window_days) {
+        right = '<span class="metric-val muted">идёт · ' + r.impact.days_elapsed_after + "/" + r.impact.window_days + "д</span>";
+      } else {
+        right = '<span class="delta ' + deltaClass(r.impact.delta_pct) + '">' + arrow(r.impact.delta_pct) + fmtPct(r.impact.delta_pct) + "</span>";
+      }
+      return '<div class="metric-row"><span class="metric-label">' + escapeHtml(r.label) +
+        '<span class="metric-sub"> · ' + dateLabel + " · " + (kindLabels[r.kind] || r.kind) + "</span></span>" +
+        '<div class="metric-right">' + right + "</div></div>";
+    }).join("");
+    document.getElementById("releasesList").innerHTML = html || '<p class="empty">Пока нет отметок релизов — добавьте первую ниже.</p>';
+  }
+
+  function renderLeaderboard(rows) {
+    document.getElementById("lbBadge").textContent = rows.length + " " + pluralize(rows.length, "игрок", "игрока", "игроков");
+    var html = rows.map(function (row, i) {
+      var name = row.username ? "@" + escapeHtml(row.username) : escapeHtml(row.full_name || "id" + row.user_id);
+      var metricText = state.lbMetric === "rockle"
+        ? row.plays + " " + pluralize(row.plays, "партия", "партии", "партий") + " · " + fmtSeconds(row.best_seconds)
+        : row.active_days + " " + pluralize(row.active_days, "активный день", "активных дня", "активных дней");
+      return '<div class="metric-row"><span class="rank-badge' + (i === 0 ? " top" : "") + '">' + (i + 1) + "</span>" +
+        '<span class="metric-label" style="flex:1">' + name + "</span>" +
+        '<span class="metric-val muted">' + metricText + "</span></div>";
+    }).join("");
+    document.getElementById("lbList").innerHTML = html || '<p class="empty">За этот период данных пока нет.</p>';
+  }
+
+  async function loadReleases() {
+    var data = await apiFetch("/api/dashboard/releases");
+    var withImpact = await Promise.all(data.releases.map(async function (r) {
+      try {
+        var impact = await apiFetch("/api/dashboard/releases/" + r.id + "/impact?metric=dau&window_days=7");
+        return Object.assign({}, r, { impact: impact });
+      } catch (err) {
+        return Object.assign({}, r, { impact: null });
+      }
+    }));
+    renderReleases(withImpact);
+  }
+
+  async function loadLeaderboard() {
+    var data = await apiFetch("/api/dashboard/leaderboard?metric=" + state.lbMetric + "&days=" + state.days + "&limit=10");
+    renderLeaderboard(data.leaderboard);
+  }
+
+  async function loadAll() {
+    document.querySelectorAll("#rangePills .pill").forEach(function (b) {
+      b.classList.toggle("active", parseInt(b.dataset.days, 10) === state.days);
+    });
+    try {
+      var kpiP = apiFetch("/api/dashboard/kpi?compare_days=" + state.days);
+      var subsSeriesP = apiFetch("/api/dashboard/subscribers?days=" + state.days);
+      var newUsersP = apiFetch("/api/dashboard/series?metric=new_users&days=" + state.days);
+      var flowP = apiFetch("/api/dashboard/subscription-flow?days=" + state.days);
+      var playlistP = apiFetch("/api/dashboard/series?metric=feature:playlist&days=" + state.days);
+      var rockleP = apiFetch("/api/dashboard/series?metric=feature:rockle_open&days=" + state.days);
+      var testsP = apiFetch("/api/dashboard/series?metric=quiz_total&days=" + state.days);
+
+      var kpiData = await kpiP;
+      var subsSeries = (await subsSeriesP).series;
+      var newUsers = (await newUsersP).series;
+      renderHeroes(kpiData, newUsers, subsSeries);
+      renderActivity(kpiData);
+      renderSubsChart(subsSeries);
+
+      renderSubscriptionFlow(await flowP);
+
+      var playlist = (await playlistP).series;
+      var rockle = (await rockleP).series;
+      var tests = (await testsP).series;
+      renderFeatures(playlist, rockle, tests);
+
+      await loadReleases();
+      await loadLeaderboard();
+    } catch (err) {
+      if (err.message !== "unauthorized") console.error(err);
+    }
+  }
+
+  var relDateInput = document.getElementById("relDate");
+  if (relDateInput) relDateInput.value = new Date().toISOString().slice(0, 16);
+
+  if (state.token) {
+    showApp();
+    loadAll();
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>
