@@ -14,8 +14,9 @@
   quest:<id_узла>           — переход к следующему узлу квеста
   broadcast_send / broadcast_cancel — подтверждение/отмена рассылки (админ, FSM Broadcast)
 
-«Найди группу» — не callback, а кнопка web_app (Telegram Mini App), ссылка на
-config.WEBAPP_URL + /rockle/; открывается вне диспетчера aiogram (см. server.py).
+«Найди группу» и «Турнир групп» — не callback, а кнопки web_app (Telegram
+Mini App), ссылки на config.WEBAPP_URL + /rockle/ или /tournament/;
+открываются вне диспетчера aiogram (см. server.py, tournament.py).
 """
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -75,9 +76,10 @@ def fact_kb() -> InlineKeyboardMarkup:
     ])
 
 
-def tests_menu_kb(rockle_url: str | None = None) -> InlineKeyboardMarkup:
-    """rockle_url — ссылка на мини-игру «Найди группу» (config.WEBAPP_URL). Пусто —
-    кнопка не показывается (например, при локальном запуске без HTTPS-адреса).
+def tests_menu_kb(rockle_url: str | None = None, tournament_url: str | None = None) -> InlineKeyboardMarkup:
+    """rockle_url/tournament_url — ссылки на мини-игры (config.WEBAPP_URL). Пусто —
+    соответствующая кнопка не показывается (например, при локальном запуске
+    без HTTPS-адреса).
     """
     rows = [
         [InlineKeyboardButton(text="♈ Музыкант по знаку зодиака", callback_data="test_zodiac")],
@@ -89,6 +91,8 @@ def tests_menu_kb(rockle_url: str | None = None) -> InlineKeyboardMarkup:
     ]
     if rockle_url:
         rows.append([InlineKeyboardButton(text="🧩 Найди группу (афиша дня)", web_app=WebAppInfo(url=rockle_url))])
+    if tournament_url:
+        rows.append([InlineKeyboardButton(text="🏆 Турнир групп", web_app=WebAppInfo(url=tournament_url))])
     rows.append([_back_button()])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 

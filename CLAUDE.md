@@ -81,14 +81,75 @@ second process couldn't reach the same DB/files anyway. If you ever add webhook 
   JS), so every player gets a pixel-identical grid that day without the server doing any
   layout work.
 - **Result integrity.** The client posts `initData` (Telegram's signed payload) along
-  with the elapsed time to `POST /api/rockle/complete`. `server.py:validate_init_data()`
+  with the elapsed time to `POST /api/rockle/complete`. `webapp_auth.py:validate_init_data()`
   verifies the HMAC-SHA256 signature (secret = `HMAC_SHA256("WebAppData", BOT_TOKEN)`,
   per Telegram's documented algorithm) and rejects stale `auth_date` (>24h) before trusting
   `user_id` — without this check anyone could POST results under someone else's id. First
   completion per `(user_id, play_date)` wins (`rockle_results` PK); replays don't overwrite it.
+  This check lives in its own module (not in `server.py`) because the tournament Mini App
+  needs it too — see "Турнир групп" below for why that isn't just an import from `server.py`.
 - The menu button (`keyboards/kb.py:tests_menu_kb()`) only appears when
   `config.WEBAPP_URL` resolves to something — Mini Apps require HTTPS, so there's nothing
   useful to link to without it.
+
+### Band tournament (tournament.py)
+
+Third self-contained Mini App module (`webapp/tournament/index.html`), alongside
+Rockle and the dashboard — `tournament.register_routes()` adds routes onto the same
+`web.Application`, the same way `dashboard.register_routes()` does. All 15 comparisons
+of the bracket (16 bands → 1/8 → 1/4 → 1/2 → финал) run **client-side**; the server only
+hands out today's 16-band draw and accepts the final result.
+
+- **`initData` validation lives in `webapp_auth.py`, not imported from `server.py`.**
+  `server.py` does `import dashboard` at module top level; if `tournament.py` imported
+  `validate_init_data` from `server.py`, and `server.py` in turn imported `tournament`
+  (for `tournament.register_routes(app)` inside `create_app()`) — that's a circular
+  import, failing at bot startup. The check itself has no dependency on anything in
+  `server.py` (just `hashlib`/`hmac`/`json`/`datetime`/`urllib.parse`), so the module
+  split costs nothing; `server.py` and `tournament.py` both import it the same way.
+- **Bracket integrity is checked for real, not just "these keys were in yesterday's
+  pool."** The server already knows today's 16-band draw *and* pairing order
+  deterministically (`random.Random(today).sample()` fixes both at once — pairs are
+  `(pool[0],pool[1]), (pool[2],pool[3])...`), so `POST /api/tournament/complete` cheaply
+  re-derives whether the claimed winners are actually valid pairwise winners at every
+  round. One helper (`tournament.py:_round_winners_valid()`) is reused 4 times: today's
+  16 → round-of-16 winners → quarterfinal winners → semifinal winners → champion.
+  Without this, a forged request could crown a band that lost in round one, or one that
+  wasn't even in today's draw — not just a band absent from the pool entirely.
+- **Points are awarded by furthest stage reached in that run, not cumulatively.**
+  Reaching 1/4 финала = 1 point, 1/2 = 2, финал = 3, champion = 5; knocked out in 1/8 = 0,
+  never logged at all. This reads the owner's original spec ("за 1/4 1 балл, за 1/2 2
+  балла...") the natural way — the standard payout table for bracket tournaments (a
+  finalist who loses gets exactly 3 points, not 1+2+3=6). `db.get_band_points_totals()`
+  never stores zero rows, so the public leaderboard is zero-filled against the full
+  `content/tournament_bands.json` list in `tournament.py`, not in the DB layer — otherwise
+  bands that never won a match would be missing from the table instead of sitting at the
+  bottom with 0.
+- **`add_static()` on a missing directory crashes the whole bot at startup, not just
+  the tournament.** `content/tournament_covers/` (band photos) is served via
+  `aiohttp.web.Application.router.add_static()`; aiohttp resolves that path with
+  `strict=True` synchronously inside `create_app()` — i.e. during `main.py` startup,
+  before `dp.start_polling()`. If the owner hasn't created the photo folder yet (likely —
+  it's the slowest content to prepare), the bot won't start at all. So
+  `tournament.register_routes()` does
+  `config.TOURNAMENT_COVERS_DIR.mkdir(parents=True, exist_ok=True)` before `add_static()`
+  — the same trick `config.seed_playlists()` already uses for the playlist queue.
+- **The leaderboard route is genuinely public.** `GET /api/tournament/leaderboard` checks
+  neither `initData` nor `DASHBOARD_TOKEN` — this is content for every user, not an
+  owner-only surface like `/api/dashboard/*`.
+- **One completed run per day counts for points, but doesn't hard-block replay.** If
+  `db.get_quiz_result_today(user_id, "tournament")` already returns a value, `POST
+  /complete` answers `409 already_completed` with the recorded champion and awards
+  nothing again. Unlike Rockle (where a repeat attempt has a meaningful "better/worse" by
+  time, and the first result quietly wins) different tournament runs simply aren't
+  comparable — refusing outright is more honest than picking one arbitrarily. The client
+  doesn't block replay, it just doesn't count a second time (an "already played today"
+  banner, no hard stop).
+- Band pool: `content/tournament_bands.json` (flat array of `{"key", "display", "photo"}`;
+  `key` is a lowercase slug, closer in role to `quiz_musician.json`'s result keys than to
+  `rockle_words.json`'s uppercase letters). Needs **at least 16** bands — fewer and
+  `/today`/`/complete` return an empty result / a clear error instead of crashing on
+  `random.sample()`.
 
 ### Analytics dashboard (dashboard.py)
 

@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Турнир групп — Black Magic Woman</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Teko:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #e9ebf0;
+    --surface: #ffffff;
+    --surface-2: #f0f1f4;
+    --border: #e2e4ea;
+    --border-strong: #ccd0da;
+    --text: #15161c;
+    --text-dim: #666b80;
+    --text-faint: #9aa0b2;
+    --hue-blue: #3b6bdc;
+    --hue-amber: #c98a1a;
+    --hue-green: #0f9e82;
+    --sheen-blue: #dce8f6;
+    --sheen-pink: #f3e3ef;
+    --sheen-mint: #e1f3ec;
+    --sheen-light: #ffffff;
+    --aura-blue: rgba(59,107,220,0.07);
+    --aura-pink: rgba(224,64,126,0.05);
+    --ring-blue: rgba(59,107,220,0.14);
+    --shadow-panel: 0 40px 70px -30px rgba(20,24,40,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
+    --shadow-tab: 0 1px 4px rgba(20,24,40,0.12);
+    --shadow-orb: 0 8px 18px -8px rgba(30,40,70,0.2);
+    --shadow-champ: 0 14px 30px -10px rgba(30,40,70,0.26);
+  }
+
+  /* Тёмная тема — та же схема, что в rockle: системная prefers-color-scheme как
+     база (для открытия в обычном браузере), а :root[data-theme=...] сверху и
+     сильнее по специфичности, потому что в Telegram тему диктует клиент, а не
+     ОС — её проставляет applyTheme() по tg.colorScheme.
+
+     Фото групп сюда не заводим: на тёмном они читаются как светлые карточки, и
+     логотип Pink Floyd с белой подложкой — тоже (владелец так и хотел). Меняются
+     только фон, панель, текст и свечение вокруг кружка: акценты подняты по
+     светлоте, иначе синий #3b6bdc на тёмном фоне гаснет, а тени переведены на
+     чистый чёрный — синеватая тень на тёмном не читается вовсе. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161c;
+      --surface: #1c1f27;
+      --surface-2: #22252e;
+      --border: #272b35;
+      --border-strong: #343846;
+      --text: #eceef4;
+      --text-dim: #a2a8bb;
+      --text-faint: #757b8d;
+      --hue-blue: #7d9cf0;
+      --hue-amber: #e0a15f;
+      --hue-green: #3fc7aa;
+      --sheen-blue: #2a3a5a;
+      --sheen-pink: #3a2a3e;
+      --sheen-mint: #22403a;
+      --sheen-light: #2b2f3a;
+      --aura-blue: rgba(59,107,220,0.14);
+      --aura-pink: rgba(224,64,126,0.10);
+      --ring-blue: rgba(125,156,240,0.20);
+      --shadow-panel: 0 40px 70px -30px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+      --shadow-tab: 0 1px 4px rgba(0,0,0,0.5);
+      --shadow-orb: 0 8px 18px -8px rgba(0,0,0,0.6);
+      --shadow-champ: 0 14px 30px -10px rgba(0,0,0,0.7);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg: #e9ebf0; --surface: #ffffff; --surface-2: #f0f1f4;
+    --border: #e2e4ea; --border-strong: #ccd0da;
+    --text: #15161c; --text-dim: #666b80; --text-faint: #9aa0b2;
+    --hue-blue: #3b6bdc; --hue-amber: #c98a1a; --hue-green: #0f9e82;
+    --sheen-blue: #dce8f6; --sheen-pink: #f3e3ef; --sheen-mint: #e1f3ec; --sheen-light: #ffffff;
+    --aura-blue: rgba(59,107,220,0.07); --aura-pink: rgba(224,64,126,0.05);
+    --ring-blue: rgba(59,107,220,0.14);
+    --shadow-panel: 0 40px 70px -30px rgba(20,24,40,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
+    --shadow-tab: 0 1px 4px rgba(20,24,40,0.12);
+    --shadow-orb: 0 8px 18px -8px rgba(30,40,70,0.2);
+    --shadow-champ: 0 14px 30px -10px rgba(30,40,70,0.26);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14161c; --surface: #1c1f27; --surface-2: #22252e;
+    --border: #272b35; --border-strong: #343846;
+    --text: #eceef4; --text-dim: #a2a8bb; --text-faint: #757b8d;
+    --hue-blue: #7d9cf0; --hue-amber: #e0a15f; --hue-green: #3fc7aa;
+    --sheen-blue: #2a3a5a; --sheen-pink: #3a2a3e; --sheen-mint: #22403a; --sheen-light: #2b2f3a;
+    --aura-blue: rgba(59,107,220,0.14); --aura-pink: rgba(224,64,126,0.10);
+    --ring-blue: rgba(125,156,240,0.20);
+    --shadow-panel: 0 40px 70px -30px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+    --shadow-tab: 0 1px 4px rgba(0,0,0,0.5);
+    --shadow-orb: 0 8px 18px -8px rgba(0,0,0,0.6);
+    --shadow-champ: 0 14px 30px -10px rgba(0,0,0,0.7);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    justify-content: center;
+    padding: clamp(16px, 5vw, 48px) 16px 48px;
+    background-image:
+      radial-gradient(ellipse 900px 520px at 50% -10%, var(--aura-blue), transparent 60%),
+      radial-gradient(ellipse 700px 460px at 105% 105%, var(--aura-pink), transparent 60%);
+  }
+
+  .wrap { width: 100%; max-width: 400px; }
+
+  .status { text-align: center; font-size: 14px; color: var(--text-dim); padding: 40px 12px; }
+
+  .panel {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 26px 22px 28px;
+    box-shadow: var(--shadow-panel);
+  }
+
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .eyebrow {
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .round-tag { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.04em; color: var(--hue-blue); }
+
+  .tabbar { display: flex; gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+  .tab {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 9px 0;
+    border-radius: 9px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-tab); }
+
+  .already { font-size: 12px; color: var(--hue-blue); font-weight: 600; margin: 0 0 16px; text-align: center; line-height: 1.5; }
+
+  .ladder { display: flex; align-items: center; margin-bottom: 26px; }
+  .rung {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif; font-size: 11px; font-weight: 600;
+    color: var(--text-faint);
+    transition: border-color .2s, color .2s, box-shadow .2s;
+  }
+  .rung.active { border-color: var(--hue-blue); color: var(--text); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .rung.done { border-color: var(--hue-green); color: var(--hue-green); }
+  .rung-line { flex: 1; height: 1px; background: var(--border); }
+
+  .pair { display: flex; align-items: flex-start; }
+  .orb-card {
+    flex: 1; min-width: 0;
+    background: none; border: none; padding: 0;
+    font-family: inherit; color: inherit; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center;
+    border-radius: 20px;
+  }
+  .orb-card:focus-visible { outline: 2px solid var(--hue-blue); outline-offset: 4px; }
+
+  .avatar-wrap { width: 100%; aspect-ratio: 1; position: relative; margin-bottom: 12px; }
+  .avatar-glow {
+    position: absolute; inset: -16%; border-radius: 50%; z-index: 0; pointer-events: none;
+    background: conic-gradient(from var(--gr,200deg), var(--sheen-blue), var(--sheen-pink), var(--sheen-mint), var(--sheen-light), var(--sheen-blue));
+    filter: blur(14px);
+  }
+  .avatar {
+    width: 100%; height: 100%; border-radius: 50%; position: relative; z-index: 1;
+    overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-orb);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar-icon { width: 30%; height: 30%; color: var(--text-faint); }
+  .avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .band-name { font-size: 14px; font-weight: 600; text-align: center; word-break: break-word; }
+
+  .vs {
+    width: 28px; height: 28px; flex-shrink: 0; margin: 38px -8px 0; position: relative; z-index: 2;
+    border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif; font-size: 12px; letter-spacing: 0.04em; color: var(--text-dim);
+  }
+
+  .hint { font-size: 12px; color: var(--text-dim); text-align: center; margin: 18px 0 0; }
+  .hint .num { font-family: 'Teko', sans-serif; font-size: 14px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .champion { text-align: center; padding: 6px 0 0; }
+  .champion-wrap { width: 52%; margin: 0 auto 18px; }
+  .champion-wrap .avatar-glow { inset: -22%; filter: blur(20px); }
+  .champion-wrap .avatar { box-shadow: var(--shadow-champ); }
+  @media (prefers-reduced-motion: no-preference) {
+    .champion-wrap .avatar-glow { animation: glow-spin 8s linear infinite; }
+  }
+  @keyframes glow-spin { to { transform: rotate(360deg); } }
+  .champion h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 28px; font-weight: 700; margin: 0 0 8px; text-wrap: balance;
+  }
+  .champion .sub { font-size: 13px; color: var(--text-dim); margin: 0; line-height: 1.6; }
+
+  .lb-list { min-height: 40px; }
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { width: 20px; font-family: 'Teko', sans-serif; font-size: 16px; color: var(--text-faint); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .lb-rank.top { color: var(--hue-amber); }
+  .lb-avatar {
+    width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%;
+    background: var(--surface-2); border: 1px solid var(--border-strong);
+    overflow: hidden;
+  }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-name { flex: 1; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-pts { font-family: 'Teko', sans-serif; font-size: 16px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="status" id="status">Загружаем турнир…</p>
+
+  <div class="panel" id="panel" hidden>
+    <div class="panel-head">
+      <span class="eyebrow">Турнир групп</span>
+      <span class="round-tag" id="roundLabel">1/8 финала</span>
+    </div>
+
+    <div class="tabbar">
+      <button type="button" class="tab active" data-tab="bracket">Турнир</button>
+      <button type="button" class="tab" data-tab="leaderboard">Таблица лидеров</button>
+    </div>
+
+    <p class="already" id="alreadyNote" hidden></p>
+
+    <div id="bracketTab">
+      <div class="ladder" id="ladder">
+        <div class="rung" data-i="0"><span>1/8</span></div>
+        <div class="rung-line"></div>
+        <div class="rung" data-i="1"><span>1/4</span></div>
+        <div class="rung-line"></div>
+        <div class="rung" data-i="2"><span>1/2</span></div>
+        <div class="rung-line"></div>
+        <div class="rung" data-i="3"><span>Ф</span></div>
+      </div>
+
+      <div id="matchupScreen">
+        <div class="pair">
+          <button type="button" class="orb-card" data-side="0">
+            <div class="avatar-wrap" id="orbA">
+              <div class="avatar-glow"></div>
+              <div class="avatar"></div>
+            </div>
+            <span class="band-name" id="nameA"></span>
+          </button>
+          <span class="vs">VS</span>
+          <button type="button" class="orb-card" data-side="1">
+            <div class="avatar-wrap" id="orbB">
+              <div class="avatar-glow"></div>
+              <div class="avatar"></div>
+            </div>
+            <span class="band-name" id="nameB"></span>
+          </button>
+        </div>
+        <p class="hint">Пара <span class="num" id="matchNum">1</span> из <span class="num" id="matchTotal">8</span> — выбери, кто идёт дальше</p>
+      </div>
+
+      <div class="champion" id="championScreen" hidden>
+        <div class="avatar-wrap champion-wrap" id="champOrb">
+          <div class="avatar-glow"></div>
+          <div class="avatar"></div>
+        </div>
+        <span class="eyebrow">Чемпион дня</span>
+        <h1 id="championName"></h1>
+        <p class="sub">Турнир на сегодня завершён — новый состав придёт завтра.</p>
+      </div>
+    </div>
+
+    <div id="leaderboardTab" hidden>
+      <div class="lb-list" id="lbList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    "use strict";
+
+    var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      applyTheme();
+      tg.onEvent("themeChanged", applyTheme);
+    }
+
+    // Тему внутри Telegram задаёт клиент, а не ОС: пользователь мог включить
+    // тёмную тему в самом Telegram при светлой системе (и наоборот), поэтому
+    // одного prefers-color-scheme в CSS мало — проставляем data-theme вручную.
+    // Тот же приём, что в rockle.
+    function applyTheme() {
+      var scheme = tg && tg.colorScheme ? tg.colorScheme : null;
+      if (scheme === "dark" || scheme === "light") {
+        document.documentElement.dataset.theme = scheme;
+      }
+    }
+
+    var PLACEHOLDER_SVG = '<svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+    var ROUND_LABELS = ["1/8 финала", "1/4 финала", "1/2 финала", "Финал"];
+
+    var statusEl = document.getElementById("status");
+    var panelEl = document.getElementById("panel");
+    var roundLabelEl = document.getElementById("roundLabel");
+    var alreadyNoteEl = document.getElementById("alreadyNote");
+    var matchupScreenEl = document.getElementById("matchupScreen");
+    var championScreenEl = document.getElementById("championScreen");
+    var championNameEl = document.getElementById("championName");
+    var matchNumEl = document.getElementById("matchNum");
+    var matchTotalEl = document.getElementById("matchTotal");
+    var nameAEl = document.getElementById("nameA");
+    var nameBEl = document.getElementById("nameB");
+    var orbAEl = document.getElementById("orbA");
+    var orbBEl = document.getElementById("orbB");
+    var champOrbEl = document.getElementById("champOrb");
+    var lbListEl = document.getElementById("lbList");
+    var bracketTabEl = document.getElementById("bracketTab");
+    var leaderboardTabEl = document.getElementById("leaderboardTab");
+
+    var initData = tg ? (tg.initData || "") : "";
+    var bandByKey = {};
+    var roundResults = [];
+    var photoToken = 0;
+    var state = { roundIndex: 0, contenders: [], matchIndex: 0, winners: [] };
+
+    // Стабильный псевдослучайный угол свечения по ключу группы — одна и та
+    // же группа всегда даёт один и тот же оттенок, где бы ни появилась.
+    function bandHue(key) {
+      var h = 0;
+      for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+      return h % 360;
+    }
+
+    function setAvatarPhoto(wrapEl, band) {
+      var avatarEl = wrapEl.querySelector(".avatar");
+      var glowEl = wrapEl.querySelector(".avatar-glow");
+      if (glowEl) glowEl.style.setProperty("--gr", bandHue(band.key) + "deg");
+      avatarEl.innerHTML = PLACEHOLDER_SVG;
+      if (!band.photo) return;
+      // Узел аватара переиспользуется между парами, а загрузка не отменяется:
+      // без метки поколения фото предыдущей группы, догрузившись уже после
+      // перерисовки, встало бы под именем следующей (быстрая игра — и под
+      // «Queen» оказывается лого Beatles). Ответ применяем, только если метка
+      // на узле всё ещё наша.
+      var token = String(++photoToken);
+      avatarEl.dataset.token = token;
+      var img = new Image();
+      img.className = "avatar-img";
+      img.alt = "";
+      img.onload = function () {
+        if (avatarEl.dataset.token !== token) return;
+        avatarEl.innerHTML = "";
+        avatarEl.appendChild(img);
+      };
+      img.onerror = function () {
+        if (avatarEl.dataset.token !== token) return;
+        avatarEl.innerHTML = PLACEHOLDER_SVG;
+      };
+      img.src = "/api/tournament/images/" + encodeURIComponent(band.photo);
+    }
+
+    function renderMatchup() {
+      roundLabelEl.textContent = ROUND_LABELS[state.roundIndex];
+      var total = state.contenders.length / 2;
+      matchNumEl.textContent = state.matchIndex + 1;
+      matchTotalEl.textContent = total;
+      document.querySelectorAll(".rung").forEach(function (r, i) {
+        r.classList.toggle("active", i === state.roundIndex);
+        r.classList.toggle("done", i < state.roundIndex);
+      });
+      var a = state.contenders[state.matchIndex * 2];
+      var b = state.contenders[state.matchIndex * 2 + 1];
+      nameAEl.textContent = a.display;
+      nameBEl.textContent = b.display;
+      setAvatarPhoto(orbAEl, a);
+      setAvatarPhoto(orbBEl, b);
+    }
+
+    function finish(championKey) {
+      matchupScreenEl.hidden = true;
+      championScreenEl.hidden = false;
+      var band = bandByKey[championKey] || { key: championKey, display: championKey };
+      championNameEl.textContent = band.display;
+      setAvatarPhoto(champOrbEl, band);
+      document.querySelectorAll(".rung").forEach(function (r) {
+        r.classList.add("done");
+        r.classList.remove("active");
+      });
+      roundLabelEl.textContent = "Финал";
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+      submitResult();
+    }
+
+    function pick(side) {
+      var idx = state.matchIndex * 2 + (side === "0" ? 0 : 1);
+      var winner = state.contenders[idx];
+      state.winners.push(winner.key);
+      state.matchIndex++;
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
+
+      if (state.matchIndex * 2 < state.contenders.length) {
+        renderMatchup();
+        return;
+      }
+      roundResults[state.roundIndex] = state.winners;
+      if (state.roundIndex === ROUND_LABELS.length - 1) {
+        finish(state.winners[0]);
+        return;
+      }
+      state.contenders = state.winners.map(function (key) { return bandByKey[key]; });
+      state.matchIndex = 0;
+      state.winners = [];
+      state.roundIndex++;
+      renderMatchup();
+    }
+
+    document.querySelectorAll(".orb-card").forEach(function (btn) {
+      btn.addEventListener("click", function () { pick(btn.dataset.side); });
+    });
+
+    function loadLeaderboard() {
+      return fetch("/api/tournament/leaderboard")
+        .then(function (r) { if (!r.ok) throw new Error("bad status"); return r.json(); })
+        .then(function (lb) { renderLeaderboard(lb.leaderboard || []); });
+    }
+
+    function submitResult() {
+      // И успешный ответ, и 409 already_completed — оба ожидаемое состояние
+      // (чемпион уже показан локально), поэтому тело ответа не проверяем;
+      // только сетевая ошибка тихо игнорируется, как у рокла.
+      fetch("/api/tournament/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initData: initData,
+          round16_winners: roundResults[0],
+          qf_winners: roundResults[1],
+          sf_winners: roundResults[2],
+          champion: roundResults[3][0]
+        })
+      })
+        // Таблица грузится один раз при открытии, поэтому после прогона в ней
+        // ещё нет только что начисленных очков — на вкладке это выглядит как
+        // «не засчитало». Перечитываем её после отправки результата.
+        .then(loadLeaderboard)
+        .catch(function () { /* тихо игнорируем */ });
+    }
+
+    function escapeHtml(s) {
+      var div = document.createElement("div");
+      div.textContent = String(s);
+      return div.innerHTML;
+    }
+
+    function renderLeaderboard(rows) {
+      if (!rows.length) {
+        lbListEl.innerHTML = '<p class="status">Пока пусто — сыграй первым 🤘</p>';
+        return;
+      }
+      lbListEl.innerHTML = rows.map(function (row, i) {
+        var avatar = row.photo
+          ? '<span class="lb-avatar"><img src="/api/tournament/images/' + encodeURIComponent(row.photo) + '" alt="" onerror="this.parentElement.innerHTML=&#39;&#39;"></span>'
+          : '<span class="lb-avatar"></span>';
+        return '<div class="lb-row">' +
+          '<span class="lb-rank' + (i === 0 && row.points > 0 ? ' top' : '') + '">' + (i + 1) + '</span>' +
+          avatar +
+          '<span class="lb-name">' + escapeHtml(row.display) + '</span>' +
+          '<span class="lb-pts">' + row.points + '</span>' +
+        '</div>';
+      }).join("");
+    }
+
+    document.querySelectorAll(".tab").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".tab").forEach(function (t) { t.classList.remove("active"); });
+        btn.classList.add("active");
+        var isBracket = btn.dataset.tab === "bracket";
+        bracketTabEl.hidden = !isBracket;
+        leaderboardTabEl.hidden = isBracket;
+      });
+    });
+
+    function showError(text) {
+      statusEl.textContent = text;
+      statusEl.hidden = false;
+      panelEl.hidden = true;
+    }
+
+    // Бракет и таблица лидеров грузятся параллельно при открытии — чтобы
+    // переключение вкладки ощущалось мгновенным, а не ждало отдельного запроса.
+    Promise.all([
+      fetch("/api/tournament/today?initData=" + encodeURIComponent(initData)).then(function (r) {
+        if (!r.ok) throw new Error("bad status");
+        return r.json();
+      }),
+      fetch("/api/tournament/leaderboard").then(function (r) {
+        if (!r.ok) throw new Error("bad status");
+        return r.json();
+      })
+    ]).then(function (results) {
+      var today = results[0];
+      var lb = results[1];
+
+      if (!today.bands || today.bands.length < 16) {
+        showError("Турнир на сегодня ещё не готов. Загляни чуть позже 🤘");
+        return;
+      }
+
+      today.bands.forEach(function (b) { bandByKey[b.key] = b; });
+      state.contenders = today.bands;
+
+      statusEl.hidden = true;
+      panelEl.hidden = false;
+
+      if (today.already_completed) {
+        var champ = bandByKey[today.already_completed];
+        alreadyNoteEl.textContent = "Сегодня уже сыграно — чемпион: " + (champ ? champ.display : today.already_completed) + ". Можно сыграть ещё раз просто так.";
+        alreadyNoteEl.hidden = false;
+      }
+
+      renderLeaderboard(lb.leaderboard || []);
+      renderMatchup();
+    }).catch(function () {
+      showError("Не получилось загрузить турнир. Проверь связь и попробуй снова 🤘");
+    });
+  })();
+</script>
+</body>
+</html>

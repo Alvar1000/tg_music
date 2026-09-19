@@ -17,6 +17,8 @@ BASE_DIR = Path(__file__).resolve().parent
 CONTENT_DIR = BASE_DIR / "content"
 # Обложки альбомов для теста «Угадай группу по обложке».
 COVERS_DIR = CONTENT_DIR / "covers"
+# Промо-фото групп для мини-игры «Турнир групп».
+TOURNAMENT_COVERS_DIR = CONTENT_DIR / "tournament_covers"
 
 # Загружаем переменные окружения из .env (если файл существует).
 load_dotenv(BASE_DIR / ".env")

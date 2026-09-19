@@ -112,6 +112,14 @@ async def init_db() -> None:
             changed_at    TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS tournament_band_points (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    INTEGER,
+            band_key   TEXT,
+            points     INTEGER,
+            awarded_at TEXT
+        );
+
         CREATE INDEX IF NOT EXISTS idx_feature_usage_feature_used_at  ON feature_usage(feature, used_at);
         CREATE INDEX IF NOT EXISTS idx_quiz_results_name_completed_at ON quiz_results(quiz_name, completed_at);
         CREATE INDEX IF NOT EXISTS idx_users_first_seen               ON users(first_seen);
@@ -119,6 +127,7 @@ async def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_rockle_results_play_date       ON rockle_results(play_date);
         CREATE INDEX IF NOT EXISTS idx_rockle_results_user            ON rockle_results(user_id);
         CREATE INDEX IF NOT EXISTS idx_subscription_events_changed_at ON subscription_events(changed_at);
+        CREATE INDEX IF NOT EXISTS idx_tournament_band_points_band_key ON tournament_band_points(band_key);
         """
     )
     await _db.commit()
@@ -518,6 +527,55 @@ async def get_leaderboard(metric: str, since: str, until: str, limit: int = 10) 
     async with _db.execute(sql, (since, until, limit)) as cur:
         rows = await cur.fetchall()
     return [dict(row) for row in rows]
+
+
+# ============ Турнир групп (мини-игра, публичная таблица очков) ============
+
+async def award_tournament_points(user_id: int, awards: list[tuple[str, int]]) -> None:
+    """Начисляет очки группам по итогам одного прогона турнира.
+
+    awards — список (band_key, points); обычно ровно 8 строк за прогон
+    (4 группы × 1 балл за 1/4, 2 × 2 балла за 1/2, 1 × 3 балла за финал,
+    1 × 5 баллов чемпиону — за вылет в 1/8 очки не начисляются вовсе).
+    """
+    now = _now()
+    await _db.executemany(
+        "INSERT INTO tournament_band_points (user_id, band_key, points, awarded_at) VALUES (?, ?, ?, ?)",
+        [(user_id, band_key, points, now) for band_key, points in awards],
+    )
+    await _db.commit()
+
+
+async def get_band_points_totals(limit: int = 100) -> list[dict]:
+    """Сумма очков по группам, отсортировано по убыванию.
+
+    Группа, ни разу не прошедшая дальше 1/8, тут не появится (нулевые очки
+    не логируются) — достраивание нулями по полному пулу групп делает
+    вызывающая сторона (tournament.py), не здесь.
+    """
+    async with _db.execute(
+        "SELECT band_key, SUM(points) AS total FROM tournament_band_points "
+        "GROUP BY band_key ORDER BY total DESC LIMIT ?",
+        (limit,),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [dict(row) for row in rows]
+
+
+async def get_quiz_result_today(user_id: int, quiz_name: str) -> str | None:
+    """Результат уже пройденного сегодня (UTC) прогона quiz_name, если есть.
+
+    Не отдельная таблица с PK на (user_id, дата) — просто запрос к уже
+    существующей quiz_results. Дженерик по quiz_name, не привязан к турниру —
+    подойдёт для любой будущей daily-игры так же.
+    """
+    async with _db.execute(
+        "SELECT result FROM quiz_results WHERE user_id = ? AND quiz_name = ? "
+        "AND DATE(completed_at) = DATE('now') ORDER BY completed_at DESC LIMIT 1",
+        (user_id, quiz_name),
+    ) as cur:
+        row = await cur.fetchone()
+    return row["result"] if row else None
 
 
 # ============ Аналитика для дашборда ============
