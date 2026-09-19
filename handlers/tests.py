@@ -42,8 +42,7 @@ async def tests_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await callback.answer()
     rockle_url = f"{config.WEBAPP_URL}/rockle/" if config.WEBAPP_URL else None
-    tournament_url = f"{config.WEBAPP_URL}/tournament/" if config.WEBAPP_URL else None
-    await safe_edit(callback, "🧠 <b>Тесты</b>\n\nВыбирай:", tests_menu_kb(rockle_url, tournament_url))
+    await safe_edit(callback, "🧠 <b>Тесты</b>\n\nВыбирай:", tests_menu_kb(rockle_url))
 
 
 # ============ (а) Тест «Музыкант по знаку зодиака» ============

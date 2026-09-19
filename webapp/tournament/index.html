@@ -221,6 +221,24 @@
   }
   .champion .sub { font-size: 13px; color: var(--text-dim); margin: 0; line-height: 1.6; }
 
+  /* Промо вечеринки под чемпионом. Отбито рамкой и фоном, а не просто ещё
+     одним абзацем: это единственное место в аппе, которое уводит наружу, и
+     оно не должно читаться как продолжение результата турнира. */
+  .promo {
+    display: block; margin: 20px 0 0; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface-2); text-align: left; text-decoration: none;
+    color: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .promo:active { border-color: var(--hue-blue); }
+  .promo:focus-visible { outline: 2px solid var(--hue-blue); outline-offset: 3px; }
+  .promo-kicker {
+    display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--hue-amber); margin-bottom: 5px;
+  }
+  .promo-text { display: block; font-size: 13px; line-height: 1.55; color: var(--text); }
+  .promo-cta { display: block; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--hue-blue); }
+
   .lb-list { min-height: 40px; }
   .lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .lb-row:last-child { border-bottom: none; }
@@ -296,6 +314,12 @@
         <span class="eyebrow">Чемпион дня</span>
         <h1 id="championName"></h1>
         <p class="sub">Турнир на сегодня завершён — новый состав придёт завтра.</p>
+
+        <a class="promo" id="promoLink" href="https://spb.radario.ru/events/2833657/tickets">
+          <span class="promo-kicker">Вечеринка 60–70-х</span>
+          <span class="promo-text">А если хочешь услышать все эти группы — приходи на нашу вечеринку в Питере 1 октября.</span>
+          <span class="promo-cta">Билеты и подробности →</span>
+        </a>
       </div>
     </div>
 
@@ -511,6 +535,29 @@
         leaderboardTabEl.hidden = isBracket;
       });
     });
+
+    // Внутри Telegram обычный переход по ссылке остаётся в вебвью мини-аппы:
+    // человек уходит с экрана результата и возвращается только кнопкой «назад».
+    // tg.openLink открывает страницу отдельно, аппа остаётся на месте. Href в
+    // разметке оставлен рабочим — если страницу открыть обычным браузером,
+    // ссылка сработает сама.
+    var promoEl = document.getElementById("promoLink");
+    if (promoEl) {
+      promoEl.addEventListener("click", function (e) {
+        // Счётчик отправляем до открытия ссылки и намеренно не ждём ответа:
+        // переход не должен зависеть от того, дошёл ли запрос.
+        fetch("/api/tournament/promo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData: initData })
+        }).catch(function () { /* тихо игнорируем */ });
+
+        if (tg && typeof tg.openLink === "function") {
+          e.preventDefault();
+          tg.openLink(promoEl.href);
+        }
+      });
+    }
 
     function showError(text) {
       statusEl.textContent = text;

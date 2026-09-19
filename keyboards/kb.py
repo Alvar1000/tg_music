@@ -16,7 +16,8 @@
 
 «Найди группу» и «Турнир групп» — не callback, а кнопки web_app (Telegram
 Mini App), ссылки на config.WEBAPP_URL + /rockle/ или /tournament/;
-открываются вне диспетчера aiogram (см. server.py, tournament.py).
+открываются вне диспетчера aiogram (см. server.py, tournament.py). «Турнир
+групп» живёт в главном меню (main_menu_kb), «Найди группу» — в меню тестов.
 """
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -47,14 +48,20 @@ def gate_kb(channel_url: str) -> InlineKeyboardMarkup:
     ])
 
 
-def main_menu_kb() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎵 Плейлист дня", callback_data="menu_playlist")],
+def main_menu_kb(tournament_url: str | None = None) -> InlineKeyboardMarkup:
+    """tournament_url — ссылка на мини-игру «Турнир групп» (config.WEBAPP_URL).
+    Пусто — кнопка не показывается, как и у мини-игр в tests_menu_kb().
+    """
+    rows = [[InlineKeyboardButton(text="🎵 Плейлист дня", callback_data="menu_playlist")]]
+    if tournament_url:
+        rows.append([InlineKeyboardButton(text="🏆 Турнир групп", web_app=WebAppInfo(url=tournament_url))])
+    rows += [
         [InlineKeyboardButton(text="🎲 Рандомный факт", callback_data="menu_fact")],
         [InlineKeyboardButton(text="🧠 Тесты", callback_data="menu_tests")],
         [InlineKeyboardButton(text="📅 Мероприятия", callback_data="menu_events")],
         [InlineKeyboardButton(text="💬 Общение", callback_data="menu_chat")],
-    ])
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def back_to_menu_kb() -> InlineKeyboardMarkup:
@@ -76,10 +83,12 @@ def fact_kb() -> InlineKeyboardMarkup:
     ])
 
 
-def tests_menu_kb(rockle_url: str | None = None, tournament_url: str | None = None) -> InlineKeyboardMarkup:
-    """rockle_url/tournament_url — ссылки на мини-игры (config.WEBAPP_URL). Пусто —
-    соответствующая кнопка не показывается (например, при локальном запуске
-    без HTTPS-адреса).
+def tests_menu_kb(rockle_url: str | None = None) -> InlineKeyboardMarkup:
+    """rockle_url — ссылка на мини-игру «Найди группу» (config.WEBAPP_URL). Пусто —
+    кнопка не показывается (например, при локальном запуске без HTTPS-адреса).
+
+    «Турнир групп» отсюда убран — он вынесен в главное меню (main_menu_kb),
+    чтобы не дублировать одну и ту же кнопку в двух экранах.
     """
     rows = [
         [InlineKeyboardButton(text="♈ Музыкант по знаку зодиака", callback_data="test_zodiac")],
@@ -91,8 +100,6 @@ def tests_menu_kb(rockle_url: str | None = None, tournament_url: str | None = No
     ]
     if rockle_url:
         rows.append([InlineKeyboardButton(text="🧩 Найди группу (афиша дня)", web_app=WebAppInfo(url=rockle_url))])
-    if tournament_url:
-        rows.append([InlineKeyboardButton(text="🏆 Турнир групп", web_app=WebAppInfo(url=tournament_url))])
     rows.append([_back_button()])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 

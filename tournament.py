@@ -164,6 +164,34 @@ async def tournament_complete(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "champion": champion})
 
 
+async def tournament_promo_click(request: web.Request) -> web.Response:
+    """Отмечает переход по ссылке на вечеринку с экрана чемпиона.
+
+    Отдельный роут, а не поле в /complete: промо видно и тем, кто сегодня уже
+    играл, да и клик может случиться сильно позже отправки результата. Пишем в
+    тот же feature_usage, что и остальные счётчики, — значит, метрика
+    `feature:party_promo` сразу доступна на дашборде без нового кода там
+    (dashboard.py разбирает имя метрики, см. db.get_daily_metric).
+
+    Ответ всегда 200: это счётчик, а не действие пользователя, и падать из-за
+    него на клиенте (мешая открыть саму ссылку) нечему.
+    """
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, ValueError):
+        return web.json_response({"ok": False})
+
+    pairs = webapp_auth.validate_init_data(str(body.get("initData", "")), config.BOT_TOKEN)
+    if not pairs:
+        return web.json_response({"ok": False})
+    user_id = webapp_auth.extract_user_id(pairs)
+    if user_id is None:
+        return web.json_response({"ok": False})
+
+    await db.log_feature(user_id, "party_promo")
+    return web.json_response({"ok": True})
+
+
 async def tournament_leaderboard(request: web.Request) -> web.Response:
     """Публичная таблица очков по группам — без авторизации, это контент для
     всех пользователей (в отличие от /api/dashboard/*, там владельческий токен).
@@ -192,5 +220,6 @@ def register_routes(app: web.Application) -> None:
     app.router.add_get("/tournament", tournament_page)
     app.router.add_get("/api/tournament/today", tournament_today)
     app.router.add_post("/api/tournament/complete", tournament_complete)
+    app.router.add_post("/api/tournament/promo", tournament_promo_click)
     app.router.add_get("/api/tournament/leaderboard", tournament_leaderboard)
     app.router.add_static("/api/tournament/images/", config.TOURNAMENT_COVERS_DIR)

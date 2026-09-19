@@ -112,7 +112,7 @@ async def safe_edit(callback: CallbackQuery, text: str, reply_markup=None) -> No
 async def show_main_menu(event: Message | CallbackQuery, greeting: bool = False) -> None:
     """Показывает главное меню — с картинкой-баннером, если она задана."""
     text = WELCOME_TEXT if greeting else MENU_TEXT
-    kb = main_menu_kb()
+    kb = main_menu_kb(f"{config.WEBAPP_URL}/tournament/" if config.WEBAPP_URL else None)
     banner = _banner_source()
 
     # /start — событие Message: просто шлём новое сообщение.

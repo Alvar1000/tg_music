@@ -69,6 +69,7 @@ async def cmd_stats(message: Message) -> None:
         f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_today']}</b>\n"
         f"🧩 Заходов в «Найди группу»: <b>{stats['rockle_opens_today']}</b>\n"
         f"🧩 Прошли «Найди группу»: <b>{stats['rockle_today']}</b>\n"
+        f"🎟 Переходов по ссылке на вечеринку: <b>{stats['promo_clicks_today']}</b>\n"
     )
 
     tests_today = stats["tests_today"]
@@ -103,6 +104,7 @@ async def cmd_month(message: Message) -> None:
         f"🎵 Открытий «Плейлиста дня»: <b>{stats['playlist_month']}</b>\n"
         f"🧩 Заходов в «Найди группу»: <b>{stats['rockle_opens_month']}</b>\n"
         f"🧩 Прошли «Найди группу»: <b>{stats['rockle_completed_month']}</b>\n"
+        f"🎟 Переходов по ссылке на вечеринку: <b>{stats['promo_clicks_month']}</b>\n"
     )
 
     tests_month = stats["tests_month"]

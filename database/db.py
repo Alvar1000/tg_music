@@ -340,6 +340,15 @@ async def get_stats() -> dict:
     ) as cur:
         rockle_opens_today = (await cur.fetchone())["n"]
 
+    # Переходы по ссылке на вечеринку с экрана чемпиона турнира. Считаем
+    # именно клики (таблица append-only), а не уникальных людей — вопрос
+    # владельца был «сколько переходов».
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'party_promo' AND DATE(used_at) = DATE('now')"
+    ) as cur:
+        promo_clicks_today = (await cur.fetchone())["n"]
+
     return {
         "total": total,
         "new_today": new_today,
@@ -349,6 +358,7 @@ async def get_stats() -> dict:
         "playlist_today": playlist_today,
         "rockle_today": rockle_today,
         "rockle_opens_today": rockle_opens_today,
+        "promo_clicks_today": promo_clicks_today,
     }
 
 
@@ -402,6 +412,13 @@ async def get_month_stats(days: int = 30) -> dict:
     ) as cur:
         rockle_completed_month = (await cur.fetchone())["n"]
 
+    async with _db.execute(
+        "SELECT COUNT(*) AS n FROM feature_usage "
+        "WHERE feature = 'party_promo' AND DATE(used_at) >= DATE('now', ?)",
+        (since,),
+    ) as cur:
+        promo_clicks_month = (await cur.fetchone())["n"]
+
     return {
         "days": days,
         "mau": mau,
@@ -410,6 +427,7 @@ async def get_month_stats(days: int = 30) -> dict:
         "playlist_month": playlist_month,
         "rockle_opens_month": rockle_opens_month,
         "rockle_completed_month": rockle_completed_month,
+        "promo_clicks_month": promo_clicks_month,
     }
 
 
