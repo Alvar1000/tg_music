@@ -3,6 +3,7 @@
 Держим одно соединение на всё приложение: aiosqlite выполняет запросы
 последовательно в отдельном потоке, поэтому это безопасно и просто.
 """
+import json
 import logging
 from datetime import date, datetime, timedelta, timezone
 
@@ -118,6 +119,12 @@ async def init_db() -> None:
             band_key   TEXT,
             points     INTEGER,
             awarded_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS tournament_draws (
+            play_date  TEXT PRIMARY KEY,
+            band_keys  TEXT NOT NULL,
+            created_at TEXT NOT NULL
         );
 
         CREATE INDEX IF NOT EXISTS idx_feature_usage_feature_used_at  ON feature_usage(feature, used_at);
@@ -594,6 +601,63 @@ async def get_quiz_result_today(user_id: int, quiz_name: str) -> str | None:
     ) as cur:
         row = await cur.fetchone()
     return row["result"] if row else None
+
+
+async def get_tournament_draw(play_date: str) -> list[str] | None:
+    """Сетка турнира за play_date — ключи групп в порядке пар, — или None."""
+    async with _db.execute(
+        "SELECT band_keys FROM tournament_draws WHERE play_date = ?", (play_date,)
+    ) as cur:
+        row = await cur.fetchone()
+    return json.loads(row["band_keys"]) if row else None
+
+
+async def save_tournament_draw(play_date: str, band_keys: list[str]) -> None:
+    """Фиксирует сетку дня. INSERT OR IGNORE: если два первых запроса дня
+    посчитали сетку одновременно, остаётся одна запись — её и читают все.
+    """
+    await _db.execute(
+        "INSERT OR IGNORE INTO tournament_draws (play_date, band_keys, created_at) VALUES (?, ?, ?)",
+        (play_date, json.dumps(band_keys), _now()),
+    )
+    await _db.commit()
+
+
+async def get_tournament_draws_between(since: str, until: str) -> list[tuple[str, list[str]]]:
+    """Сетки за [since, until] по возрастанию даты — история для ротации."""
+    async with _db.execute(
+        "SELECT play_date, band_keys FROM tournament_draws "
+        "WHERE play_date BETWEEN ? AND ? ORDER BY play_date",
+        (since, until),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [(row["play_date"], json.loads(row["band_keys"])) for row in rows]
+
+
+async def has_tournament_draws() -> bool:
+    async with _db.execute("SELECT 1 FROM tournament_draws LIMIT 1") as cur:
+        return await cur.fetchone() is not None
+
+
+async def get_first_tournament_day() -> str | None:
+    """Первый день (UTC), когда турнир открывали или проходили; None — ещё ни разу."""
+    async with _db.execute(
+        "SELECT MIN(d) AS first FROM ("
+        " SELECT MIN(DATE(used_at)) AS d FROM feature_usage WHERE feature = 'tournament_open'"
+        " UNION ALL"
+        " SELECT MIN(DATE(completed_at)) FROM quiz_results WHERE quiz_name = 'tournament'"
+        ")"
+    ) as cur:
+        return (await cur.fetchone())["first"]
+
+
+async def feature_used_on(feature: str, day: str) -> bool:
+    """Было ли хоть одно использование фичи за сутки day (UTC, 'YYYY-MM-DD')."""
+    async with _db.execute(
+        "SELECT 1 FROM feature_usage WHERE feature = ? AND DATE(used_at) = ? LIMIT 1",
+        (feature, day),
+    ) as cur:
+        return await cur.fetchone() is not None
 
 
 # ============ Аналитика для дашборда ============

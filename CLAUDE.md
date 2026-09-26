@@ -26,17 +26,41 @@ python main.py                   # runs the bot (long polling) + the Mini App we
 Run `python main.py` from this directory — `config.py` resolves `content/`, `.env`,
 `bot.db`, and `bot.log` relative to `main.py`'s location (`BASE_DIR`), so paths only
 line up when run as `main.py`. `main.py` also starts an aiohttp server (`server.py`,
-port `config.PORT`, default 8080) for the "Найди группу" Mini App — same process, see
+port `config.PORT`, default 8080) for both Mini Apps and the dashboard — same process, see
 "Mini App server" below. Without `WEBAPP_URL` (or `RENDER_EXTERNAL_URL`) set, the server
-still runs but the Mini App button just doesn't appear in the menu.
+still runs but the Mini App buttons just don't appear in the menus.
 
 There is **no test suite and no configured linter** in this repo — don't assume `pytest`
-or `ruff` commands exist. Verification is manual (run the bot, drive it in Telegram).
+or `ruff` commands exist. Verification is manual (run the bot, drive it in Telegram). One
+cheap check needs no token or network: it imports every module and builds both the
+aiohttp app and the dispatcher, catching syntax errors, circular imports (see "Band
+tournament") and route/router wiring mistakes:
+
+```bash
+python -c "import main, server; server.create_app(); main.create_dispatcher()"
+```
 
 **Single-instance rule:** Telegram allows only one `getUpdates` consumer per token.
 Never run two `python main.py` against the same `BOT_TOKEN` (e.g. a local instance plus
 a deployed one) — the second gets `409 Conflict`. `start_polling(drop_pending_updates=True)`
 makes restarts safe.
+
+With the bot running, the web pages also open in a plain browser:
+`http://localhost:8080/rockle/`, `/tournament/`, `/dashboard/` (log in with
+`DASHBOARD_TOKEN`). The games load and play (`/api/*/today` works anonymously), but
+`POST .../complete` returns 401 without Telegram's signed `initData` — recording a result
+needs the real Telegram client (HTTPS via `WEBAPP_URL`, e.g. an ngrok tunnel).
+
+## Deployment
+
+Production is a Render Blueprint, `render.yaml`: a single `web` service running
+`python main.py` (health check `GET /healthz`) with a persistent disk at `/data` —
+`DB_PATH=/data/bot.db`, `PLAYLISTS_PATH=/data/playlists.json`. Secrets are declared there
+with `sync: false` (Render asks for the values once), so a new env var production needs
+belongs in `render.yaml` too, not just `.env.example`. `WEBAPP_URL` is deliberately absent —
+`config.py` falls back to Render's own `RENDER_EXTERNAL_URL`. `DEPLOY_PLAN.md` (Docker/VPS)
+is an unimplemented plan that predates the aiohttp server; its "no inbound port needed"
+premise no longer holds.
 
 ## Architecture
 
@@ -52,7 +76,10 @@ aiogram 3.x Telegram bot. Two hard rules shape everything:
    writes the result to `users.is_subscribed`, and blocks non-subscribers with the gate
    screen. Only `/start`, the `check_sub` callback, and `ADMIN_IDS` bypass it. The bot
    **must be an admin of the channel** or `get_chat_member` fails and the gate locks
-   everyone out.
+   everyone out. The gate only sees aiogram updates: the aiohttp routes (Mini Apps,
+   public leaderboard, dashboard) are outside it. The Mini Apps are "gated" only because
+   their `web_app` buttons live behind the gate, so anything that must be subscriber-only
+   server-side has to check `users.is_subscribed` itself.
 
 ### Wiring (main.py)
 
@@ -75,22 +102,27 @@ second process couldn't reach the same DB/files anyway. If you ever add webhook 
 `server.py:create_app()` builds — don't spin up a second aiohttp app.
 
 - **Daily puzzle, shared across users.** `GET /api/rockle/today` deterministically picks
-  15 bands from `content/rockle_words.json` via `random.Random(today_iso).sample(...)` —
-  same pattern as the playlist-of-the-day pointer. The letter grid itself is built
+  `WORDS_PER_DAY` (10) bands from `content/rockle_words.json` via
+  `random.Random(today_iso).sample(...)` — the same date seeding the playlist queue uses
+  once it runs out. The letter grid itself (12×12, horizontal/vertical words only) is built
   **client-side**, seeded from that same date string (FNV-1a hash → mulberry32 PRNG in
   JS), so every player gets a pixel-identical grid that day without the server doing any
-  layout work.
+  layout work. A word the grid can't fit is silently dropped from that day's puzzle.
+  Editing `rockle_words.json` mid-day changes the puzzle for later players (nothing
+  fails — `/complete` doesn't check words).
 - **Result integrity.** The client posts `initData` (Telegram's signed payload) along
   with the elapsed time to `POST /api/rockle/complete`. `webapp_auth.py:validate_init_data()`
   verifies the HMAC-SHA256 signature (secret = `HMAC_SHA256("WebAppData", BOT_TOKEN)`,
   per Telegram's documented algorithm) and rejects stale `auth_date` (>24h) before trusting
-  `user_id` — without this check anyone could POST results under someone else's id. First
-  completion per `(user_id, play_date)` wins (`rockle_results` PK); replays don't overwrite it.
+  `user_id` — without this check anyone could POST results under someone else's id. It
+  authenticates *who*, not *what*: `seconds` is client-reported and only range-checked
+  (1–3600), so best-time rankings trust the client. First completion per
+  `(user_id, play_date)` wins (`rockle_results` PK); replays don't overwrite it.
   This check lives in its own module (not in `server.py`) because the tournament Mini App
-  needs it too — see "Турнир групп" below for why that isn't just an import from `server.py`.
-- The menu button (`keyboards/kb.py:tests_menu_kb()`) only appears when
-  `config.WEBAPP_URL` resolves to something — Mini Apps require HTTPS, so there's nothing
-  useful to link to without it.
+  needs it too — see "Band tournament" below for why that isn't just an import from `server.py`.
+- The Mini App buttons (Rockle in `keyboards/kb.py:tests_menu_kb()`, the tournament in the
+  **main** menu via `main_menu_kb()`) only appear when `config.WEBAPP_URL` resolves to
+  something — Mini Apps require HTTPS, so there's nothing useful to link to without it.
 
 ### Band tournament (tournament.py)
 
@@ -108,11 +140,10 @@ hands out today's 16-band draw and accepts the final result.
   `server.py` (just `hashlib`/`hmac`/`json`/`datetime`/`urllib.parse`), so the module
   split costs nothing; `server.py` and `tournament.py` both import it the same way.
 - **Bracket integrity is checked for real, not just "these keys were in yesterday's
-  pool."** The server already knows today's 16-band draw *and* pairing order
-  deterministically (`random.Random(today).sample()` fixes both at once — pairs are
-  `(pool[0],pool[1]), (pool[2],pool[3])...`), so `POST /api/tournament/complete` cheaply
-  re-derives whether the claimed winners are actually valid pairwise winners at every
-  round. One helper (`tournament.py:_round_winners_valid()`) is reused 4 times: today's
+  pool."** The server knows today's 16-band draw *and* pairing order (the stored draw is
+  in bracket order — pairs are `(draw[0],draw[1]), (draw[2],draw[3])...`), so
+  `POST /api/tournament/complete` cheaply re-derives whether the claimed winners are
+  actually valid pairwise winners at every round. One helper (`tournament.py:_round_winners_valid()`) is reused 4 times: today's
   16 → round-of-16 winners → quarterfinal winners → semifinal winners → champion.
   Without this, a forged request could crown a band that lost in round one, or one that
   wasn't even in today's draw — not just a band absent from the pool entirely.
@@ -144,12 +175,37 @@ hands out today's 16-band draw and accepts the final result.
   time, and the first result quietly wins) different tournament runs simply aren't
   comparable — refusing outright is more honest than picking one arbitrarily. The client
   doesn't block replay, it just doesn't count a second time (an "already played today"
-  banner, no hard stop).
+  banner, no hard stop). The check-then-write runs under a module-level `asyncio.Lock`
+  (`_complete_lock`) — otherwise a burst of parallel requests passes the check together and
+  awards points several times. The lock is only enough because of the single-process
+  rule; multiple workers would need a DB-level uniqueness constraint instead.
+- **The daily draw is a rotation, computed once and stored.** The first request of the
+  day runs `_make_draw()` and saves the result in `tournament_draws` (PK `play_date`;
+  `INSERT OR IGNORE` + re-read, so concurrent first requests agree); every later request,
+  including `/complete`'s validation, reads the stored draw (`_today_draw()`). Selection
+  priority: longest since last played (absent from the window = first) → fewest plays in
+  the last `HISTORY_DAYS` (14) → random; then the 16 are shuffled into pairs. With ≤32
+  bands that guarantees "absent yesterday → in today" and evens out appearances — the old
+  pure-random draw gave 2–7 appearances per band in the first 9 days, which is what
+  skewed the points. Because the draw is frozen, editing `tournament_bands.json` takes
+  effect the next day without voiding in-flight runs; only a run straddling UTC midnight
+  still gets `400 invalid_bracket` — silently, since the client ignores `/complete`'s
+  response.
+- **The rotation's first start backfilled history** (`_backfill_legacy_draws()`, runs
+  only while `tournament_draws` is empty): pre-rotation days are re-created with the old
+  formula `random.Random(date).sample(pool, 16)` so the balancing knows who was
+  under-drawn. Today gets the old formula too only if the tournament was already opened
+  today (those players hold the old bracket); otherwise the rotation applies at once.
+- **The champion-screen party promo is hardcoded** in `webapp/tournament/index.html`
+  (ticket link + date), an exception to the content-in-JSON rule: it duplicates the
+  `events.json` entry without reading it, so update or remove it by hand when the event
+  changes or passes. Clicks hit `POST /api/tournament/promo`, logged as feature
+  `party_promo` — counted in `/stats`/`/month` and queryable by the dashboard API as
+  `feature:party_promo`, though the dashboard page doesn't chart it.
 - Band pool: `content/tournament_bands.json` (flat array of `{"key", "display", "photo"}`;
   `key` is a lowercase slug, closer in role to `quiz_musician.json`'s result keys than to
   `rockle_words.json`'s uppercase letters). Needs **at least 16** bands — fewer and
-  `/today`/`/complete` return an empty result / a clear error instead of crashing on
-  `random.sample()`.
+  `/today`/`/complete` return an empty result / a clear error instead of crashing.
 
 ### Analytics dashboard (dashboard.py)
 
@@ -184,10 +240,11 @@ to avoid instantiating many Chart.js instances.
   the same git commits with no versioning convention (see "Content files" below), so
   `releases(id, label, kind, released_at, note, created_at)` exists purely because the
   owner types a label into a dashboard form when they ship something. The before/after
-  traffic delta (`dashboard.py:_compute_impact()`) compares average DAU in the N days
-  before vs. after `released_at` — one query per side via `db.get_daily_metric()`, which is
-  also what powers every chart/sparkline (dispatches on a `metric` string: `"dau"`,
-  `"new_users"`, `"feature:<name>"`, `"quiz:<name>"`, `"quiz_total"`, `"rockle_completed"`).
+  traffic delta (`dashboard.py:_compute_impact()`) compares a metric's average (the page
+  asks for DAU over 7-day windows) in the N days before vs. after `released_at` — one
+  query per side via `db.get_daily_metric()`, which is also what powers every
+  chart/sparkline (dispatches on a `metric` string: `"dau"`, `"new_users"`,
+  `"feature:<name>"`, `"quiz:<name>"`, `"quiz_total"`, `"rockle_completed"`).
 - **No giveaway-entry mechanism exists on purpose.** An earlier design had users tap
   "участвовать" in the bot and an automated winner draw; that was cut as overbuilt. What
   shipped instead is `db.get_leaderboard()` — a read-only ranking (`metric="rockle"`: most
@@ -215,17 +272,21 @@ inside `callback_data`, so keep them short.
   option casts a point for a musician key; highest score wins, ties broken by
   `random.choice`), and the "Save the concert" quest (FSM, generic graph engine driving
   `quest_concert.json`). The cover quiz reads its data by the `key` in `callback_data`, so a
-  **new part is added by a JSON file plus a menu button, with no code change** — same is true
-  for the musician quiz's questions/options. Cover questions are sent as a **new photo
-  message** each time (delete-and-resend, since a photo message can't be edited into text),
-  with the answer shown via `edit_caption` and each cover's `file_id` cached after first
-  upload (`_cover_file_id_cache`); the musician quiz is plain text, so it edits screens in
-  place via `safe_edit()` instead.
-- `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/playlists`, `/backup`, `/broadcast`,
-  and **playlist upload** (admin sends a `.json` document; it's appended to the queue,
-  deduped by url, written atomically via `tmp.replace`). `/stats` reports totals plus a
-  **today (UTC)** breakdown: visitors, completed quiz runs per type (`TEST_LABELS` maps
-  `quiz_name` → Russian label), and "Playlist of the day" opens. `/broadcast` is a small
+  **new part is a `quiz_covers_N.json` file plus a button in `tests_menu_kb()` — no handler
+  change** (add `covers_N` to `admin.py:TEST_LABELS` for a readable `/stats` label); the
+  musician quiz's questions/options need no code at all. Cover questions are sent as a
+  **new photo message** each time (delete-and-resend, since a photo message can't be
+  edited into text), with the answer shown via `edit_caption` and each cover's `file_id`
+  cached after first upload (`_cover_file_id_cache`); the musician quiz is plain text, so
+  it edits screens in place via `safe_edit()` instead.
+- `handlers/admin.py` — `ADMIN_IDS`-only: `/stats`, `/month`, `/playlists`, `/backup`,
+  `/broadcast` (+ `/cancel`), and **playlist upload** (admin sends a `.json` document; it's
+  appended to the queue, deduped by url, written atomically via `tmp.replace`). There's no
+  router-level filter: every handler checks `config.ADMIN_IDS` itself and silently returns
+  for everyone else — a new admin command must do the same. `/stats` (today, UTC) and
+  `/month` (last 30 days, plus MAU/average DAU) print counters from `db.get_stats()` /
+  `db.get_month_stats()`; completed runs are grouped by `quiz_name`, with `TEST_LABELS`
+  mapping known names to Russian labels (unknown names print raw). `/broadcast` is a small
   FSM (`states.Broadcast`: `awaiting_content` → `confirming`) — admin sends any message
   (text/photo/video/whatever), bot shows a recipient count + confirm/cancel buttons, then
   fans it out to every `users.user_id` via `bot.copy_message()` (so it doesn't need to
@@ -245,20 +306,39 @@ and `show_main_menu()` delete-and-resend when crossing the photo↔text boundary
 `edit_text`/`edit_caption` in place otherwise (swallowing "message is not modified").
 Any new screen transition must go through these helpers, not raw `edit_text`. The banner
 `file_id` is cached in a module global after first upload to avoid re-uploading the file.
+Consequence of both `file_id` caches (`_banner_file_id`, `tests.py:_cover_file_id_cache`):
+JSON edits are live, but **an image replaced under the same filename isn't picked up until
+a restart** — the old cached `file_id` keeps being sent. For covers, use a new filename and
+update the quiz JSON instead.
 
 ### State and data
 
-- **FSM:** `states/states.py` defines `CoverQuiz.answering` and `Quest.playing`; storage is
-  in-memory (`MemoryStorage`), so restarting the bot drops in-progress tests/quests.
+- **FSM:** `states/states.py` defines `CoverQuiz.answering`, `MusicianQuiz.answering`,
+  `Quest.playing` and the admin `Broadcast` flow; storage is in-memory (`MemoryStorage`), so
+  restarting the bot drops in-progress tests/quests (and broadcast drafts).
   Handlers `state.clear()` on returning to menu and on finishing.
 - **DB:** `database/db.py` holds a *single* shared `aiosqlite` connection (`_db` global)
   for the whole process, opened in `init_db()` and closed in `close_db()`. All access goes
-  through its async functions — don't open new connections. Tables: `users`, `seen_facts`,
-  `quiz_results`, `seen_endings`, `playlist_state`, `feature_usage` (append-only usage log;
-  written by `log_feature()`, e.g. the `playlist` open, aggregated per-day in `get_stats()`),
-  `rockle_results` (one row per `(user_id, play_date)`, see "Mini App server" above).
-  **All timestamps are UTC** (`_now()`,
-  and SQLite `DATE('now')`); keep new date logic UTC to stay consistent.
+  through its async functions — don't open new connections. The whole schema is in
+  `init_db()` (README «Модель данных» describes each table). **There are no migrations:**
+  `init_db()` runs `CREATE TABLE/INDEX IF NOT EXISTS` on every start, so a new table or
+  index just appears, but a new *column* on an existing table never reaches the production
+  DB (`/data/bot.db`) without an explicit, idempotent `ALTER TABLE` (guard it with
+  `PRAGMA table_info`). One-time data fixes follow `_backfill_subscription_events()`:
+  called from `init_db()`, a no-op once done.
+- **`daily_active` (the DAU/MAU source) is written only as a side effect of
+  `upsert_user()` / `set_subscribed()`** — i.e. by `/start` and the subscription gate.
+  Mini App requests and admins (who bypass the gate) don't count toward DAU.
+- **Analytics keys are stored strings — don't rename them.** `feature_usage.feature`
+  (`playlist`, `rockle_open`, `tournament_open`, `party_promo`) and `quiz_results.quiz_name`
+  (`zodiac`, `covers_<N>`, `musician`, `quest_concert`, `tournament`) are what `/stats`,
+  `TEST_LABELS` and the dashboard's `feature:<name>` / `quiz:<name>` metrics key off;
+  renaming one splits its history in two.
+- **All timestamps are UTC** (`_now()`, SQLite `DATE('now')`, `webapp_auth.today_iso()`);
+  keep new date logic UTC. Don't copy the exceptions: `dashboard.py` and
+  `db.get_kpi_summary()` / `get_subscription_flow()` use `date.today()` (host-local time) —
+  harmless on a UTC host, but off by the local offset around midnight elsewhere (e.g. on a
+  dev machine).
 - **Playlist-of-the-day** is a shared rotating queue. `playlist_state` (single row, id=1)
   holds a pointer that advances by `+1` per elapsed calendar day (UTC) and clamps at the
   end of the queue until an admin uploads more. The queue file is `config.PLAYLISTS_PATH`
@@ -286,6 +366,14 @@ name, desc}}}`; each option's `result` casts a point for that key in `results`),
 `quest_concert.json` (branching graph: story node = `text`+`choices`, pass-through =
 `text`+`next`, ending = `"ending": true` + optional `title`/`verdict`/`rank`/`rarity`/`score`),
 `rockle_words.json` (flat array of `{display, key}` for the "Найди группу" Mini App; `key`
-is uppercase letters only, no spaces/punctuation — that's what gets placed in the grid),
-and `events.json` (optional; absent → placeholder). The README documents each format in
-detail. `DEPLOY_PLAN.md` is a not-yet-implemented Docker/VPS deployment design.
+is uppercase letters only, no spaces/punctuation — that's what gets placed in the grid —
+and **at most 12 letters**, the grid `SIZE` in `webapp/rockle/index.html`: a longer key can
+never be placed and silently drops out of the puzzle), `tournament_bands.json` (see "Band
+tournament"), and `events.json` (optional; absent → placeholder). The README documents each
+format in detail.
+
+Not source of truth: `lectures/` is a Russian-language aiogram course built around this bot
+at its initial commit — it predates the Mini Apps, dashboard, broadcast and musician quiz,
+so treat it as teaching material, not a spec. Root-level `upload_*.json` (sample payloads
+for the admin playlist upload), `JIm.jpeg` and the `.docx` are owner material that no code
+reads.

@@ -12,11 +12,20 @@ server.py — почему нельзя). Игровая логика (все 15
 вылет в 1/8 — 0 баллов, не логируется. `/api/tournament/leaderboard`
 публичный (без initData/токена) — это контент для всех пользователей, не
 для владельца, в отличие от /api/dashboard/*.
+
+Группы дня выбираются не наугад, а по ротации (см. _make_draw): кого не было
+в прошлой сетке, тот попадает в новую, остальные места достаются тем, кто
+реже играл последние две недели. Иначе за неделю у одной группы 7 появлений,
+у другой 2 — и таблица очков меряет везение жеребьёвки, а не симпатии
+игроков. Сетка считается один раз в день и хранится в БД (tournament_draws),
+поэтому правка tournament_bands.json действует со следующего дня и не ломает
+уже начатые прогоны.
 """
 import asyncio
 import json
 import logging
 import random
+from datetime import date, timedelta
 
 from aiohttp import web
 
@@ -29,6 +38,8 @@ logger = logging.getLogger(__name__)
 WEBAPP_DIR = config.BASE_DIR / "webapp" / "tournament"
 BANDS_PER_DAY = 16
 QUIZ_NAME = "tournament"
+# Окно истории для ротации: «кто реже играл» считаем за последние две недели.
+HISTORY_DAYS = 14
 
 # Гейт «одно зачётное прохождение в день» сам по себе неатомарен: между
 # проверкой get_quiz_result_today и записью результата два одновременных
@@ -41,18 +52,95 @@ QUIZ_NAME = "tournament"
 _complete_lock = asyncio.Lock()
 
 
-def _today_pool() -> list[dict]:
-    """Сегодняшние 16 групп в порядке пар — детерминированно по дате, как у
-    рокла (random.Random(today).sample фиксирует разом и состав, и порядок
-    пар: (pool[0],pool[1]), (pool[2],pool[3])...).
+async def _today_draw() -> list[dict]:
+    """Сегодняшние 16 групп в порядке пар: (draw[0], draw[1]), (draw[2], draw[3])...
+
+    Первый запрос дня считает сетку (_make_draw) и сохраняет её в БД, все
+    следующие — включая проверку /complete — читают сохранённую.
 
     Пустой список, если групп в content/tournament_bands.json меньше
-    BANDS_PER_DAY — раунд 1/8 иначе не собрать, а не падать на sample().
+    BANDS_PER_DAY — раунд 1/8 иначе не собрать.
     """
     pool = config.load_content("tournament_bands.json", default=[])
-    if len(pool) < BANDS_PER_DAY:
+    today = webapp_auth.today_iso()
+    keys = await db.get_tournament_draw(today)
+    if keys is None:
+        keys = await _make_draw(pool, today)
+        if not keys:
+            return []
+        await db.save_tournament_draw(today, keys)
+        # Два одновременных первых запроса дня могли посчитать сетку оба —
+        # INSERT OR IGNORE оставил одну, её и отдаём.
+        keys = await db.get_tournament_draw(today)
+    # Группу могли убрать из файла уже после того, как сетка дня сложилась, —
+    # она доигрывает этот день под своим ключом, без фото.
+    by_key = {b["key"]: b for b in pool}
+    return [by_key.get(k, {"key": k, "display": k}) for k in keys]
+
+
+async def _make_draw(pool: list[dict], today: str) -> list[str]:
+    """Ключи 16 групп на сегодня, уже в порядке пар.
+
+    Приоритет при отборе: 1) дольше всех не играла (не было в окне истории —
+    первой); 2) реже всех играла за последние HISTORY_DAYS дней; 3) случайно.
+    Первое правило даёт гарантию «не было вчера — будет сегодня» (пока групп
+    не больше 32, иначе вчерашние пропустившие просто не влезут в 16 мест),
+    второе выравнивает, сколько раз кто выпадает. Пары потом тасуются
+    случайно — чтобы соперники каждый день были новые.
+    """
+    if not await db.has_tournament_draws():
+        await _backfill_legacy_draws(pool, today)
+        legacy = await db.get_tournament_draw(today)
+        if legacy:
+            return legacy
+
+    keys = [b["key"] for b in pool]
+    if len(keys) < BANDS_PER_DAY:
         return []
-    return random.Random(webapp_auth.today_iso()).sample(pool, BANDS_PER_DAY)
+
+    day = date.fromisoformat(today)
+    history = await db.get_tournament_draws_between(
+        (day - timedelta(days=HISTORY_DAYS)).isoformat(),
+        (day - timedelta(days=1)).isoformat(),
+    )
+    last_played: dict[str, str] = {}
+    times_played = dict.fromkeys(keys, 0)
+    for play_date, day_keys in history:  # по возрастанию даты
+        for k in day_keys:
+            last_played[k] = play_date
+            if k in times_played:
+                times_played[k] += 1
+
+    rng = random.Random(today)
+    rng.shuffle(keys)  # порядок среди равных — случайный (сортировка ниже стабильная)
+    keys.sort(key=lambda k: (last_played.get(k, ""), times_played[k]))
+    chosen = keys[:BANDS_PER_DAY]
+    rng.shuffle(chosen)
+    return chosen
+
+
+async def _backfill_legacy_draws(pool: list[dict], today: str) -> None:
+    """Разово, при первом запуске ротации: восстанавливает сетки, которые
+    показывались до неё, — чтобы ротация сразу знала, кто сколько играл.
+
+    Старая формула — random.Random(дата).sample(весь список, 16), поэтому
+    восстановление точное, пока список в файле не переставляли. Сегодняшний
+    день досевается ею же, только если турнир сегодня уже открывали: у этих
+    игроков на руках старая сетка, и их прогон должен засчитаться. Если не
+    открывали — сегодня сразу работает ротация.
+    """
+    first = await db.get_first_tournament_day()
+    if first is None or len(pool) < BANDS_PER_DAY:
+        return
+    end = date.fromisoformat(today)
+    if not await db.feature_used_on("tournament_open", today):
+        end -= timedelta(days=1)
+    day = date.fromisoformat(first)
+    while day <= end:
+        iso = day.isoformat()
+        keys = [b["key"] for b in random.Random(iso).sample(pool, BANDS_PER_DAY)]
+        await db.save_tournament_draw(iso, keys)
+        day += timedelta(days=1)
 
 
 def _round_winners_valid(prev_round: list, winners: list) -> bool:
@@ -78,7 +166,7 @@ async def tournament_today(request: web.Request) -> web.Response:
     """Сегодняшние 16 групп плюс, если initData валиден, уже сыгранный
     сегодня результат (чемпион).
     """
-    pool = _today_pool()
+    pool = await _today_draw()
     bands = [{"key": b["key"], "display": b["display"], "photo": b.get("photo")} for b in pool]
 
     already_completed = None
@@ -121,7 +209,7 @@ async def tournament_complete(request: web.Request) -> web.Response:
     if user_id is None:
         return web.json_response({"error": "no_user"}, status=400)
 
-    today_bands = [b["key"] for b in _today_pool()]
+    today_bands = [b["key"] for b in await _today_draw()]
     if not today_bands:
         return web.json_response({"error": "no_tournament_today"}, status=400)
 
