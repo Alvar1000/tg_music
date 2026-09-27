@@ -587,6 +587,21 @@ async def get_band_points_totals(limit: int = 100) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+async def get_band_points_between(since: str, until: str, limit: int = 10) -> list[dict]:
+    """Сумма очков по группам за [since, until] (ISO-даты, UTC) — для
+    дашборда, где всё считается за выбранное окно. Публичный лидерборд
+    турнира берёт get_band_points_totals() за всё время.
+    """
+    async with _db.execute(
+        "SELECT band_key, SUM(points) AS total FROM tournament_band_points "
+        "WHERE DATE(awarded_at) BETWEEN ? AND ? "
+        "GROUP BY band_key ORDER BY total DESC LIMIT ?",
+        (since, until, limit),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [dict(row) for row in rows]
+
+
 async def get_quiz_result_today(user_id: int, quiz_name: str) -> str | None:
     """Результат уже пройденного сегодня (UTC) прогона quiz_name, если есть.
 
@@ -810,47 +825,38 @@ async def get_subscription_flow(days: int = 7) -> dict:
     }
 
 
-async def get_mau(mau_days: int = 30) -> int:
-    """MAU — та же логика, что уже есть в get_month_stats(), выведенная
-
-    отдельно для дашборда (там же и DAU сегодня уже есть в get_kpi_summary,
-    отдельного запроса за ним тут не дублируем — липкость DAU/MAU считает
-    вызывающая сторона).
+async def get_unique_active(since: str, until: str) -> int:
+    """Уникальные активные пользователи за [since, until] (ISO-даты, UTC) —
+    MAU, если окно 30 дней; для дашборда окно задаёт переключатель периода.
     """
-    since = f"-{mau_days - 1} days"
     async with _db.execute(
-        "SELECT COUNT(DISTINCT user_id) AS n FROM daily_active WHERE day >= DATE('now', ?)",
-        (since,),
+        "SELECT COUNT(DISTINCT user_id) AS n FROM daily_active WHERE day BETWEEN ? AND ?",
+        (since, until),
     ) as cur:
         return (await cur.fetchone())["n"]
 
 
-async def get_kpi_summary(compare_days: int = 7) -> dict:
-    """Сводка для верхних карточек дашборда: текущие числа плюс дельта к
-    среднему за предыдущий период той же длины — там, где дельта честно
-    считается (у "подписано" её нет: это живой флаг-снимок, не временной
-    ряд).
+async def get_kpi_summary(days: int = 30) -> dict:
+    """Сводка для карточек дашборда за последние `days` суток (UTC, включая
+    сегодня) плюс дельта к предыдущему окну той же длины. Средний DAU
+    считается так же, как в /month: дни без активности входят как 0.
+    Итоговые "всего"/"подписано" — снимки на сейчас, окна у них нет.
     """
     async with _db.execute("SELECT COUNT(*) AS n FROM users") as cur:
         total = (await cur.fetchone())["n"]
-    async with _db.execute(
-        "SELECT COUNT(*) AS n FROM users WHERE DATE(first_seen) = DATE('now')"
-    ) as cur:
-        new_today = (await cur.fetchone())["n"]
     async with _db.execute("SELECT COUNT(*) AS n FROM users WHERE is_subscribed = 1") as cur:
         subscribed = (await cur.fetchone())["n"]
-    async with _db.execute("SELECT COUNT(*) AS n FROM daily_active WHERE day = DATE('now')") as cur:
-        active_today = (await cur.fetchone())["n"]
 
-    today = date.today()
-    cur_since = today - timedelta(days=compare_days - 1)
+    today = datetime.now(timezone.utc).date()
+    cur_since = today - timedelta(days=days - 1)
     prev_until = cur_since - timedelta(days=1)
-    prev_since = prev_until - timedelta(days=compare_days - 1)
+    prev_since = prev_until - timedelta(days=days - 1)
 
     new_users_cur = await get_daily_metric("new_users", cur_since.isoformat(), today.isoformat())
     new_users_prev = await get_daily_metric("new_users", prev_since.isoformat(), prev_until.isoformat())
     dau_cur = await get_daily_metric("dau", cur_since.isoformat(), today.isoformat())
     dau_prev = await get_daily_metric("dau", prev_since.isoformat(), prev_until.isoformat())
+    unique_active = await get_unique_active(cur_since.isoformat(), today.isoformat())
 
     def _avg(series: list[dict]) -> float:
         return sum(r["n"] for r in series) / len(series) if series else 0.0
@@ -858,13 +864,18 @@ async def get_kpi_summary(compare_days: int = 7) -> dict:
     def _delta_pct(cur_avg: float, prev_avg: float) -> float | None:
         return round((cur_avg - prev_avg) / prev_avg * 100, 1) if prev_avg > 0 else None
 
+    avg_dau = _avg(dau_cur)
     return {
+        "days": days,
         "total": total,
-        "new_today": new_today,
         "subscribed": subscribed,
-        "active_today": active_today,
+        "avg_dau": round(avg_dau, 1),
+        "unique_active": unique_active,
+        # Липкость = средний DAU / уникальные за окно (при 30 днях — DAU/MAU).
+        "stickiness_pct": round(avg_dau / unique_active * 100, 1) if unique_active > 0 else None,
+        "new_users": sum(r["n"] for r in new_users_cur),
         "new_users_delta_pct": _delta_pct(_avg(new_users_cur), _avg(new_users_prev)),
-        "dau_delta_pct": _delta_pct(_avg(dau_cur), _avg(dau_prev)),
+        "dau_delta_pct": _delta_pct(avg_dau, _avg(dau_prev)),
     }
 
 

@@ -5,228 +5,280 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Аналитика — Black Magic Woman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght,ROND@700,100&family=Manrope:wght@300;400;500;600&display=swap" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
+  /* Одна тема — «матовое стекло на размытом фото»: фон сам задаёт настроение,
+     поэтому светлой/тёмной версии нет, все цвета заданы явно. */
   :root {
-    --bg: #f5f8fc;
-    --surface: #ffffff;
-    --surface-alt: #eef3fa;
-    --border: #dde6f2;
-    --text: #13213a;
-    --text-secondary: #57657c;
-    --text-muted: #8b96a8;
-    --accent: #185fa5;
-    --accent-bg: #e6f1fb;
-    --accent-border: #85b7eb;
-    --accent-text: #0c447c;
-    --success: #1a8a4a;
-    --danger: #c23b3b;
-    --shadow: 0 1px 2px rgba(18, 32, 56, 0.06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0a1220;
-      --surface: #111b2e;
-      --surface-alt: #182640;
-      --border: #25334f;
-      --text: #e7edf7;
-      --text-secondary: #a7b3c8;
-      --text-muted: #75839c;
-      --accent: #5b9fe3;
-      --accent-bg: #152a44;
-      --accent-border: #2d4d76;
-      --accent-text: #8ec1f7;
-      --success: #4ade80;
-      --danger: #f87171;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
+    color-scheme: dark;
+    --sky-deep: #3d7a8f;
+    --lime: #dff26b;
+    --text: #ffffff;
+    --text-2: rgba(255, 255, 255, 0.8);
+    --text-3: rgba(255, 255, 255, 0.58);
+    --line: rgba(255, 255, 255, 0.22);
+    --up: #e8f78a;
+    --down: #ffc6b3;
+    --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.16) 100%);
+    --glass-border: rgba(255, 255, 255, 0.38);
+    --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -20px 40px rgba(255, 255, 255, 0.06), 0 24px 60px rgba(14, 44, 58, 0.22);
+    --r-tile: 22%;
+    --r-panel: 30px;
+    --num: "Doto", "Courier New", monospace;
+    --ui: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
+  html, body { background: var(--sky-deep); }
+  body { margin: 0; color: var(--text); font-family: var(--ui); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  button, input, select { font-family: inherit; }
   .hidden { display: none !important; }
-  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
 
-  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 340px; box-shadow: var(--shadow); text-align: center; }
-  .login-card h1 { font-size: 18px; margin: 0 0 4px; }
-  .login-card .muted { color: var(--text-secondary); font-size: 13px; margin: 0 0 20px; }
-  .login-card input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 12px; }
-  .login-card button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .login-card button:hover { opacity: 0.92; }
-  .error { font-size: 12px; color: var(--danger); margin: 6px 0 0; }
+  /* ---------- фон: размытое «фото» ---------- */
+  .scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background: linear-gradient(185deg, #4f8ea3 0%, #5d98ac 40%, #6a9aa8 75%, #5b8b9b 100%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(56px); }
+  .b1 { left: 12%; top: 14%; width: 58vw; height: 13vw; background: radial-gradient(closest-side, rgba(245, 176, 143, 0.95), rgba(245, 176, 143, 0)); transform: rotate(-6deg); animation: drift1 38s ease-in-out infinite alternate; }
+  .b2 { left: 4%; top: 60%; width: 48vw; height: 9vw; background: radial-gradient(closest-side, rgba(226, 124, 96, 0.85), rgba(226, 124, 96, 0)); transform: rotate(4deg); animation: drift2 44s ease-in-out infinite alternate; }
+  .b3 { left: 36%; top: 16%; width: 24vw; height: 70vh; background: radial-gradient(closest-side, rgba(58, 52, 56, 0.7), rgba(58, 52, 56, 0)); }
+  .b4 { left: 42%; top: 38%; width: 30vw; height: 26vw; background: radial-gradient(closest-side, rgba(241, 231, 211, 0.8), rgba(241, 231, 211, 0)); animation: drift1 52s ease-in-out infinite alternate-reverse; }
+  .b5 { right: -12%; top: -14%; width: 52vw; height: 46vw; background: radial-gradient(closest-side, rgba(179, 214, 228, 0.75), rgba(179, 214, 228, 0)); }
+  .b6 { right: 6%; top: 78%; width: 44vw; height: 8vw; background: radial-gradient(closest-side, rgba(243, 170, 139, 0.7), rgba(243, 170, 139, 0)); transform: rotate(-3deg); animation: drift2 40s ease-in-out infinite alternate-reverse; }
+  .b7 { left: -8%; top: 30%; width: 30vw; height: 22vw; background: radial-gradient(closest-side, rgba(110, 170, 225, 0.55), rgba(110, 170, 225, 0)); }
+  .grain { position: absolute; inset: 0; opacity: 0.09; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  @keyframes drift1 { from { translate: 0 0; } to { translate: 6vw 3vh; } }
+  @keyframes drift2 { from { translate: 0 0; } to { translate: -5vw -2vh; } }
+  @media (prefers-reduced-motion: reduce) { .blob { animation: none !important; } }
 
-  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 32px 64px; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-  .brand { font-size: 16px; font-weight: 600; }
-  .pills { display: flex; gap: 6px; }
-  .pill { border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-  .pill.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); }
-  .ghost-btn { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  /* ---------- стекло ---------- */
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(0.9);
+    backdrop-filter: blur(28px) saturate(160%) brightness(0.9);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass { background: rgba(84, 132, 150, 0.9); }
+  }
 
-  .hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
-  .hero-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; box-shadow: var(--shadow); }
-  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .hero-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 6px; }
-  .hero-num { font-size: 34px; font-weight: 700; margin: 0; line-height: 1.1; }
+  /* ---------- вход ---------- */
+  .login-wrap { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+  .login-card { width: 100%; max-width: 360px; border-radius: var(--r-panel); padding: 32px 28px; text-align: center; display: grid; gap: 12px; }
+  .login-card h1 { font-weight: 300; font-size: 28px; margin: 0; }
+  .login-card .muted { color: var(--text-2); font-size: 13px; margin: 0 0 8px; }
+  .error { font-size: 12px; color: var(--down); margin: 0; }
 
-  .delta { font-size: 12px; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; }
-  .delta.up { color: var(--success); }
-  .delta.down { color: var(--danger); }
-  .delta.flat { color: var(--text-muted); }
+  .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding-inline: 32px; padding-block: 28px 72px; }
 
-  .panels-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
-  .panels-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; margin-bottom: 16px; }
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; box-shadow: var(--shadow); }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; gap: 10px; flex-wrap: wrap; }
-  .panel-title { font-size: 13px; font-weight: 600; color: var(--accent-text); }
-  .badge { font-size: 11px; background: var(--surface-alt); color: var(--text-secondary); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  /* ---------- шапка ---------- */
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-2); margin: 0 0 6px; }
+  .topbar h1 { font-weight: 300; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.05; margin: 0; letter-spacing: -0.01em; }
+  .controls { display: flex; align-items: center; gap: 10px; }
 
-  .metric-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
-  .metric-row:last-child { border-bottom: none; }
-  .metric-label { font-size: 14px; color: var(--text-secondary); }
-  .metric-sub { font-size: 12px; color: var(--text-muted); }
-  .metric-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .metric-val { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; }
-  .metric-val.muted { color: var(--text-secondary); font-weight: 500; }
-  .empty { color: var(--text-muted); font-size: 13px; padding: 10px 0; }
+  .seg { display: inline-flex; padding: 4px; border-radius: 999px; gap: 2px; }
+  .seg button { border: 0; background: transparent; color: var(--text-2); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+  .seg button:hover { color: var(--text); }
+  .seg button.active { background: rgba(255, 255, 255, 0.34); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 4px 12px rgba(14, 44, 58, 0.15); }
+  .round-btn { width: 42px; height: 42px; border-radius: 50%; color: var(--text); font-size: 18px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 
-  .rank-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-alt); color: var(--text-secondary); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; }
-  .rank-badge.top { background: var(--accent-bg); color: var(--accent-text); }
+  /* ---------- плитки KPI ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 18px; }
+  .tile { aspect-ratio: 1; border-radius: var(--r-tile); overflow: hidden; max-width: 100%; }
+  .tile.accent { background: linear-gradient(175deg, #6ea8e8 0%, #93bde6 38%, #c9d9e2 70%, #efe7d2 100%); border-color: rgba(255, 255, 255, 0.5); }
+  .tile svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .tile-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18%; gap: 4px; }
+  .tile-label { font-size: 12px; color: var(--text-2); letter-spacing: 0.02em; }
+  .tile-num { font-family: var(--num); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 1; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+  .tile-word { font-size: 13px; font-weight: 500; }
+  .tile-word.up { color: var(--up); }
+  .tile-word.down { color: var(--down); }
+  .tile-word.flat { color: var(--text-2); }
+  .tile.accent .tile-label, .tile.accent .tile-word.flat { color: rgba(255, 255, 255, 0.92); }
+  .tile.accent .tile-num, .tile.accent .tile-word { text-shadow: 0 1px 14px rgba(40, 80, 120, 0.25); }
 
-  .chart-panel { margin-bottom: 16px; }
-  .chart-title { font-size: 13px; color: var(--text-secondary); margin: 0 0 12px; }
-  .chart-wrap { position: relative; width: 100%; height: 260px; }
-  .chart-note { font-size: 11px; color: var(--text-muted); margin: 10px 0 0; }
+  /* ---------- панели ---------- */
+  .panel { border-radius: var(--r-panel); padding: 22px 24px; min-width: 0; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .panel-title { font-size: 15px; font-weight: 500; margin: 0; }
+  .chip { font-size: 11px; color: var(--text-2); padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.22); white-space: nowrap; }
 
-  .release-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
-  .release-form input[type="text"] { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; margin-bottom: 8px; }
-  .release-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .release-form select, .release-form input[type="datetime-local"] { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; }
-  .release-form button { padding: 8px 14px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .release-form button:hover { opacity: 0.92; }
-  .hint { font-size: 11px; color: var(--text-muted); margin: 6px 0 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 18px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 18px; }
+  .chart-panel { margin-bottom: 18px; }
+  .chart-wrap { position: relative; height: 290px; }
+  .note { font-size: 12px; color: var(--text-3); margin: 10px 0 0; }
+
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+  .rows > .row:first-child { border-top: 0; }
+  .row-label { color: var(--text-2); font-size: 14px; min-width: 0; }
+  .row-sub { color: var(--text-3); font-size: 12px; }
+  .row-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .val { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .val.muted { color: var(--text-2); font-weight: 500; font-size: 13px; }
+  .delta { font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .delta.up { color: var(--up); }
+  .delta.down { color: var(--down); }
+  .delta.flat { color: var(--text-3); }
+  .empty { color: var(--text-3); font-size: 13px; padding: 10px 0; margin: 0; }
+
+  .mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 0 14px; }
+  .mini-cell { border-radius: 18px; padding: 12px 12px 10px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); min-width: 0; }
+  .mini-num { font-family: var(--num); font-weight: 700; font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .mini-cap { font-size: 11px; color: var(--text-2); margin-top: 6px; line-height: 1.3; }
+  .subhead { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin: 4px 0 2px; }
+
+  .rank { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: rgba(255, 255, 255, 0.14); flex-shrink: 0; }
+  .rank.top { background: var(--lime); color: #2f3b12; }
+  .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; width: 90px; flex-shrink: 0; }
+  .bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), #fff); }
+  .kind-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: 1px; }
+
+  .form { margin-top: 12px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.3); display: grid; gap: 8px; }
+  .form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .field { border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.12); color: var(--text); padding: 10px 12px; font-size: 13px; min-width: 0; width: 100%; }
+  .field::placeholder { color: var(--text-3); }
+  .field option { color: #1c3642; }
+  .form-row .field { flex: 1 1 140px; width: auto; }
+  .primary { border: 0; border-radius: 999px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; color: #20414e; background: linear-gradient(180deg, #ffffff, #e7eef1); box-shadow: 0 6px 18px rgba(14, 44, 58, 0.2); }
+  .primary:hover { filter: brightness(1.04); }
+  .hint { font-size: 11px; color: var(--text-3); margin: 0; }
+
+  svg.spark { display: block; overflow: visible; }
+
+  @media (max-width: 980px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-3 > :last-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 720px) {
+    .wrap { padding-inline: 16px; }
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    .tiles { gap: 12px; }
+    .tile-center { padding: 16%; }
+    .tile-label { font-size: 11px; }
+    .tile-word { font-size: 12px; }
+    .panel { padding: 18px; border-radius: 24px; }
+    .chart-wrap { height: 240px; }
+    .bar { width: 60px; }
+  }
 </style>
 </head>
 <body>
 
+<div class="scene" aria-hidden="true">
+  <div class="blob b7"></div><div class="blob b5"></div><div class="blob b3"></div>
+  <div class="blob b1"></div><div class="blob b4"></div><div class="blob b2"></div><div class="blob b6"></div>
+  <div class="grain"></div>
+</div>
+
 <div id="loginScreen" class="login-wrap">
-  <form id="loginForm" class="login-card">
+  <form id="loginForm" class="login-card glass">
     <h1>Аналитика бота</h1>
     <p class="muted">Приватный дашборд — введите токен доступа</p>
-    <input type="password" id="loginToken" placeholder="Токен" autocomplete="off" aria-label="Токен доступа" required />
-    <button type="submit">Войти</button>
+    <input class="field" type="password" id="loginToken" placeholder="Токен" autocomplete="off" aria-label="Токен доступа" required />
+    <button class="primary" type="submit">Войти</button>
     <p id="loginError" class="error hidden"></p>
   </form>
 </div>
 
-<div id="app" class="wrap hidden">
-  <div class="topbar">
-    <div class="brand">Аналитика — Black Magic Woman</div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="pills" id="rangePills">
-        <button type="button" class="pill" data-days="7">7д</button>
-        <button type="button" class="pill active" data-days="30">30д</button>
-        <button type="button" class="pill" data-days="90">90д</button>
+<main id="app" class="wrap hidden">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Black Magic Woman</p>
+      <h1>Аналитика бота</h1>
+    </div>
+    <div class="controls">
+      <div class="seg glass" id="rangeSeg" role="group" aria-label="Период">
+        <button type="button" data-days="7">7 дней</button>
+        <button type="button" data-days="30" class="active">30 дней</button>
+        <button type="button" data-days="90">90 дней</button>
       </div>
-      <button type="button" id="logoutBtn" class="ghost-btn">Выйти</button>
+      <button type="button" id="logoutBtn" class="round-btn glass" aria-label="Выйти" title="Выйти">⏻</button>
     </div>
-  </div>
+  </header>
 
-  <div class="hero-grid">
-    <div class="hero-card">
-      <div class="hero-top">
-        <div>
-          <p class="hero-label">Пользователи</p>
-          <p class="hero-num" id="heroUsersTotal">—</p>
-          <span class="delta" id="heroUsersDelta"></span>
-        </div>
-        <svg id="sparkUsers" width="72" height="30" viewBox="0 0 72 30" aria-hidden="true"></svg>
+  <section class="tiles" aria-label="Главные показатели">
+    <div class="tile glass accent" id="tileUsers"></div>
+    <div class="tile glass" id="tileDau"></div>
+    <div class="tile glass" id="tileNew"></div>
+    <div class="tile glass" id="tileSubs"></div>
+  </section>
+
+  <section class="panel glass chart-panel">
+    <div class="panel-head">
+      <h2 class="panel-title" id="chartTitle">Рост подписчиков</h2>
+      <div class="seg glass" id="chartSeg" role="group" aria-label="Метрика графика">
+        <button type="button" data-metric="subs" class="active">Подписчики</button>
+        <button type="button" data-metric="dau">DAU</button>
+        <button type="button" data-metric="new">Новые</button>
+        <button type="button" data-metric="games">Игры</button>
       </div>
     </div>
-    <div class="hero-card">
-      <div class="hero-top">
-        <div>
-          <p class="hero-label">Подписчики</p>
-          <p class="hero-num" id="heroSubsTotal">—</p>
-          <span class="delta" id="heroSubsDelta"></span>
-        </div>
-        <svg id="sparkSubs" width="72" height="30" viewBox="0 0 72 30" aria-hidden="true"></svg>
-      </div>
-    </div>
-  </div>
+    <div class="chart-wrap"><canvas id="mainChart" role="img" aria-label="График выбранной метрики по дням с отметками релизов"></canvas></div>
+    <p class="note" id="chartNote"></p>
+  </section>
 
-  <div class="panels-3">
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">Подписка</span><span class="badge">3 показателя</span></div>
-      <div class="metric-row"><span class="metric-label">Подписалось</span><div class="metric-right"><span class="metric-val" id="flowSub">—</span><span class="delta" id="flowSubDelta"></span></div></div>
-      <div class="metric-row"><span class="metric-label">Отписалось</span><div class="metric-right"><span class="metric-val" id="flowUnsub">—</span><span class="delta" id="flowUnsubDelta"></span></div></div>
-      <div class="metric-row"><span class="metric-label">Чистый прирост</span><div class="metric-right"><span class="metric-val" id="flowNet">—</span><span class="delta" id="flowNetDelta"></span></div></div>
+  <section class="grid-3">
+    <div class="panel glass">
+      <div class="panel-head"><h2 class="panel-title">Подписка</h2><span class="chip" id="flowChip">—</span></div>
+      <div class="rows" id="flowRows"></div>
     </div>
-
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">Активность</span><span class="badge">4 показателя</span></div>
-      <div class="metric-row"><span class="metric-label">DAU сегодня</span><div class="metric-right"><span class="metric-val" id="actDau">—</span><span class="delta" id="actDauDelta"></span></div></div>
-      <div class="metric-row"><span class="metric-label">MAU (30 дней)</span><div class="metric-right"><span class="metric-val" id="actMau">—</span></div></div>
-      <div class="metric-row"><span class="metric-label">Липкость (DAU/MAU)</span><div class="metric-right"><span class="metric-val" id="actStickiness">—</span></div></div>
-      <div class="metric-row"><span class="metric-label">Новых сегодня</span><div class="metric-right"><span class="metric-val" id="actNewToday">—</span><span class="delta" id="actNewDelta"></span></div></div>
+    <div class="panel glass">
+      <div class="panel-head"><h2 class="panel-title">Фичи</h2><span class="chip">в среднем за день</span></div>
+      <div class="rows" id="featRows"></div>
     </div>
-
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">Фичи</span><span class="badge">3 показателя</span></div>
-      <div class="metric-row"><span class="metric-label">Плейлист дня</span><div class="metric-right"><svg id="sparkPlaylist" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featPlaylist">—</span></div></div>
-      <div class="metric-row"><span class="metric-label">Игра «Найди группу»</span><div class="metric-right"><svg id="sparkRockle" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featRockle">—</span></div></div>
-      <div class="metric-row"><span class="metric-label">Тесты пройдено</span><div class="metric-right"><svg id="sparkTests" width="48" height="20" viewBox="0 0 48 20" aria-hidden="true"></svg><span class="metric-val" id="featTests">—</span></div></div>
+    <div class="panel glass">
+      <div class="panel-head"><h2 class="panel-title">Активность</h2><span class="chip" id="actChip">—</span></div>
+      <div class="rows" id="actRows"></div>
     </div>
-  </div>
+  </section>
 
-  <div class="panel chart-panel">
-    <p class="chart-title">Рост подписчиков</p>
-    <div class="chart-wrap">
-      <canvas id="subsChart" role="img" aria-label="Рост числа подписчиков по дням"></canvas>
+  <section class="grid-2">
+    <div class="panel glass">
+      <div class="panel-head"><h2 class="panel-title">Турнир групп</h2><span class="chip" id="tourChip">—</span></div>
+      <div class="mini" id="tourMini"></div>
+      <p class="subhead">Лидеры по очкам</p>
+      <div class="rows" id="tourBands"></div>
     </div>
-    <p class="chart-note">Точная история — с момента запуска аналитики; более ранний прирост виден одним начальным скачком в первый день.</p>
-  </div>
-
-  <div class="panels-2">
-    <div class="panel">
-      <div class="panel-head"><span class="panel-title">Релизы</span><span class="badge" id="relBadge">— релизов</span></div>
-      <div id="releasesList"></div>
-      <form id="releaseForm" class="release-form">
-        <input type="text" id="relLabel" placeholder="Например: новый тест по обложкам" maxlength="200" aria-label="Метка релиза" required />
-        <div class="release-form-row">
-          <select id="relKind" aria-label="Вид релиза">
-            <option value="content">контент</option>
-            <option value="feature">фича</option>
-            <option value="giveaway">розыгрыш</option>
-          </select>
-          <input type="datetime-local" id="relDate" aria-label="Дата и время релиза (UTC)" required />
-          <button type="submit">Добавить</button>
-        </div>
-        <p class="hint">Дата и время — в UTC.</p>
-        <p id="relError" class="error hidden"></p>
-      </form>
-    </div>
-
-    <div class="panel">
+    <div class="panel glass">
       <div class="panel-head">
-        <span class="panel-title">Топ активных</span>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="pills" id="lbPills">
-            <button type="button" class="pill active" data-metric="rockle">по игре</button>
-            <button type="button" class="pill" data-metric="active">по активности</button>
-          </div>
-          <span class="badge" id="lbBadge">— игроков</span>
+        <h2 class="panel-title">Топ активных</h2>
+        <div class="seg glass" id="lbSeg" role="group" aria-label="Рейтинг">
+          <button type="button" data-lb="rockle" class="active">по игре</button>
+          <button type="button" data-lb="active">по активности</button>
         </div>
       </div>
-      <div id="lbList"></div>
+      <div class="rows" id="lbRows"></div>
     </div>
-  </div>
-</div>
+  </section>
+
+  <section class="panel glass">
+    <div class="panel-head"><h2 class="panel-title">Релизы</h2><span class="chip" id="relChip">—</span></div>
+    <div class="rows" id="relRows"></div>
+    <form class="form" id="relForm">
+      <input class="field" type="text" id="relLabel" maxlength="200" placeholder="Например: новый тест по обложкам" aria-label="Название релиза" required />
+      <div class="form-row">
+        <select class="field" id="relKind" aria-label="Вид релиза">
+          <option value="content">контент</option>
+          <option value="feature">фича</option>
+          <option value="giveaway">розыгрыш</option>
+        </select>
+        <input class="field" type="datetime-local" id="relDate" aria-label="Дата и время релиза, UTC" required />
+        <button class="primary" type="submit">Добавить</button>
+      </div>
+      <p class="hint">Дата и время в UTC. Релиз появится отметкой на графике.</p>
+      <p id="relError" class="error hidden"></p>
+    </form>
+  </section>
+</main>
 
 <script>
 (function () {
@@ -235,48 +287,34 @@
   var state = {
     token: localStorage.getItem("dashboard_token") || "",
     days: 30,
-    lbMetric: "rockle"
+    lb: "rockle",
+    metric: "subs",
+    releases: []
   };
-  var charts = {};
+  var chart = null;
 
-  function escapeHtml(s) {
+  // ---------- утилиты ----------
+  function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function fmtPct(v) {
-    if (v === null || v === undefined) return "н/д";
-    return (v > 0 ? "+" : "") + v.toFixed(1) + "%";
-  }
-  function fmtSigned(v) {
-    if (v === null || v === undefined) return "н/д";
-    return (v > 0 ? "+" : "") + Math.round(v);
-  }
-  function deltaClass(v) {
-    if (v === null || v === undefined || v === 0) return "flat";
-    return v > 0 ? "up" : "down";
-  }
-  function arrow(v) {
-    if (v === null || v === undefined || v === 0) return "";
-    return v > 0 ? "▲ " : "▼ ";
-  }
-  function fmtSeconds(s) {
+  function fmtPct(v) { return v === null || v === undefined ? "н/д" : (v > 0 ? "+" : "") + v.toFixed(1) + "%"; }
+  function signed(v) { return v === null || v === undefined ? "н/д" : (v > 0 ? "+" : "") + Math.round(v); }
+  function cls(v) { return v === null || v === undefined || v === 0 ? "flat" : (v > 0 ? "up" : "down"); }
+  function arrow(v) { return v === null || v === undefined || v === 0 ? "" : (v > 0 ? "▲ " : "▼ "); }
+  function secs(s) {
     if (s === null || s === undefined) return "—";
-    var m = Math.floor(s / 60), sec = s % 60;
-    return m + ":" + String(sec).padStart(2, "0");
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
   }
-  function pluralize(n, one, few, many) {
-    var mod10 = n % 10, mod100 = n % 100;
-    if (mod10 === 1 && mod100 !== 11) return one;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
     return many;
   }
-  function setDelta(id, value, text) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.className = "delta " + deltaClass(value);
-    el.textContent = text;
-  }
+  function sum(series) { return series.reduce(function (a, r) { return a + r.n; }, 0); }
+  function avg(series) { return series.length ? sum(series) / series.length : 0; }
 
   async function apiFetch(path, opts) {
     opts = opts || {};
@@ -290,20 +328,74 @@
     if (!res.ok) throw new Error("request_failed:" + path);
     return res.json();
   }
-
-  function sparkline(svg, data, color) {
-    if (!svg || !data || !data.length) return;
-    var w = parseFloat(svg.getAttribute("width"));
-    var h = parseFloat(svg.getAttribute("height"));
-    var min = Math.min.apply(null, data), max = Math.max.apply(null, data);
-    var range = max - min || 1;
-    var step = data.length > 1 ? w / (data.length - 1) : 0;
-    var pts = data.map(function (v, i) {
-      return (i * step).toFixed(1) + "," + (h - ((v - min) / range) * h).toFixed(1);
-    }).join(" ");
-    svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';
+  function series(metric) {
+    return apiFetch("/api/dashboard/series?metric=" + encodeURIComponent(metric) + "&days=" + state.days)
+      .then(function (d) { return d.series; });
   }
 
+  // ---------- кольца на плитках ----------
+  function polar(r, deg) { var a = (deg - 90) * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; }
+  function line(p1, p2, opacity, width) {
+    return '<line x1="' + p1[0].toFixed(2) + '" y1="' + p1[1].toFixed(2) + '" x2="' + p2[0].toFixed(2) + '" y2="' + p2[1].toFixed(2) +
+      '" stroke="#fff" stroke-opacity="' + opacity + '" stroke-width="' + width + '" stroke-linecap="round"/>';
+  }
+  // Кольцо-циферблат из 60 рисок: светлые риски = доля (frac). Последние
+  // HATCH светлых рисок той же длины, но толще — отмечают конец доли.
+  function tickRing(frac) {
+    var out = "", N = 60, STEP = 360 / N, HATCH = 4;
+    var active = Math.round(Math.max(0, Math.min(1, frac)) * N);
+    var hatchFrom = active - Math.min(HATCH, active);
+    for (var k = 0; k < N; k++) {
+      var deg = k * STEP;
+      if (k >= hatchFrom && k < active) out += line(polar(75, deg), polar(84, deg), 1, 2.2);
+      else if (k < active) out += line(polar(75, deg), polar(84, deg), 0.95, 1.6);
+      else out += line(polar(76, deg), polar(81, deg), 0.35, 1.1);
+    }
+    return out;
+  }
+  // Кольцо акцентной плитки: тонкая окружность и лаймовая дуга из двух «нитей».
+  function arcRing(frac) {
+    frac = Math.max(0, Math.min(1, frac));
+    var c1 = 2 * Math.PI * 80, c2 = 2 * Math.PI * 84;
+    return '<circle cx="100" cy="100" r="80" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="1.6"/>' +
+      '<circle cx="100" cy="100" r="84" fill="none" stroke="#f4ffb0" stroke-opacity="0.55" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="' +
+      (c2 * frac * 0.92).toFixed(1) + " " + c2.toFixed(1) + '" transform="rotate(-84 100 100)"/>' +
+      '<circle cx="100" cy="100" r="80" fill="none" stroke="#dff26b" stroke-width="3" stroke-linecap="round" stroke-dasharray="' +
+      (c1 * frac).toFixed(1) + " " + c1.toFixed(1) + '" transform="rotate(-90 100 100)"/>';
+  }
+  // opts.ring — что означает кольцо: всплывает при наведении на плитку.
+  function tile(id, opts) {
+    var el = document.getElementById(id);
+    el.innerHTML = '<svg viewBox="0 0 200 200" aria-hidden="true">' + (opts.accent ? arcRing(opts.frac) : tickRing(opts.frac)) + "</svg>" +
+      '<div class="tile-center"><span class="tile-label">' + esc(opts.label) + '</span><span class="tile-num">' + esc(opts.num) +
+      '</span><span class="tile-word ' + opts.cls + '">' + esc(opts.word) + "</span></div>";
+    el.title = "Кольцо: " + opts.ring;
+    el.setAttribute("aria-label", opts.label + ": " + opts.num + ", " + opts.word + ". Кольцо: " + opts.ring);
+  }
+
+  function sparkSvg(values) {
+    if (!values.length) return "";
+    var w = 56, h = 22, min = Math.min.apply(null, values), max = Math.max.apply(null, values), r = max - min || 1;
+    var st = values.length > 1 ? w / (values.length - 1) : 0;
+    var pts = values.map(function (v, i) { return [i * st, h - (v - min) / r * (h - 3) - 1.5]; });
+    var poly = pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ");
+    var last = pts[pts.length - 1];
+    return '<svg class="spark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true">' +
+      '<polyline points="0,' + h + " " + poly + " " + last[0].toFixed(1) + "," + h + '" fill="rgba(255,255,255,0.14)" stroke="none"/>' +
+      '<polyline points="' + poly + '" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.4" fill="#dff26b"/></svg>';
+  }
+  function row(label, right, sub) {
+    return '<div class="row"><span class="row-label">' + label + (sub ? ' <span class="row-sub">' + sub + "</span>" : "") +
+      '</span><div class="row-right">' + right + "</div></div>";
+  }
+  function delta(v, text) { return '<span class="delta ' + cls(v) + '">' + text + "</span>"; }
+  function mini(n, cap) { return '<div class="mini-cell"><div class="mini-num">' + n + '</div><div class="mini-cap">' + cap + "</div></div>"; }
+  function rankRow(i, name, right) {
+    return '<div class="row"><span class="rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</span><span class="who">' + name + "</span>" + right + "</div>";
+  }
+
+  // ---------- вход / выход ----------
   function showApp() {
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
@@ -312,12 +404,8 @@
     document.getElementById("app").classList.add("hidden");
     document.getElementById("loginScreen").classList.remove("hidden");
     var err = document.getElementById("loginError");
-    if (errorMsg) {
-      err.textContent = errorMsg;
-      err.classList.remove("hidden");
-    } else {
-      err.classList.add("hidden");
-    }
+    err.textContent = errorMsg || "";
+    err.classList.toggle("hidden", !errorMsg);
   }
   function logout() {
     state.token = "";
@@ -327,8 +415,7 @@
 
   document.getElementById("loginForm").addEventListener("submit", async function (e) {
     e.preventDefault();
-    var input = document.getElementById("loginToken");
-    var token = input.value.trim();
+    var token = document.getElementById("loginToken").value.trim();
     if (!token) return;
     try {
       var res = await fetch(API + "/api/dashboard/login", {
@@ -348,169 +435,247 @@
       showLogin("Не удалось подключиться");
     }
   });
-
   document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  function wirePills(containerId, dataAttr, onChange) {
-    var container = document.getElementById(containerId);
-    container.querySelectorAll(".pill").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        container.querySelectorAll(".pill").forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-        onChange(btn.dataset[dataAttr]);
-      });
+  function wireSeg(id, attr, onChange) {
+    var box = document.getElementById(id);
+    box.addEventListener("click", function (e) {
+      var btn = e.target.closest("button");
+      if (!btn) return;
+      box.querySelectorAll("button").forEach(function (b) { b.classList.toggle("active", b === btn); });
+      onChange(btn.dataset[attr]);
     });
   }
-  wirePills("rangePills", "days", function (days) {
-    state.days = parseInt(days, 10);
-    loadAll();
-  });
-  wirePills("lbPills", "metric", function (metric) {
-    state.lbMetric = metric;
-    loadLeaderboard();
-  });
+  function report(err) { if (err.message !== "unauthorized") console.error(err); }
+  wireSeg("rangeSeg", "days", function (v) { state.days = parseInt(v, 10); loadAll(); });
+  wireSeg("chartSeg", "metric", function (v) { state.metric = v; loadMainChart().catch(report); });
+  wireSeg("lbSeg", "lb", function (v) { state.lb = v; loadLeaderboard().catch(report); });
 
-  document.getElementById("releaseForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    var label = document.getElementById("relLabel").value.trim();
-    var kind = document.getElementById("relKind").value;
-    var releasedAt = document.getElementById("relDate").value;
-    var errEl = document.getElementById("relError");
-    errEl.classList.add("hidden");
-    if (!label || !releasedAt) {
-      errEl.textContent = "Заполните метку и дату.";
-      errEl.classList.remove("hidden");
-      return;
-    }
-    try {
-      await apiFetch("/api/dashboard/releases", {
-        method: "POST",
-        body: JSON.stringify({ label: label, kind: kind, released_at: releasedAt })
-      });
-      document.getElementById("relLabel").value = "";
-      loadReleases();
-    } catch (err) {
-      errEl.textContent = "Не удалось сохранить релиз.";
-      errEl.classList.remove("hidden");
-    }
-  });
-
-  function renderHeroes(kpiData, newUsersSeries, subsSeries) {
-    document.getElementById("heroUsersTotal").textContent = kpiData.total;
-    setDelta("heroUsersDelta", kpiData.new_users_delta_pct,
-      arrow(kpiData.new_users_delta_pct) + fmtPct(kpiData.new_users_delta_pct) + " к пред. периоду");
-    sparkline(document.getElementById("sparkUsers"), newUsersSeries.slice(-14).map(function (r) { return r.n; }), "#378add");
-
-    document.getElementById("heroSubsTotal").textContent = kpiData.subscribed;
-    var tail = subsSeries.slice(-8).map(function (r) { return r.subscribers; });
-    var weekDelta = tail.length >= 2 ? tail[tail.length - 1] - tail[0] : null;
-    setDelta("heroSubsDelta", weekDelta, weekDelta === null ? "н/д" : arrow(weekDelta) + fmtSigned(weekDelta) + " за неделю");
-    sparkline(document.getElementById("sparkSubs"), subsSeries.slice(-14).map(function (r) { return r.subscribers; }), "#378add");
-  }
-
-  function renderSubscriptionFlow(flow) {
-    document.getElementById("flowSub").textContent = flow.subscribed;
-    setDelta("flowSubDelta", flow.subscribed_delta, arrow(flow.subscribed_delta) + fmtSigned(flow.subscribed_delta));
-    document.getElementById("flowUnsub").textContent = flow.unsubscribed;
-    setDelta("flowUnsubDelta", -flow.unsubscribed_delta, arrow(flow.unsubscribed_delta) + fmtSigned(flow.unsubscribed_delta));
-    document.getElementById("flowNet").textContent = fmtSigned(flow.net);
-    setDelta("flowNetDelta", flow.net_delta, arrow(flow.net_delta) + fmtSigned(flow.net_delta));
-  }
-
-  function renderActivity(kpiData) {
-    document.getElementById("actDau").textContent = kpiData.active_today;
-    setDelta("actDauDelta", kpiData.dau_delta_pct, arrow(kpiData.dau_delta_pct) + fmtPct(kpiData.dau_delta_pct));
-    document.getElementById("actMau").textContent = kpiData.mau;
-    document.getElementById("actStickiness").textContent = kpiData.stickiness_pct === null ? "н/д" : kpiData.stickiness_pct.toFixed(1) + "%";
-    document.getElementById("actNewToday").textContent = kpiData.new_today;
-    setDelta("actNewDelta", kpiData.new_users_delta_pct, arrow(kpiData.new_users_delta_pct) + fmtPct(kpiData.new_users_delta_pct));
-  }
-
-  function avgPerDay(series) {
-    if (!series.length) return 0;
-    var sum = series.reduce(function (a, r) { return a + r.n; }, 0);
-    return sum / series.length;
-  }
-
-  function renderFeatures(playlist, rockle, tests) {
-    document.getElementById("featPlaylist").textContent = avgPerDay(playlist).toFixed(1) + "/день";
-    sparkline(document.getElementById("sparkPlaylist"), playlist.slice(-14).map(function (r) { return r.n; }), "#378add");
-    document.getElementById("featRockle").textContent = avgPerDay(rockle).toFixed(1) + "/день";
-    sparkline(document.getElementById("sparkRockle"), rockle.slice(-14).map(function (r) { return r.n; }), "#185fa5");
-    document.getElementById("featTests").textContent = avgPerDay(tests).toFixed(1) + "/день";
-    sparkline(document.getElementById("sparkTests"), tests.slice(-14).map(function (r) { return r.n; }), "#0c447c");
-  }
-
-  function renderSubsChart(series) {
-    var labels = series.map(function (r) {
-      var parts = r.day.split("-");
-      return parts[2] + "." + parts[1];
+  // ---------- плитки и панели ----------
+  function renderTiles(kpi, flow) {
+    var subShare = kpi.total ? kpi.subscribed / kpi.total : 0;
+    tile("tileUsers", {
+      accent: true, frac: subShare, label: "Пользователи", num: String(kpi.total), cls: "flat",
+      word: Math.round(subShare * 100) + "% в канале", ring: "доля пользователей, подписанных на канал"
     });
-    var values = series.map(function (r) { return r.subscribers; });
-    var isDark = matchMedia("(prefers-color-scheme: dark)").matches;
-    var grid = isDark ? "#25334f" : "#e1e6ee";
-    var tick = isDark ? "#7d8aa3" : "#8b96a8";
-    if (charts.subs) {
-      charts.subs.data.labels = labels;
-      charts.subs.data.datasets[0].data = values;
-      charts.subs.update();
-      return;
+
+    var stick = kpi.stickiness_pct;
+    tile("tileDau", {
+      frac: stick === null ? 0 : stick / 100, label: "Средний DAU", num: kpi.avg_dau.toFixed(1), cls: cls(kpi.dau_delta_pct),
+      word: arrow(kpi.dau_delta_pct) + fmtPct(kpi.dau_delta_pct) + " к прошлым",
+      ring: "липкость " + (stick === null ? "н/д" : stick.toFixed(1) + "%") + " (средний DAU / уникальные за период)"
+    });
+
+    // Дельта в процентах → доля текущего притока от прошлого окна (кольцо полное, если приток не упал).
+    var newPct = kpi.new_users_delta_pct;
+    var newFrac = newPct === null ? (kpi.new_users > 0 ? 1 : 0) : Math.min(1, 1 + newPct / 100);
+    tile("tileNew", {
+      frac: newFrac, label: "Новых за " + kpi.days + " дн.", num: String(kpi.new_users), cls: cls(newPct),
+      word: arrow(newPct) + fmtPct(newPct) + " к прошлым", ring: "приток новых относительно прошлого окна такой же длины"
+    });
+
+    var moved = flow.subscribed + flow.unsubscribed;
+    tile("tileSubs", {
+      frac: moved ? flow.subscribed / moved : 0, label: "Подписчики", num: String(kpi.subscribed), cls: cls(flow.net),
+      word: signed(flow.net) + " за " + flow.days + " дн.",
+      ring: flow.subscribed + " подписались, " + flow.unsubscribed + " отписались за период"
+    });
+  }
+
+  function renderFlow(flow) {
+    document.getElementById("flowRows").innerHTML =
+      row("Подписалось", '<span class="val">' + flow.subscribed + "</span>" +
+        delta(flow.subscribed_delta, arrow(flow.subscribed_delta) + signed(flow.subscribed_delta))) +
+      // Рост отписок — плохо, поэтому цвет по обратному знаку, а стрелка по фактическому.
+      row("Отписалось", '<span class="val">' + flow.unsubscribed + "</span>" +
+        '<span class="delta ' + cls(-flow.unsubscribed_delta) + '">' + arrow(flow.unsubscribed_delta) + signed(flow.unsubscribed_delta) + "</span>") +
+      row("Чистый прирост", '<span class="val">' + signed(flow.net) + "</span>" +
+        delta(flow.net_delta, arrow(flow.net_delta) + signed(flow.net_delta)));
+  }
+
+  function renderActivity(kpi) {
+    document.getElementById("actRows").innerHTML =
+      row("Средний DAU", '<span class="val">' + kpi.avg_dau.toFixed(1) + "</span>" + delta(kpi.dau_delta_pct, arrow(kpi.dau_delta_pct) + fmtPct(kpi.dau_delta_pct))) +
+      row("Уникальных", '<span class="val">' + kpi.unique_active + "</span>") +
+      row("Липкость", '<span class="val">' + (kpi.stickiness_pct === null ? "н/д" : kpi.stickiness_pct.toFixed(1) + "%") + "</span>", "ср. DAU / уникальные") +
+      row("Новых", '<span class="val">' + kpi.new_users + "</span>" + delta(kpi.new_users_delta_pct, arrow(kpi.new_users_delta_pct) + fmtPct(kpi.new_users_delta_pct)));
+  }
+
+  function renderFeatures(playlist, rockle, tests, tournament) {
+    function feat(label, s) {
+      return row(label, sparkSvg(s.slice(-14).map(function (r) { return r.n; })) + '<span class="val">' + avg(s).toFixed(1) + "</span>");
     }
-    charts.subs = new Chart(document.getElementById("subsChart"), {
+    document.getElementById("featRows").innerHTML =
+      feat("Плейлист дня", playlist) + feat("«Найди группу»", rockle) + feat("Тесты пройдено", tests) + feat("Турнир групп", tournament);
+  }
+
+  function renderTournament(opens, runs, promo, bands) {
+    document.getElementById("tourMini").innerHTML =
+      mini(sum(opens), "открытий") + mini(sum(runs), "засчитано забегов") + mini(sum(promo), "переходов на вечеринку");
+    var maxPts = bands.length ? bands[0].points || 1 : 1;
+    document.getElementById("tourBands").innerHTML = bands.map(function (b, i) {
+      return rankRow(i, esc(b.display),
+        '<span class="bar"><span style="width:' + Math.round(b.points / maxPts * 100) + '%"></span></span>' +
+        '<span class="val">' + b.points + "</span>");
+    }).join("") || '<p class="empty">За этот период очков ещё никто не набрал.</p>';
+  }
+
+  function renderLeaderboard(rows) {
+    document.getElementById("lbRows").innerHTML = rows.map(function (r, i) {
+      var name = r.username ? "@" + esc(r.username) : esc(r.full_name || "id" + r.user_id);
+      var right = state.lb === "rockle"
+        ? r.plays + " " + plural(r.plays, "партия", "партии", "партий") + " · " + secs(r.best_seconds)
+        : r.active_days + " " + plural(r.active_days, "активный день", "активных дня", "активных дней");
+      return rankRow(i, name, '<span class="val muted">' + right + "</span>");
+    }).join("") || '<p class="empty">За этот период данных пока нет.</p>';
+  }
+
+  var KIND = { content: ["контент", "#dff26b"], feature: ["фича", "#d6d2ff"], giveaway: ["розыгрыш", "#ffc9a8"] };
+  function kindOf(k) { return KIND[k] || [k, "#ffffff"]; }
+
+  function renderReleases(rows) {
+    document.getElementById("relChip").textContent = rows.length + " " + plural(rows.length, "релиз", "релиза", "релизов");
+    document.getElementById("relRows").innerHTML = rows.map(function (r) {
+      var p = r.released_at.slice(0, 10).split("-"), im = r.impact, right;
+      if (!im || im.delta_pct === null) right = '<span class="val muted">н/д</span>';
+      else if (im.days_elapsed_after < im.window_days) right = '<span class="val muted">идёт · ' + im.days_elapsed_after + "/" + im.window_days + " дн.</span>";
+      else right = delta(im.delta_pct, arrow(im.delta_pct) + fmtPct(im.delta_pct) + " DAU");
+      return row('<span class="kind-dot" style="background:' + kindOf(r.kind)[1] + '"></span>' + esc(r.label),
+        right, p[2] + "." + p[1] + "." + p[0].slice(2) + " · " + esc(kindOf(r.kind)[0]));
+    }).join("") || '<p class="empty">Пока нет отметок релизов — добавьте первую ниже.</p>';
+  }
+
+  // ---------- главный график ----------
+  // Отметки релизов: пунктир в день релиза и стеклянная плашка с названием.
+  // Дни берутся из chart.$isoDays (подписи оси — «дд.мм», по ним день не найти).
+  var releaseMarkers = {
+    id: "releaseMarkers",
+    afterDatasetsDraw: function (c) {
+      var isoDays = c.$isoDays;
+      if (!isoDays || !state.releases.length) return;
+      var ctx = c.ctx, area = c.chartArea, x = c.scales.x, prevEnd = -Infinity;
+      state.releases.slice().sort(function (a, b) { return a.released_at < b.released_at ? -1 : 1; }).forEach(function (r) {
+        var idx = isoDays.indexOf(r.released_at.slice(0, 10));
+        if (idx === -1) return;
+        var px = x.getPixelForValue(idx), color = kindOf(r.kind)[1];
+        var label = r.label.length > 20 ? r.label.slice(0, 19) + "…" : r.label;
+        ctx.save();
+        ctx.strokeStyle = color; ctx.globalAlpha = 0.9; ctx.lineWidth = 1.2; ctx.setLineDash([3, 4]);
+        ctx.beginPath(); ctx.moveTo(px, area.top); ctx.lineTo(px, area.bottom); ctx.stroke(); ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        ctx.font = "500 11px Manrope, -apple-system, sans-serif";
+        var tw = ctx.measureText(label).width + 22, th = 20;
+        var bx = Math.max(area.left, Math.min(px - tw / 2, area.right - tw));
+        // если плашка налезает на предыдущую — опускаем её внутрь графика
+        var by = bx < prevEnd + 6 ? area.top + 4 : area.top - 26;
+        if (by < area.top) prevEnd = bx + tw;
+        ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(bx, by, tw, th, 10); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(bx + 10, by + th / 2, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(label, bx + 17, by + th / 2 + 0.5);
+        ctx.restore();
+      });
+    }
+  };
+
+  var CHART_METRICS = {
+    subs: {
+      title: "Рост подписчиков",
+      note: "Точная история — с момента запуска аналитики; более ранний прирост виден одним начальным скачком в первый день.",
+      load: async function () {
+        var rows = (await apiFetch("/api/dashboard/subscribers?days=" + state.days)).series;
+        return { days: rows.map(function (r) { return r.day; }), sets: [["Подписчики", rows.map(function (r) { return r.subscribers; })]] };
+      }
+    },
+    dau: {
+      title: "Активные по дням (DAU)",
+      note: "Считаются заходы через бота; открытия мини-приложений и админы в DAU не попадают.",
+      load: function () { return loadSets([["dau", "DAU"]]); }
+    },
+    "new": {
+      title: "Новые пользователи по дням",
+      note: "",
+      load: function () { return loadSets([["new_users", "Новые"]]); }
+    },
+    games: {
+      title: "Игры по дням",
+      note: "«Найди группу» — пройденные пазлы, турнир — засчитанные забеги (один в день на человека).",
+      load: function () { return loadSets([["rockle_completed", "«Найди группу»"], ["quiz:tournament", "Турнир"]]); }
+    }
+  };
+
+  async function loadSets(pairs) {
+    var results = await Promise.all(pairs.map(function (p) { return series(p[0]); }));
+    return {
+      days: results[0].map(function (r) { return r.day; }),
+      sets: results.map(function (s, i) { return [pairs[i][1], s.map(function (r) { return r.n; })]; })
+    };
+  }
+
+  async function loadMainChart() {
+    var cfg = CHART_METRICS[state.metric];
+    var data = await cfg.load();
+    document.getElementById("chartTitle").textContent = cfg.title;
+    var note = document.getElementById("chartNote");
+    note.textContent = cfg.note;
+    note.classList.toggle("hidden", !cfg.note);
+    renderChart(data);
+  }
+
+  function renderChart(data) {
+    var labels = data.days.map(function (d) { var p = d.split("-"); return p[2] + "." + p[1]; });
+    var palette = [["#ffffff", "rgba(255,255,255,0.28)"], ["#ffc9a8", "rgba(255,201,168,0)"]];
+    var many = data.sets.length > 1;
+    var tick = "rgba(255,255,255,0.62)";
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById("mainChart"), {
       type: "line",
       data: {
         labels: labels,
-        datasets: [{ data: values, borderColor: "#185fa5", backgroundColor: "rgba(55,138,221,0.12)", borderWidth: 2, pointRadius: 0, tension: 0.3, fill: true }]
+        datasets: data.sets.map(function (s, i) {
+          var c = palette[i % palette.length];
+          return {
+            label: s[0], data: s[1], borderColor: c[0], borderWidth: 2, tension: 0.35,
+            pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: "#dff26b", pointHoverBorderColor: "#fff",
+            fill: many ? false : "origin",
+            backgroundColor: function (ctx) {
+              var a = ctx.chart.chartArea;
+              if (!a) return c[1];
+              var g = ctx.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+              g.addColorStop(0, c[1]);
+              g.addColorStop(1, "rgba(255,255,255,0)");
+              return g;
+            }
+          };
+        })
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        interaction: { mode: "index", intersect: false },
+        layout: { padding: { top: 34 } },
+        plugins: {
+          legend: { display: many, position: "bottom", labels: { color: "rgba(255,255,255,0.8)", boxWidth: 10, boxHeight: 10, usePointStyle: true, font: { family: "Manrope", size: 12 } } },
+          tooltip: { backgroundColor: "rgba(30,70,86,0.82)", borderColor: "rgba(255,255,255,0.35)", borderWidth: 1, padding: 10, cornerRadius: 12,
+            titleFont: { family: "Manrope", weight: "600" }, bodyFont: { family: "Manrope" } }
+        },
         scales: {
-          x: { grid: { display: false }, ticks: { color: tick, maxTicksLimit: 10, font: { size: 11 } } },
-          y: { grid: { color: grid }, ticks: { color: tick, font: { size: 11 } } }
+          x: { grid: { display: false }, border: { display: false }, ticks: { color: tick, maxTicksLimit: 8, font: { family: "Manrope", size: 11 } } },
+          y: { beginAtZero: state.metric !== "subs", grid: { color: "rgba(255,255,255,0.13)" }, border: { display: false },
+            ticks: { color: tick, precision: 0, font: { family: "Manrope", size: 11 } } }
         }
-      }
+      },
+      plugins: [releaseMarkers]
     });
+    chart.$isoDays = data.days;
+    chart.update("none");
   }
 
-  function renderReleases(rows) {
-    document.getElementById("relBadge").textContent = rows.length + " " + pluralize(rows.length, "релиз", "релиза", "релизов");
-    var kindLabels = { content: "контент", feature: "фича", giveaway: "розыгрыш" };
-    var html = rows.map(function (r) {
-      var dateParts = r.released_at.slice(0, 10).split("-");
-      var dateLabel = dateParts[2] + "." + dateParts[1] + "." + dateParts[0].slice(2);
-      var right;
-      if (!r.impact || r.impact.delta_pct === null) {
-        right = '<span class="metric-val muted">н/д</span>';
-      } else if (r.impact.days_elapsed_after < r.impact.window_days) {
-        right = '<span class="metric-val muted">идёт · ' + r.impact.days_elapsed_after + "/" + r.impact.window_days + "д</span>";
-      } else {
-        right = '<span class="delta ' + deltaClass(r.impact.delta_pct) + '">' + arrow(r.impact.delta_pct) + fmtPct(r.impact.delta_pct) + "</span>";
-      }
-      return '<div class="metric-row"><span class="metric-label">' + escapeHtml(r.label) +
-        '<span class="metric-sub"> · ' + dateLabel + " · " + (kindLabels[r.kind] || r.kind) + "</span></span>" +
-        '<div class="metric-right">' + right + "</div></div>";
-    }).join("");
-    document.getElementById("releasesList").innerHTML = html || '<p class="empty">Пока нет отметок релизов — добавьте первую ниже.</p>';
-  }
-
-  function renderLeaderboard(rows) {
-    document.getElementById("lbBadge").textContent = rows.length + " " + pluralize(rows.length, "игрок", "игрока", "игроков");
-    var html = rows.map(function (row, i) {
-      var name = row.username ? "@" + escapeHtml(row.username) : escapeHtml(row.full_name || "id" + row.user_id);
-      var metricText = state.lbMetric === "rockle"
-        ? row.plays + " " + pluralize(row.plays, "партия", "партии", "партий") + " · " + fmtSeconds(row.best_seconds)
-        : row.active_days + " " + pluralize(row.active_days, "активный день", "активных дня", "активных дней");
-      return '<div class="metric-row"><span class="rank-badge' + (i === 0 ? " top" : "") + '">' + (i + 1) + "</span>" +
-        '<span class="metric-label" style="flex:1">' + name + "</span>" +
-        '<span class="metric-val muted">' + metricText + "</span></div>";
-    }).join("");
-    document.getElementById("lbList").innerHTML = html || '<p class="empty">За этот период данных пока нет.</p>';
-  }
-
+  // ---------- загрузка ----------
   async function loadReleases() {
     var data = await apiFetch("/api/dashboard/releases");
+    state.releases = data.releases;
+    if (chart) chart.update("none");
     var withImpact = await Promise.all(data.releases.map(async function (r) {
       try {
         var impact = await apiFetch("/api/dashboard/releases/" + r.id + "/impact?metric=dau&window_days=7");
@@ -523,46 +688,81 @@
   }
 
   async function loadLeaderboard() {
-    var data = await apiFetch("/api/dashboard/leaderboard?metric=" + state.lbMetric + "&days=" + state.days + "&limit=10");
+    var data = await apiFetch("/api/dashboard/leaderboard?metric=" + state.lb + "&days=" + state.days + "&limit=8");
     renderLeaderboard(data.leaderboard);
   }
 
+  // Возвращает ряд открытий турнира — он же нужен строке «Турнир групп» в «Фичах».
+  async function loadTournament() {
+    var res = await Promise.all([
+      series("feature:tournament_open"),
+      series("quiz:tournament"),
+      series("feature:party_promo"),
+      apiFetch("/api/dashboard/tournament-bands?limit=5&days=" + state.days)
+    ]);
+    renderTournament(res[0], res[1], res[2], res[3].bands);
+    return res[0];
+  }
+
   async function loadAll() {
-    document.querySelectorAll("#rangePills .pill").forEach(function (b) {
+    document.querySelectorAll("#rangeSeg button").forEach(function (b) {
       b.classList.toggle("active", parseInt(b.dataset.days, 10) === state.days);
     });
+    ["flowChip", "actChip", "tourChip"].forEach(function (id) {
+      document.getElementById(id).textContent = "за " + state.days + " дн.";
+    });
     try {
-      var kpiP = apiFetch("/api/dashboard/kpi?compare_days=" + state.days);
-      var subsSeriesP = apiFetch("/api/dashboard/subscribers?days=" + state.days);
-      var newUsersP = apiFetch("/api/dashboard/series?metric=new_users&days=" + state.days);
+      var kpiP = apiFetch("/api/dashboard/kpi?days=" + state.days);
       var flowP = apiFetch("/api/dashboard/subscription-flow?days=" + state.days);
-      var playlistP = apiFetch("/api/dashboard/series?metric=feature:playlist&days=" + state.days);
-      var rockleP = apiFetch("/api/dashboard/series?metric=feature:rockle_open&days=" + state.days);
-      var testsP = apiFetch("/api/dashboard/series?metric=quiz_total&days=" + state.days);
+      var featP = Promise.all([series("feature:playlist"), series("feature:rockle_open"), series("quiz_total")]);
+      var tourP = loadTournament();
+      var chartP = loadMainChart();
+      var relP = loadReleases();
 
-      var kpiData = await kpiP;
-      var subsSeries = (await subsSeriesP).series;
-      var newUsers = (await newUsersP).series;
-      renderHeroes(kpiData, newUsers, subsSeries);
-      renderActivity(kpiData);
-      renderSubsChart(subsSeries);
+      var kpi = await kpiP, flow = await flowP;
+      renderTiles(kpi, flow);
+      renderFlow(flow);
+      renderActivity(kpi);
 
-      renderSubscriptionFlow(await flowP);
+      var feats = await featP;
+      renderFeatures(feats[0], feats[1], feats[2], await tourP);
 
-      var playlist = (await playlistP).series;
-      var rockle = (await rockleP).series;
-      var tests = (await testsP).series;
-      renderFeatures(playlist, rockle, tests);
-
-      await loadReleases();
+      await chartP;
+      await relP;
       await loadLeaderboard();
     } catch (err) {
-      if (err.message !== "unauthorized") console.error(err);
+      report(err);
     }
   }
 
-  var relDateInput = document.getElementById("relDate");
-  if (relDateInput) relDateInput.value = new Date().toISOString().slice(0, 16);
+  document.getElementById("relForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var label = document.getElementById("relLabel").value.trim();
+    var kind = document.getElementById("relKind").value;
+    var releasedAt = document.getElementById("relDate").value;
+    var errEl = document.getElementById("relError");
+    errEl.classList.add("hidden");
+    if (!label || !releasedAt) {
+      errEl.textContent = "Заполните название и дату.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    try {
+      await apiFetch("/api/dashboard/releases", {
+        method: "POST",
+        body: JSON.stringify({ label: label, kind: kind, released_at: releasedAt })
+      });
+      document.getElementById("relLabel").value = "";
+      await loadReleases();
+    } catch (err) {
+      errEl.textContent = "Не удалось сохранить релиз.";
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("relDate").value = new Date().toISOString().slice(0, 16);
+  // Плашки релизов рисуются на canvas — перерисовать, когда догрузится Manrope.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (chart) chart.update("none"); });
 
   if (state.token) {
     showApp();

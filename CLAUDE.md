@@ -201,7 +201,7 @@ hands out today's 16-band draw and accepts the final result.
   `events.json` entry without reading it, so update or remove it by hand when the event
   changes or passes. Clicks hit `POST /api/tournament/promo`, logged as feature
   `party_promo` — counted in `/stats`/`/month` and queryable by the dashboard API as
-  `feature:party_promo`, though the dashboard page doesn't chart it.
+  `feature:party_promo` (the dashboard's "Турнир групп" panel shows its window total).
 - Band pool: `content/tournament_bands.json` (flat array of `{"key", "display", "photo"}`;
   `key` is a lowercase slug, closer in role to `quiz_musician.json`'s result keys than to
   `rockle_words.json`'s uppercase letters). Needs **at least 16** bands — fewer and
@@ -214,9 +214,23 @@ surface. Same deal as the Mini App: its routes (`dashboard.py:register_routes()`
 registered onto the *same* `web.Application` inside `server.py:create_app()`, not a
 second app/port. `webapp/dashboard/index.html` follows the exact same convention as
 `webapp/rockle/index.html` — one self-contained file, inline CSS/JS, no build step, one
-pinned CDN script (Chart.js) for the one full-size chart; everything else (KPI cards,
-grouped metric panels, sparklines) is hand-rolled with a small inline-SVG polyline helper
-to avoid instantiating many Chart.js instances.
+pinned CDN script (Chart.js) for the one full-size chart, plus a Google Fonts stylesheet
+(Doto with `ROND=100` for the dot-matrix numbers, Manrope for UI — Manrope because it has
+Cyrillic). Everything else (KPI ring tiles, metric panels, sparklines) is hand-rolled inline
+SVG to avoid instantiating many Chart.js instances. The look is a single "frosted glass
+over a blurred photo" theme — no light/dark variants; the background is CSS blobs, not an
+image file.
+
+- **Every number respects the selected window (7/30/90 days).** `db.get_kpi_summary(days)`
+  computes average DAU, unique actives and new users over the window (plus delta vs. the
+  previous window of equal length) — don't reintroduce "today"-only or fixed-30-day values
+  next to the range switcher; that mismatch with `/month` was a reported bug. The only
+  non-windowed numbers are live snapshots (total users, currently subscribed). For the
+  same reason the tournament panel uses `/api/dashboard/tournament-bands`
+  (`db.get_band_points_between()`), not the public all-time `/api/tournament/leaderboard`.
+- **Release markers are drawn on the main chart** by an inline Chart.js plugin
+  (`releaseMarkers` in the page) — it matches `releases.released_at` days against
+  `chart.$isoDays`, because the axis labels are `дд.мм` strings.
 
 - **Auth is a shared-secret token, not Telegram identity.** `config.DASHBOARD_TOKEN`
   compared via `hmac.compare_digest` against an `Authorization: Bearer` header
@@ -336,7 +350,7 @@ update the quiz JSON instead.
   renaming one splits its history in two.
 - **All timestamps are UTC** (`_now()`, SQLite `DATE('now')`, `webapp_auth.today_iso()`);
   keep new date logic UTC. Don't copy the exceptions: `dashboard.py` and
-  `db.get_kpi_summary()` / `get_subscription_flow()` use `date.today()` (host-local time) —
+  `db.get_subscription_flow()` use `date.today()` (host-local time) —
   harmless on a UTC host, but off by the local offset around midnight elsewhere (e.g. on a
   dev machine).
 - **Playlist-of-the-day** is a shared rotating queue. `playlist_state` (single row, id=1)

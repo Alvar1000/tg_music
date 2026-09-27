@@ -89,11 +89,8 @@ async def login(request: web.Request) -> web.Response:
 async def kpi(request: web.Request) -> web.Response:
     if not check_dashboard_auth(request):
         return _unauthorized()
-    compare_days = _clamp(request.query.get("compare_days"), 7, 1, 90)
-    summary = await db.get_kpi_summary(compare_days)
-    mau = await db.get_mau()
-    stickiness_pct = round(summary["active_today"] / mau * 100, 1) if mau > 0 else None
-    return web.json_response({**summary, "mau": mau, "stickiness_pct": stickiness_pct})
+    days = _clamp(request.query.get("days"), 30, 1, 365)
+    return web.json_response(await db.get_kpi_summary(days))
 
 
 async def series(request: web.Request) -> web.Response:
@@ -226,6 +223,22 @@ async def leaderboard(request: web.Request) -> web.Response:
     return web.json_response({"metric": metric, "since": since, "until": until, "leaderboard": rows})
 
 
+async def tournament_bands(request: web.Request) -> web.Response:
+    """Топ групп турнира по очкам за выбранное окно (имена — из пула групп)."""
+    if not check_dashboard_auth(request):
+        return _unauthorized()
+    days = _clamp(request.query.get("days"), 30, 1, 365)
+    limit = _clamp(request.query.get("limit"), 5, 1, 50)
+    since, until = _range_from_days(days)
+    names = {b["key"]: b["display"] for b in config.load_content("tournament_bands.json", default=[])}
+    rows = await db.get_band_points_between(since, until, limit)
+    bands = [
+        {"key": r["band_key"], "display": names.get(r["band_key"], r["band_key"]), "points": r["total"]}
+        for r in rows
+    ]
+    return web.json_response({"since": since, "until": until, "bands": bands})
+
+
 def register_routes(app: web.Application) -> None:
     app.router.add_get("/dashboard/", dashboard_page)
     app.router.add_get("/dashboard", dashboard_page)
@@ -238,3 +251,4 @@ def register_routes(app: web.Application) -> None:
     app.router.add_post("/api/dashboard/releases", releases_create)
     app.router.add_get("/api/dashboard/releases/{id}/impact", release_impact)
     app.router.add_get("/api/dashboard/leaderboard", leaderboard)
+    app.router.add_get("/api/dashboard/tournament-bands", tournament_bands)
