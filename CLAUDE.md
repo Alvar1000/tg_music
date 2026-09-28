@@ -241,10 +241,19 @@ image file.
   open in a plain desktop browser, not launched from inside Telegram.
 - **Subscriber growth needed a new log, because `users.is_subscribed` has no history.**
   It's a live flag, overwritten in place — there was never a way to know *when* someone
-  (un)subscribed, only their current state. `set_subscribed()` now reads the current value
-  first and only appends to `subscription_events(user_id, is_subscribed, changed_at)` when
-  it actually changes (not on every gate re-check, which is most bot interactions — that
-  would make the table huge for no signal). `init_db()` runs a one-time
+  (un)subscribed, only their current state. `set_subscribed()` appends to
+  `subscription_events(user_id, is_subscribed, changed_at)` only when the value actually
+  changes (not on every gate re-check, which is most bot interactions — that would make
+  the table huge for no signal). The check-and-insert is one `INSERT ... SELECT ... WHERE`
+  against the user's last event, not a read followed by a write: the old two-step version
+  logged a transition twice when two updates of one user raced (double tap), and logged a
+  new "subscribed" on *every* action of a user with no `users` row (UPDATE matched
+  nothing) — `set_subscribed()` now creates that row. Those historical duplicates are
+  still in production data, so growth/flow queries read through `_TRANSITIONS_CTE`
+  (drops an event equal to the user's previous one, or a first-ever "unsubscribed")
+  instead of raw rows; don't query `subscription_events` directly for counts. Flow counts
+  (`get_subscription_flow()`) also skip the backfill batch (`_seed_timestamp()`), which
+  otherwise makes "+N подписок за 30 дней" exceed the whole subscriber count. `init_db()` runs a one-time
   `_backfill_subscription_events()` that seeds one synthetic "subscribed" event per
   already-subscribed user so the running-total chart (`db.get_subscriber_growth()`) has a
   sane starting point instead of jumping from zero. The unavoidable side effect: the chart

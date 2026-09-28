@@ -90,7 +90,7 @@ class SubscriptionMiddleware(BaseMiddleware):
 
         # Основная проверка подписки.
         subscribed = await is_subscribed(bot, user.id)
-        await db.set_subscribed(user.id, subscribed)
+        await db.set_subscribed(user.id, subscribed, user.username, user.full_name)
         if subscribed:
             return await handler(event, data)
 

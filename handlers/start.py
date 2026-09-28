@@ -19,7 +19,7 @@ async def cmd_start(message: Message) -> None:
     await db.upsert_user(user.id, user.username, user.full_name)
 
     subscribed = await is_subscribed(message.bot, user.id)
-    await db.set_subscribed(user.id, subscribed)
+    await db.set_subscribed(user.id, subscribed, user.username, user.full_name)
 
     if subscribed:
         await show_main_menu(message, greeting=True)
@@ -31,7 +31,7 @@ async def cmd_start(message: Message) -> None:
 async def check_subscription(callback: CallbackQuery) -> None:
     user = callback.from_user
     subscribed = await is_subscribed(callback.bot, user.id)
-    await db.set_subscribed(user.id, subscribed)
+    await db.set_subscribed(user.id, subscribed, user.username, user.full_name)
 
     if subscribed:
         await callback.answer("Готово! Добро пожаловать 🤘")

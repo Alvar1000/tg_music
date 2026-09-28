@@ -134,6 +134,7 @@ async def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_rockle_results_play_date       ON rockle_results(play_date);
         CREATE INDEX IF NOT EXISTS idx_rockle_results_user            ON rockle_results(user_id);
         CREATE INDEX IF NOT EXISTS idx_subscription_events_changed_at ON subscription_events(changed_at);
+        CREATE INDEX IF NOT EXISTS idx_subscription_events_user       ON subscription_events(user_id, id);
         CREATE INDEX IF NOT EXISTS idx_tournament_band_points_band_key ON tournament_band_points(band_key);
         """
     )
@@ -194,28 +195,43 @@ async def upsert_user(user_id: int, username: str | None, full_name: str) -> Non
     await _db.commit()
 
 
-async def set_subscribed(user_id: int, is_subscribed: bool) -> None:
+async def set_subscribed(
+    user_id: int, is_subscribed: bool, username: str | None = None, full_name: str | None = None
+) -> None:
     """Обновляет флаг подписки и время последней активности.
 
     Если значение реально меняется — пишет строку в subscription_events
     (для графика роста подписчиков на дашборде). set_subscribed вызывается
     почти на каждое действие пользователя (гейт подписки), поэтому пишем
     только настоящие переходы, а не каждую сверку.
+
+    Переход пишется одним INSERT ... SELECT с условием «последнее событие
+    пользователя отличается» — это атомарно. Раньше флаг читался отдельным
+    запросом, и два параллельных апдейта одного пользователя (двойной тап)
+    читали одно и то же старое значение — переход записывался дважды.
+    Пользователь без строки в users (пишет боту, минуя /start) получает её
+    здесь: раньше UPDATE его не находил, и каждое его действие добавляло
+    ещё одно событие «подписался».
     """
-    async with _db.execute(
-        "SELECT is_subscribed FROM users WHERE user_id = ?", (user_id,)
-    ) as cur:
-        row = await cur.fetchone()
     new_value = 1 if is_subscribed else 0
     now = _now()
-    if row is None or row["is_subscribed"] != new_value:
-        await _db.execute(
-            "INSERT INTO subscription_events (user_id, is_subscribed, changed_at) VALUES (?, ?, ?)",
-            (user_id, new_value, now),
-        )
     await _db.execute(
-        "UPDATE users SET is_subscribed = ?, last_active = ? WHERE user_id = ?",
-        (new_value, now, user_id),
+        "INSERT INTO subscription_events (user_id, is_subscribed, changed_at) "
+        "SELECT ?, ?, ? WHERE COALESCE("
+        " (SELECT is_subscribed FROM subscription_events WHERE user_id = ? ORDER BY id DESC LIMIT 1),"
+        " (SELECT is_subscribed FROM users WHERE user_id = ?),"
+        " 0) != ?",
+        (user_id, new_value, now, user_id, user_id, new_value),
+    )
+    await _db.execute(
+        """
+        INSERT INTO users (user_id, username, full_name, first_seen, last_active, is_subscribed)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+            is_subscribed = excluded.is_subscribed,
+            last_active   = excluded.last_active
+        """,
+        (user_id, username, full_name, now, now, new_value),
     )
     await _mark_daily_active(user_id)
     await _db.commit()
@@ -753,6 +769,20 @@ async def get_daily_metric(metric: str, since: str, until: str) -> list[dict]:
     return _fill_daily(by_day, since, until, "n")
 
 
+# Настоящие переходы подписки. Событие, повторяющее предыдущее значение того же
+# пользователя, или первое событие «отписался» (отписываться было не от чего) —
+# дубли, которые раньше писал set_subscribed() (гонка двойного тапа, пользователи
+# без строки в users). Из таблицы их не удаляем, а отсеиваем в запросах: t.prev —
+# предыдущее значение пользователя, 0 для первого события.
+_TRANSITIONS_CTE = (
+    "WITH t AS ("
+    " SELECT user_id, is_subscribed, changed_at,"
+    " LAG(is_subscribed, 1, 0) OVER (PARTITION BY user_id ORDER BY id) AS prev"
+    " FROM subscription_events"
+    ") "
+)
+
+
 async def get_subscriber_growth(since: str, until: str) -> list[dict]:
     """Дневной бегущий итог числа подписчиков: [{"day", "subscribers"}, ...].
 
@@ -763,16 +793,18 @@ async def get_subscriber_growth(since: str, until: str) -> list[dict]:
     было).
     """
     async with _db.execute(
-        "SELECT COALESCE(SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE -1 END), 0) AS n "
-        "FROM subscription_events WHERE DATE(changed_at) < ?",
+        _TRANSITIONS_CTE
+        + "SELECT COALESCE(SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE -1 END), 0) AS n "
+        "FROM t WHERE is_subscribed != prev AND DATE(changed_at) < ?",
         (since,),
     ) as cur:
         running = (await cur.fetchone())["n"]
 
     async with _db.execute(
-        "SELECT DATE(changed_at) AS day, "
+        _TRANSITIONS_CTE
+        + "SELECT DATE(changed_at) AS day, "
         "SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE -1 END) AS delta "
-        "FROM subscription_events WHERE DATE(changed_at) BETWEEN ? AND ? GROUP BY day",
+        "FROM t WHERE is_subscribed != prev AND DATE(changed_at) BETWEEN ? AND ? GROUP BY day",
         (since, until),
     ) as cur:
         deltas = {row["day"]: row["delta"] for row in await cur.fetchall()}
@@ -789,11 +821,31 @@ async def get_subscriber_growth(since: str, until: str) -> list[dict]:
     return result
 
 
-async def _subscription_window(since: str, until: str) -> dict:
+async def _seed_timestamp() -> str | None:
+    """Момент разового посева _backfill_subscription_events(): все стартовые
+    записи вставлены с одним `now`, и это самый ранний момент в таблице.
+    None, если посева не было (в самый ранний момент — событие одного
+    пользователя, значит, настоящее).
+    """
     async with _db.execute(
-        "SELECT is_subscribed, COUNT(*) AS n FROM subscription_events "
-        "WHERE DATE(changed_at) BETWEEN ? AND ? GROUP BY is_subscribed",
-        (since, until),
+        "SELECT changed_at, COUNT(DISTINCT user_id) AS n FROM subscription_events "
+        "WHERE changed_at = (SELECT MIN(changed_at) FROM subscription_events) GROUP BY changed_at"
+    ) as cur:
+        row = await cur.fetchone()
+    return row["changed_at"] if row and row["n"] > 1 else None
+
+
+async def _subscription_window(since: str, until: str, seed: str | None) -> dict:
+    """Подписки/отписки за [since, until]. Стартовый посев (seed) — не
+    подписки этого периода, а все, кто был подписан до начала учёта, поэтому
+    не считается; на графике роста он остаётся начальным скачком.
+    """
+    async with _db.execute(
+        _TRANSITIONS_CTE
+        + "SELECT is_subscribed, COUNT(*) AS n FROM t "
+        "WHERE is_subscribed != prev AND DATE(changed_at) BETWEEN ? AND ? AND changed_at IS NOT ? "
+        "GROUP BY is_subscribed",
+        (since, until, seed),
     ) as cur:
         by_flag = {row["is_subscribed"]: row["n"] for row in await cur.fetchall()}
     subscribed = by_flag.get(1, 0)
@@ -811,8 +863,9 @@ async def get_subscription_flow(days: int = 7) -> dict:
     prev_until = cur_since - timedelta(days=1)
     prev_since = prev_until - timedelta(days=days - 1)
 
-    current = await _subscription_window(cur_since.isoformat(), today.isoformat())
-    previous = await _subscription_window(prev_since.isoformat(), prev_until.isoformat())
+    seed = await _seed_timestamp()
+    current = await _subscription_window(cur_since.isoformat(), today.isoformat(), seed)
+    previous = await _subscription_window(prev_since.isoformat(), prev_until.isoformat(), seed)
 
     return {
         "days": days,
