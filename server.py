@@ -13,6 +13,8 @@ from aiohttp import web
 
 import config
 import dashboard
+import history
+import quals
 import tournament
 import webapp_auth
 from database import db
@@ -89,6 +91,8 @@ def create_app() -> web.Application:
     app.router.add_get("/healthz", healthz)
     dashboard.register_routes(app)
     tournament.register_routes(app)
+    quals.register_routes(app)
+    history.register_routes(app)
     return app
 
 

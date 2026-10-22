@@ -20,6 +20,11 @@ server.py — почему нельзя). Игровая логика (все 15
 игроков. Сетка считается один раз в день и хранится в БД (tournament_draws),
 поэтому правка tournament_bands.json действует со следующего дня и не ломает
 уже начатые прогоны.
+
+Первый сезон закрыт (SEASON_CLOSED): очки заморожены, итоговая таблица с
+отметкой вылетевших лежит в истории турниров (history.py). Мини-аппа сейчас
+играет квалификацию 80-х — это отдельный модуль quals.py с рейтингом Эло
+вместо очков.
 """
 import asyncio
 import json
@@ -40,6 +45,19 @@ BANDS_PER_DAY = 16
 QUIZ_NAME = "tournament"
 # Окно истории для ротации: «кто реже играл» считаем за последние две недели.
 HISTORY_DAYS = 14
+
+# Первый сезон закрыт: /complete больше не начисляет очки, а итоговая таблица
+# при первом старте после деплоя этого флага снимается в историю турниров
+# (history.py, tournament_archive) и дальше читается оттуда. Пока идёт
+# квалификация 80-х (quals.py), турнир на паузе; второй сезон — отдельная
+# доработка. До снимка таблица собирается из content/tournament_bands.json —
+# после него файл можно менять под второй сезон.
+SEASON_CLOSED = True
+# Сколько групп с конца итоговой таблицы покидают турнир.
+SEASON_ELIMINATED = 10
+# Ключ первого сезона в tournament_archive — хранимая строка, не переименовывать.
+SEASON_ARCHIVE_KEY = "season1"
+SEASON_TITLE = "Сезон 1 · 60–70-е"
 
 # Гейт «одно зачётное прохождение в день» сам по себе неатомарен: между
 # проверкой get_quiz_result_today и записью результата два одновременных
@@ -103,6 +121,14 @@ async def _make_draw(pool: list[dict], today: str) -> list[str]:
         (day - timedelta(days=HISTORY_DAYS)).isoformat(),
         (day - timedelta(days=1)).isoformat(),
     )
+    return pick_rotation(keys, history, today)
+
+
+def pick_rotation(keys: list[str], history: list[tuple[str, list[str]]], today: str) -> list[str]:
+    """Сама ротация (см. _make_draw) — чистая функция от пула и истории сеток
+    (по возрастанию даты), чтобы квалификация (quals.py) брала ту же самую.
+    """
+    keys = list(keys)
     last_played: dict[str, str] = {}
     times_played = dict.fromkeys(keys, 0)
     for play_date, day_keys in history:  # по возрастанию даты
@@ -158,6 +184,26 @@ def _round_winners_valid(prev_round: list, winners: list) -> bool:
     return all(w in (prev_round[2 * i], prev_round[2 * i + 1]) for i, w in enumerate(winners))
 
 
+def parse_bracket(body: dict, today_keys: list[str]) -> tuple[list[list[str]] | None, str | None]:
+    """Раунды сетки из тела /complete: [16 групп дня, 8, 4, 2, [чемпион]] и
+    None — или None и код ошибки. Общая для этого турнира и квалификации
+    (quals.py): формат запроса у них один и тот же.
+    """
+    round16 = body.get("round16_winners")
+    qf = body.get("qf_winners")
+    sf = body.get("sf_winners")
+    champion = body.get("champion")
+    if not (
+        isinstance(round16, list) and isinstance(qf, list)
+        and isinstance(sf, list) and isinstance(champion, str)
+    ):
+        return None, "bad_shape"
+    rounds = [today_keys, round16, qf, sf, [champion]]
+    if not all(_round_winners_valid(rounds[i], rounds[i + 1]) for i in range(4)):
+        return None, "invalid_bracket"
+    return rounds, None
+
+
 async def tournament_page(request: web.Request) -> web.FileResponse:
     return web.FileResponse(WEBAPP_DIR / "index.html")
 
@@ -166,6 +212,11 @@ async def tournament_today(request: web.Request) -> web.Response:
     """Сегодняшние 16 групп плюс, если initData валиден, уже сыгранный
     сегодня результат (чемпион).
     """
+    if SEASON_CLOSED:
+        # Пустой список — старый клиент (открытый до деплоя) покажет «турнир
+        # ещё не готов», новый сюда не ходит, он играет квалификацию.
+        return web.json_response({"date": webapp_auth.today_iso(), "closed": True, "bands": [], "already_completed": None})
+
     pool = await _today_draw()
     bands = [{"key": b["key"], "display": b["display"], "photo": b.get("photo")} for b in pool]
 
@@ -197,6 +248,9 @@ async def tournament_complete(request: web.Request) -> web.Response:
     можно (клиент это не блокирует), просто повторный прогон не влияет на
     очки — это ожидаемое поведение, не ошибка.
     """
+    if SEASON_CLOSED:
+        return web.json_response({"error": "season_closed"}, status=410)
+
     try:
         body = await request.json()
     except (json.JSONDecodeError, ValueError):
@@ -213,23 +267,10 @@ async def tournament_complete(request: web.Request) -> web.Response:
     if not today_bands:
         return web.json_response({"error": "no_tournament_today"}, status=400)
 
-    round16 = body.get("round16_winners")
-    qf = body.get("qf_winners")
-    sf = body.get("sf_winners")
-    champion = body.get("champion")
-    if not (
-        isinstance(round16, list) and isinstance(qf, list)
-        and isinstance(sf, list) and isinstance(champion, str)
-    ):
-        return web.json_response({"error": "bad_shape"}, status=400)
-
-    if not (
-        _round_winners_valid(today_bands, round16)
-        and _round_winners_valid(round16, qf)
-        and _round_winners_valid(qf, sf)
-        and _round_winners_valid(sf, [champion])
-    ):
-        return web.json_response({"error": "invalid_bracket"}, status=400)
+    rounds, error = parse_bracket(body, today_bands)
+    if error:
+        return web.json_response({"error": error}, status=400)
+    round16, qf, sf, (champion,) = rounds[1:]
 
     qf_losers = [k for k in round16 if k not in qf]      # 4 × 1 балл (дошли до 1/4)
     sf_losers = [k for k in qf if k not in sf]            # 2 × 2 балла (дошли до 1/2)
@@ -280,22 +321,43 @@ async def tournament_promo_click(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
-async def tournament_leaderboard(request: web.Request) -> web.Response:
-    """Публичная таблица очков по группам — без авторизации, это контент для
-    всех пользователей (в отличие от /api/dashboard/*, там владельческий токен).
+async def season_standings() -> list[dict]:
+    """Таблица очков по группам, посчитанная заново из tournament_band_points.
 
     Достраивается нулями по полному пулу content/tournament_bands.json,
     иначе группы, ни разу не прошедшие дальше 1/8, просто отсутствовали бы
     в списке вместо «внизу с 0» (get_band_points_totals нули не логирует).
+
+    После закрытия сезона у последних SEASON_ELIMINATED строк eliminated=true.
+    При равных очках выше тот, у кого больше чемпионств, — иначе граница
+    вылета зависела бы от порядка групп в файле.
     """
     pool = config.load_content("tournament_bands.json", default=[])
-    totals = {row["band_key"]: row["total"] for row in await db.get_band_points_totals(limit=1000)}
-    rows = [
-        {"key": b["key"], "display": b["display"], "photo": b.get("photo"), "points": totals.get(b["key"], 0)}
-        for b in pool
-    ]
-    rows.sort(key=lambda r: r["points"], reverse=True)
-    return web.json_response({"leaderboard": rows})
+    totals = {row["band_key"]: row for row in await db.get_band_points_totals(limit=1000)}
+    rows = []
+    for b in pool:
+        t = totals.get(b["key"])
+        rows.append({
+            "key": b["key"], "display": b["display"], "photo": b.get("photo"),
+            "points": t["total"] if t else 0, "titles": t["titles"] if t else 0,
+        })
+    rows.sort(key=lambda r: (r["points"], r["titles"]), reverse=True)
+    for i, row in enumerate(rows):
+        row["place"] = i + 1
+        row["eliminated"] = SEASON_CLOSED and i >= len(rows) - SEASON_ELIMINATED
+    return rows
+
+
+async def tournament_leaderboard(request: web.Request) -> web.Response:
+    """Публичная таблица очков по группам — без авторизации, это контент для
+    всех пользователей (в отличие от /api/dashboard/*, там владельческий токен).
+
+    Закрытый сезон отдаётся из архива (history.py), когда снимок уже есть, —
+    чтобы таблица не поплыла от правки tournament_bands.json под второй сезон.
+    """
+    archived = await db.get_tournament_archive(SEASON_ARCHIVE_KEY) if SEASON_CLOSED else None
+    rows = archived["standings"] if archived else await season_standings()
+    return web.json_response({"leaderboard": rows, "closed": SEASON_CLOSED})
 
 
 def register_routes(app: web.Application) -> None:

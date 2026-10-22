@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import config
+import history
 import server
 from database import db
 from handlers import admin, events, facts, fallback, menu, start, tests
@@ -62,6 +63,9 @@ async def main() -> None:
     config.seed_playlists()  # на хостинге с диском — перенесём стартовую очередь
 
     await db.init_db()
+    # Итоги закончившихся турниров — в историю, пока их таблицы не поплыли
+    # от следующего сезона (см. history.py).
+    await history.archive_finished()
     bot = create_bot()
     dp = create_dispatcher()
 

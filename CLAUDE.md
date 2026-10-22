@@ -196,16 +196,76 @@ hands out today's 16-band draw and accepts the final result.
   formula `random.Random(date).sample(pool, 16)` so the balancing knows who was
   under-drawn. Today gets the old formula too only if the tournament was already opened
   today (those players hold the old bracket); otherwise the rotation applies at once.
-- **The champion-screen party promo is hardcoded** in `webapp/tournament/index.html`
-  (ticket link + date), an exception to the content-in-JSON rule: it duplicates the
-  `events.json` entry without reading it, so update or remove it by hand when the event
-  changes or passes. Clicks hit `POST /api/tournament/promo`, logged as feature
-  `party_promo` — counted in `/stats`/`/month` and queryable by the dashboard API as
-  `feature:party_promo` (the dashboard's "Турнир групп" panel shows its window total).
+- **The champion-screen party promo was removed** after the event passed. The
+  `POST /api/tournament/promo` route (feature `party_promo`) stays so the dashboard keeps
+  the click history; a new promo would again be hardcoded HTML, not read from `events.json`.
+- **Season 1 is closed** (`tournament.SEASON_CLOSED = True`): `/complete` → `410
+  season_closed`, `/today` → empty draw. The final table (last `SEASON_ELIMINATED` (10) rows
+  flagged `eliminated`, ties broken by number of 5-point titles, not file order) is
+  snapshotted into `tournament_archive` on the first start after that flag is deployed — see
+  "Tournament history" — and `/leaderboard` serves the snapshot from then on. Before the
+  snapshot exists the table is recomputed from `content/tournament_bands.json`; once it
+  exists, that file is free to change for season 2. Season 2 (20 survivors + 10 qualifiers)
+  is unimplemented future work.
 - Band pool: `content/tournament_bands.json` (flat array of `{"key", "display", "photo"}`;
   `key` is a lowercase slug, closer in role to `quiz_musician.json`'s result keys than to
   `rockle_words.json`'s uppercase letters). Needs **at least 16** bands — fewer and
   `/today`/`/complete` return an empty result / a clear error instead of crashing.
+
+### 80s qualification (quals.py)
+
+While the main tournament is paused, the same Mini App page (`/tournament/`, tabs
+«Турнир» / «Рейтинг» / «История») plays the 80s qualification. `quals.register_routes()`
+adds `/api/quals/{today,complete,rating}`; the page and band photos are still served by
+`tournament.py` (photos for new bands go in the same `content/tournament_covers/`).
+Bracket mechanics are reused, not copied: `tournament.pick_rotation()` (pure rotation
+function) and `tournament.parse_bracket()` (shape + per-round winner validation).
+
+- **Elo rating instead of stage points.** Every bracket choice is a match (15 per run);
+  start 1500, K = 16, K = 32 for a band's first 30 matches («калибровка»). Matches, not
+  ratings, are stored (`rated_matches`) and the rating is recomputed from all of them on
+  every `/api/quals/rating` request (`quals.compute_ratings()`, matches in `id` order) — so
+  changing the constants rewrites history consistently, no migration. `rated_draws` /
+  `rated_matches` carry a `tournament` column (`"quals_80s"`) so a future rated season can
+  share them; `tournament_draws` couldn't (its PK is `play_date` alone).
+- **Config is content**: `content/tournament_quals_80s.json` —
+  `{"start","end","promote","bands":[{"key","display","photo","contender"}]}`, dates
+  inclusive UTC. Status is derived per request (`off`/`upcoming`/`active`/`finished`);
+  `/complete` only accepts results while `active`, so the final table freezes by itself
+  after `end`. `"contender": false` = out of competition (already in the main tournament):
+  rated, but takes no qualification slot.
+- **The pass zone (top `promote` contenders) only appears once every contender has played
+  at least one match** — on day one, bands not yet drawn sit at 1500, above bands that
+  played and lost, and would "qualify" without playing. Rotation makes this exactly one day.
+- Same integrity/anti-replay rules as the main tournament: signed `initData`, one counted
+  run per day per user (`quiz_results`, `quiz_name="quals_80s"`), check-then-write under a
+  module-level `asyncio.Lock`. `/api/quals/rating` is public like the leaderboard.
+  `/api/quals/today` logs the open as `tournament_open` (same Mini App) so the dashboard's
+  opens series doesn't break; the dashboard sums `quiz:tournament` + `quiz:quals_80s` for
+  "засчитано забегов".
+
+### Tournament history (history.py)
+
+The «История» tab of the tournament Mini App: one card per finished tournament (dates,
+counted runs, distinct players, winner) expanding to its final table. `GET
+/api/tournament/history` is public, newest first.
+
+- **Finished tournaments are snapshots, not live recomputations.** Live tables are rebuilt
+  from points/matches plus the roster in `content/*.json`; season 2 would award points into
+  the same `tournament_band_points` and edit the same roster file, silently rewriting
+  season 1. So a finished tournament's final table is written once into
+  `tournament_archive` (PK = stored key: `season1`, `quals_80s` — don't rename) and read
+  only from there afterwards.
+- **`history.archive_finished()` takes the snapshots** — at bot start (`main.py`, after
+  `init_db()`) and lazily on every history request, so the qualification lands in the
+  archive the day after `end` without a restart. `INSERT OR IGNORE`: never overwritten; to
+  re-take one (e.g. `end` was extended after the fact), delete its row by hand. A
+  tournament with zero counted runs (fresh local DB) isn't archived. Failures are logged,
+  never raised — they must not block bot startup or the tab.
+- It's its own module because it needs both `tournament` and `quals`, and `quals` already
+  imports `tournament` — the reverse import would be circular. For the same reason the
+  live tables are exposed as `tournament.season_standings()` / `quals.standings()` (and
+  `quals.load_config()` / `quals.quals_status()`), which history.py snapshots.
 
 ### Analytics dashboard (dashboard.py)
 
@@ -354,7 +414,7 @@ update the quiz JSON instead.
   Mini App requests and admins (who bypass the gate) don't count toward DAU.
 - **Analytics keys are stored strings — don't rename them.** `feature_usage.feature`
   (`playlist`, `rockle_open`, `tournament_open`, `party_promo`) and `quiz_results.quiz_name`
-  (`zodiac`, `covers_<N>`, `musician`, `quest_concert`, `tournament`) are what `/stats`,
+  (`zodiac`, `covers_<N>`, `musician`, `quest_concert`, `tournament`, `quals_80s`) are what `/stats`,
   `TEST_LABELS` and the dashboard's `feature:<name>` / `quiz:<name>` metrics key off;
   renaming one splits its history in two.
 - **All timestamps are UTC** (`_now()`, SQLite `DATE('now')`, `webapp_auth.today_iso()`);

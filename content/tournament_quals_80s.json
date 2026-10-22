@@ -1,0 +1,32 @@
+{
+  "start": "2026-10-14",
+  "end": "2026-11-13",
+  "promote": 10,
+  "bands": [
+    {"key": "metallica", "display": "Metallica", "photo": "metallica.jpg"},
+    {"key": "megadeth", "display": "Megadeth", "photo": "megadeth.jpg"},
+    {"key": "slayer", "display": "Slayer", "photo": "slayer.jpg"},
+    {"key": "helloween", "display": "Helloween", "photo": "helloween.jpg"},
+    {"key": "guns_n_roses", "display": "Guns N' Roses", "photo": "guns_n_roses.jpg"},
+    {"key": "motley_crue", "display": "Mötley Crüe", "photo": "motley_crue.jpg"},
+    {"key": "bon_jovi", "display": "Bon Jovi", "photo": "bon_jovi.jpg"},
+    {"key": "def_leppard", "display": "Def Leppard", "photo": "def_leppard.jpg"},
+    {"key": "europe", "display": "Europe", "photo": "europe.jpg"},
+    {"key": "u2", "display": "U2", "photo": "u2.jpg"},
+    {"key": "inxs", "display": "INXS", "photo": "inxs.jpg"},
+    {"key": "rem", "display": "R.E.M.", "photo": "rem.jpg"},
+    {"key": "pixies", "display": "Pixies", "photo": "pixies.jpg"},
+    {"key": "the_smiths", "display": "The Smiths", "photo": "the_smiths.jpg"},
+    {"key": "new_order", "display": "New Order", "photo": "new_order.jpg"},
+    {"key": "depeche_mode", "display": "Depeche Mode", "photo": "depeche_mode.jpg"},
+    {"key": "duran_duran", "display": "Duran Duran", "photo": "duran_duran.jpg"},
+    {"key": "tears_for_fears", "display": "Tears for Fears", "photo": "tears_for_fears.jpg"},
+    {"key": "a_ha", "display": "a-ha", "photo": "a_ha.jpg"},
+    {"key": "nirvana", "display": "Nirvana", "photo": "nirvana.jpg"},
+    {"key": "rhcp", "display": "Red Hot Chili Peppers", "photo": "rhcp.jpg"},
+    {"key": "iron_maiden", "display": "Iron Maiden", "photo": "iron_maiden.jpg", "contender": false},
+    {"key": "the_cure", "display": "The Cure", "photo": "the_cure.jpg", "contender": false},
+    {"key": "van_halen", "display": "Van Halen", "photo": "van_halen.jpg", "contender": false},
+    {"key": "motorhead", "display": "Motörhead", "photo": "motorhead.jpg", "contender": false}
+  ]
+}

@@ -600,7 +600,7 @@
     games: {
       title: "Игры по дням",
       note: "«Найди группу» — пройденные пазлы, турнир — засчитанные забеги (один в день на человека).",
-      load: function () { return loadSets([["rockle_completed", "«Найди группу»"], ["quiz:tournament", "Турнир"]]); }
+      load: function () { return loadSets([["rockle_completed", "«Найди группу»"], ["quiz:tournament", "Турнир"], ["quiz:quals_80s", "Квалификация 80-х"]]); }
     }
   };
 
@@ -624,7 +624,7 @@
 
   function renderChart(data) {
     var labels = data.days.map(function (d) { var p = d.split("-"); return p[2] + "." + p[1]; });
-    var palette = [["#ffffff", "rgba(255,255,255,0.28)"], ["#ffc9a8", "rgba(255,201,168,0)"]];
+    var palette = [["#ffffff", "rgba(255,255,255,0.28)"], ["#ffc9a8", "rgba(255,201,168,0)"], ["#d6d2ff", "rgba(214,210,255,0)"]];
     var many = data.sets.length > 1;
     var tick = "rgba(255,255,255,0.62)";
     if (chart) chart.destroy();
@@ -697,10 +697,14 @@
     var res = await Promise.all([
       series("feature:tournament_open"),
       series("quiz:tournament"),
+      series("quiz:quals_80s"),
       series("feature:party_promo"),
       apiFetch("/api/dashboard/tournament-bands?limit=5&days=" + state.days)
     ]);
-    renderTournament(res[0], res[1], res[2], res[3].bands);
+    // Засчитанные забеги — основной турнир плюс квалификация 80-х: это одна
+    // мини-аппа, сезоны сменяют друг друга. Ряды по одним и тем же дням.
+    var runs = res[1].map(function (r, i) { return { day: r.day, n: r.n + res[2][i].n }; });
+    renderTournament(res[0], runs, res[3], res[4].bands);
     return res[0];
   }
 

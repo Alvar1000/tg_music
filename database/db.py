@@ -127,6 +127,45 @@ async def init_db() -> None:
             created_at TEXT NOT NULL
         );
 
+        -- Рейтинговые турниры (квалификация 80-х и следующие): тот же формат
+        -- сетки дня, но с колонкой tournament — у tournament_draws PK только
+        -- play_date, два турнира в один день туда не лягут.
+        CREATE TABLE IF NOT EXISTS rated_draws (
+            tournament TEXT NOT NULL,
+            play_date  TEXT NOT NULL,
+            band_keys  TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (tournament, play_date)
+        );
+
+        -- Каждый матч сетки (15 за засчитанный прогон). Рейтинг не хранится —
+        -- он считается из матчей, поэтому формулу можно поменять задним числом.
+        CREATE TABLE IF NOT EXISTS rated_matches (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            tournament TEXT NOT NULL,
+            user_id    INTEGER,
+            play_date  TEXT NOT NULL,
+            round      INTEGER NOT NULL,
+            winner     TEXT NOT NULL,
+            loser      TEXT NOT NULL,
+            played_at  TEXT NOT NULL
+        );
+
+        -- История турниров: итоговая таблица завершённого турнира, снятая один
+        -- раз (history.py). Живые таблицы считаются из очков/матчей и состава в
+        -- content/*.json и поплыли бы от следующего сезона — архив нет.
+        CREATE TABLE IF NOT EXISTS tournament_archive (
+            tournament  TEXT PRIMARY KEY,
+            title       TEXT NOT NULL,
+            kind        TEXT NOT NULL,
+            start_date  TEXT,
+            end_date    TEXT,
+            runs        INTEGER NOT NULL,
+            players     INTEGER NOT NULL,
+            standings   TEXT NOT NULL,
+            archived_at TEXT NOT NULL
+        );
+
         CREATE INDEX IF NOT EXISTS idx_feature_usage_feature_used_at  ON feature_usage(feature, used_at);
         CREATE INDEX IF NOT EXISTS idx_quiz_results_name_completed_at ON quiz_results(quiz_name, completed_at);
         CREATE INDEX IF NOT EXISTS idx_users_first_seen               ON users(first_seen);
@@ -136,6 +175,7 @@ async def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_subscription_events_changed_at ON subscription_events(changed_at);
         CREATE INDEX IF NOT EXISTS idx_subscription_events_user       ON subscription_events(user_id, id);
         CREATE INDEX IF NOT EXISTS idx_tournament_band_points_band_key ON tournament_band_points(band_key);
+        CREATE INDEX IF NOT EXISTS idx_rated_matches_tournament       ON rated_matches(tournament, id);
         """
     )
     await _db.commit()
@@ -588,15 +628,16 @@ async def award_tournament_points(user_id: int, awards: list[tuple[str, int]]) -
 
 
 async def get_band_points_totals(limit: int = 100) -> list[dict]:
-    """Сумма очков по группам, отсортировано по убыванию.
+    """Сумма очков по группам, отсортировано по убыванию; titles — сколько раз
+    группа становилась чемпионом прогона (5 баллов), тай-брейк при равных очках.
 
     Группа, ни разу не прошедшая дальше 1/8, тут не появится (нулевые очки
     не логируются) — достраивание нулями по полному пулу групп делает
     вызывающая сторона (tournament.py), не здесь.
     """
     async with _db.execute(
-        "SELECT band_key, SUM(points) AS total FROM tournament_band_points "
-        "GROUP BY band_key ORDER BY total DESC LIMIT ?",
+        "SELECT band_key, SUM(points) AS total, SUM(points = 5) AS titles FROM tournament_band_points "
+        "GROUP BY band_key ORDER BY total DESC, titles DESC LIMIT ?",
         (limit,),
     ) as cur:
         rows = await cur.fetchall()
@@ -689,6 +730,114 @@ async def feature_used_on(feature: str, day: str) -> bool:
         (feature, day),
     ) as cur:
         return await cur.fetchone() is not None
+
+
+# ============ Рейтинговые турниры (квалификация 80-х, см. quals.py) ============
+
+async def get_rated_draw(tournament: str, play_date: str) -> list[str] | None:
+    """Сетка рейтингового турнира за play_date — ключи в порядке пар, — или None."""
+    async with _db.execute(
+        "SELECT band_keys FROM rated_draws WHERE tournament = ? AND play_date = ?",
+        (tournament, play_date),
+    ) as cur:
+        row = await cur.fetchone()
+    return json.loads(row["band_keys"]) if row else None
+
+
+async def save_rated_draw(tournament: str, play_date: str, band_keys: list[str]) -> None:
+    """INSERT OR IGNORE — как save_tournament_draw: из двух одновременных
+    первых запросов дня остаётся одна сетка."""
+    await _db.execute(
+        "INSERT OR IGNORE INTO rated_draws (tournament, play_date, band_keys, created_at) VALUES (?, ?, ?, ?)",
+        (tournament, play_date, json.dumps(band_keys), _now()),
+    )
+    await _db.commit()
+
+
+async def get_rated_draws_between(tournament: str, since: str, until: str) -> list[tuple[str, list[str]]]:
+    """Сетки за [since, until] по возрастанию даты — история для ротации."""
+    async with _db.execute(
+        "SELECT play_date, band_keys FROM rated_draws "
+        "WHERE tournament = ? AND play_date BETWEEN ? AND ? ORDER BY play_date",
+        (tournament, since, until),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [(row["play_date"], json.loads(row["band_keys"])) for row in rows]
+
+
+async def add_rated_matches(
+    tournament: str, user_id: int, play_date: str, matches: list[tuple[int, str, str]]
+) -> None:
+    """Записывает матчи одного прогона: (раунд, победитель, проигравший) по
+    порядку игры — рейтинг потом пересчитывается в порядке id."""
+    now = _now()
+    await _db.executemany(
+        "INSERT INTO rated_matches (tournament, user_id, play_date, round, winner, loser, played_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [(tournament, user_id, play_date, rnd, winner, loser, now) for rnd, winner, loser in matches],
+    )
+    await _db.commit()
+
+
+async def get_rated_matches(tournament: str) -> list[dict]:
+    """Все матчи турнира в порядке записи — вход для расчёта рейтинга."""
+    async with _db.execute(
+        "SELECT play_date, winner, loser FROM rated_matches WHERE tournament = ? ORDER BY id",
+        (tournament,),
+    ) as cur:
+        rows = await cur.fetchall()
+    return [dict(row) for row in rows]
+
+
+# ============ История турниров (см. history.py) ============
+
+async def get_quiz_run_stats(quiz_name: str) -> dict:
+    """Засчитанные прогоны quiz_name за всё время: сколько их, сколько разных
+    людей и первый/последний день (UTC) — шапка карточки в истории турниров."""
+    async with _db.execute(
+        "SELECT COUNT(*) AS runs, COUNT(DISTINCT user_id) AS players, "
+        "MIN(DATE(completed_at)) AS first_day, MAX(DATE(completed_at)) AS last_day "
+        "FROM quiz_results WHERE quiz_name = ?",
+        (quiz_name,),
+    ) as cur:
+        return dict(await cur.fetchone())
+
+
+async def save_tournament_archive(
+    tournament: str, title: str, kind: str, start_date: str | None, end_date: str | None,
+    runs: int, players: int, standings: list[dict],
+) -> None:
+    """Снимок итогов. INSERT OR IGNORE: итог пишется один раз, повторный снимок
+    (перезапуск, параллельный запрос) первый не перезаписывает."""
+    await _db.execute(
+        "INSERT OR IGNORE INTO tournament_archive "
+        "(tournament, title, kind, start_date, end_date, runs, players, standings, archived_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (tournament, title, kind, start_date, end_date, runs, players,
+         json.dumps(standings, ensure_ascii=False), _now()),
+    )
+    await _db.commit()
+
+
+def _archive_row(row) -> dict:
+    out = dict(row)
+    out["standings"] = json.loads(out["standings"])
+    return out
+
+
+async def get_tournament_archive(tournament: str) -> dict | None:
+    async with _db.execute("SELECT * FROM tournament_archive WHERE tournament = ?", (tournament,)) as cur:
+        row = await cur.fetchone()
+    return _archive_row(row) if row else None
+
+
+async def get_tournament_archives() -> list[dict]:
+    """Все завершённые турниры, свежие первыми."""
+    async with _db.execute(
+        "SELECT * FROM tournament_archive ORDER BY end_date DESC, archived_at DESC"
+    ) as cur:
+        rows = await cur.fetchall()
+    return [_archive_row(row) for row in rows]
 
 
 # ============ Аналитика для дашборда ============
