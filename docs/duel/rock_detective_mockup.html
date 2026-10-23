@@ -1,0 +1,757 @@
+<meta charset="utf-8">
+<title>Рок-детектив</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Teko:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+  /* Макет рок-дуэли в стиле Mini App турнира: одна панель 400px, кружки групп со свечением,
+     лесенка из четырёх раундов. Токены скопированы из webapp/tournament/index.html. */
+  :root {
+    --bg: #e9ebf0; --surface: #ffffff; --surface-2: #f0f1f4;
+    --border: #e2e4ea; --border-strong: #ccd0da;
+    --text: #15161c; --text-dim: #666b80; --text-faint: #9aa0b2;
+    --hue-blue: #3b6bdc; --hue-amber: #c98a1a; --hue-green: #0f9e82; --hue-red: #d0453b;
+    --sheen-blue: #dce8f6; --sheen-pink: #f3e3ef; --sheen-mint: #e1f3ec; --sheen-light: #ffffff;
+    --aura-blue: rgba(59,107,220,0.07); --aura-pink: rgba(224,64,126,0.05);
+    --ring-blue: rgba(59,107,220,0.14);
+    --shadow-panel: 0 40px 70px -30px rgba(20,24,40,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
+    --shadow-tab: 0 1px 4px rgba(20,24,40,0.12);
+    --shadow-orb: 0 8px 18px -8px rgba(30,40,70,0.2);
+    --shadow-champ: 0 14px 30px -10px rgba(30,40,70,0.26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161c; --surface: #1c1f27; --surface-2: #22252e;
+      --border: #272b35; --border-strong: #343846;
+      --text: #eceef4; --text-dim: #a2a8bb; --text-faint: #757b8d;
+      --hue-blue: #7d9cf0; --hue-amber: #e0a15f; --hue-green: #3fc7aa; --hue-red: #f07a6e;
+      --sheen-blue: #2a3a5a; --sheen-pink: #3a2a3e; --sheen-mint: #22403a; --sheen-light: #2b2f3a;
+      --aura-blue: rgba(59,107,220,0.14); --aura-pink: rgba(224,64,126,0.10);
+      --ring-blue: rgba(125,156,240,0.20);
+      --shadow-panel: 0 40px 70px -30px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+      --shadow-tab: 0 1px 4px rgba(0,0,0,0.5);
+      --shadow-orb: 0 8px 18px -8px rgba(0,0,0,0.6);
+      --shadow-champ: 0 14px 30px -10px rgba(0,0,0,0.7);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161c; --surface: #1c1f27; --surface-2: #22252e;
+    --border: #272b35; --border-strong: #343846;
+    --text: #eceef4; --text-dim: #a2a8bb; --text-faint: #757b8d;
+    --hue-blue: #7d9cf0; --hue-amber: #e0a15f; --hue-green: #3fc7aa; --hue-red: #f07a6e;
+    --sheen-blue: #2a3a5a; --sheen-pink: #3a2a3e; --sheen-mint: #22403a; --sheen-light: #2b2f3a;
+    --aura-blue: rgba(59,107,220,0.14); --aura-pink: rgba(224,64,126,0.10);
+    --ring-blue: rgba(125,156,240,0.20);
+    --shadow-panel: 0 40px 70px -30px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+    --shadow-tab: 0 1px 4px rgba(0,0,0,0.5);
+    --shadow-orb: 0 8px 18px -8px rgba(0,0,0,0.6);
+    --shadow-champ: 0 14px 30px -10px rgba(0,0,0,0.7);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    min-height: 100%; margin: 0;
+    background: var(--bg); color: var(--text);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    display: flex; justify-content: center;
+    padding-block: clamp(16px, 5vw, 48px) 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background-image:
+      radial-gradient(ellipse 900px 520px at 50% -10%, var(--aura-blue), transparent 60%),
+      radial-gradient(ellipse 700px 460px at 105% 105%, var(--aura-pink), transparent 60%);
+  }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--hue-blue); outline-offset: 2px; }
+  .wrap { width: 100%; max-width: 400px; }
+
+  .panel { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 26px 22px 28px; box-shadow: var(--shadow-panel); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+  .round-tag { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.04em; color: var(--hue-blue); white-space: nowrap; }
+
+  .tabbar { display: flex; gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+  .tab { flex: 1; border: none; background: none; padding: 9px 0; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--text-dim); cursor: pointer; }
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-tab); }
+
+  /* лесенка раундов */
+  .ladder { display: flex; align-items: flex-start; margin-bottom: 6px; }
+  .step { display: grid; justify-items: center; gap: 5px; background: none; border: none; padding: 0; cursor: pointer; width: 52px; flex-shrink: 0; }
+  .rung {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif; font-size: 15px; font-weight: 600; color: var(--text-faint);
+    transition: border-color .2s, color .2s, box-shadow .2s;
+  }
+  .step small { font-size: 10px; font-weight: 600; color: var(--text-faint); white-space: nowrap; }
+  .step.active .rung { border-color: var(--hue-blue); color: var(--text); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .step.active small { color: var(--text); }
+  .step.done .rung { border-color: var(--hue-green); color: var(--hue-green); }
+  .rung-line { flex: 1; height: 1px; background: var(--border); margin-top: 16px; }
+  .dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 18px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
+  .dots i.on { background: var(--hue-blue); }
+  .dots i.ok { background: var(--hue-green); }
+  .dots i.bad { background: var(--hue-red); }
+
+  /* кружок группы */
+  .avatar-wrap { position: relative; aspect-ratio: 1; max-width: 100%; }
+  .avatar-glow {
+    position: absolute; inset: -16%; border-radius: 50%; z-index: 0; pointer-events: none;
+    background: conic-gradient(from var(--gr,200deg), var(--sheen-blue), var(--sheen-pink), var(--sheen-mint), var(--sheen-light), var(--sheen-blue));
+    filter: blur(14px);
+  }
+  .avatar {
+    width: 100%; height: 100%; border-radius: 50%; position: relative; z-index: 1;
+    overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-orb); display: flex; align-items: center; justify-content: center;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .qmark { font-family: 'Teko', sans-serif; font-size: 64px; font-weight: 600; line-height: 1; color: var(--text-faint); transform: translateY(4px); }
+  .hero-orb { width: 38%; margin: 4px auto 18px; }
+  .solved .avatar-glow { inset: -22%; filter: blur(20px); }
+  .solved .avatar { box-shadow: var(--shadow-champ); }
+  @media (prefers-reduced-motion: no-preference) {
+    .solved .avatar-glow { animation: glow-spin 8s linear infinite; }
+    .solved .avatar, .solved .cover { animation: pop .35s ease-out; }
+  }
+  @keyframes glow-spin { to { transform: rotate(360deg); } }
+  @keyframes pop { from { transform: scale(.88); } to { transform: scale(1); } }
+
+  /* обложка: квадрат со свечением */
+  .cover-wrap { position: relative; width: 74%; margin: 6px auto 20px; aspect-ratio: 1; }
+  .cover-wrap .avatar-glow { border-radius: 30%; inset: -10%; }
+  .cover { position: relative; z-index: 1; width: 100%; height: 100%; border-radius: 18px; overflow: hidden; border: 1px solid var(--border-strong); box-shadow: var(--shadow-champ); background: var(--surface-2); }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .verdict { text-align: center; margin: -4px 0 16px; }
+  .verdict h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 4px; text-wrap: balance; }
+  .verdict p { margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .plus { color: var(--hue-green); font-weight: 700; }
+  .zero { color: var(--hue-red); font-weight: 700; }
+
+  .facts { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 8px; }
+  .facts li { background: var(--surface-2); border-radius: 14px; padding: 11px 14px; font-size: 14px; line-height: 1.5; display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 8px; }
+  .facts .n { font-family: 'Teko', sans-serif; font-size: 17px; line-height: 1.3; color: var(--text-faint); }
+
+  .worth { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: var(--text-dim); }
+  .worth .num { font-family: 'Teko', sans-serif; font-size: 22px; color: var(--hue-blue); font-variant-numeric: tabular-nums; line-height: 1; }
+  .clock { font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .guess { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+  .guess input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--surface); font-size: 16px; }
+  .guess input:focus { outline: none; border-color: var(--hue-blue); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .btn { border: none; border-radius: 14px; padding: 12px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: var(--text); color: var(--surface); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.wide { width: 100%; padding: 14px; }
+  .btn.soft { background: var(--surface-2); color: var(--text); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sugg {
+    position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; list-style: none; margin: 0; padding: 4px;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 14px; box-shadow: var(--shadow-panel);
+    max-height: 290px; overflow-y: auto;
+  }
+  .sugg .letter { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); padding: 6px 8px 2px; }
+  .sugg li[role="option"] { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .sugg li[aria-selected="true"], .sugg li[role="option"]:hover { background: var(--surface-2); }
+  .sugg .alias { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--text-dim); }
+  .mini { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border-strong); overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Teko', sans-serif; font-size: 15px; color: var(--text-dim); }
+  .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .err { font-size: 12px; color: var(--hue-red); min-height: 18px; margin: 6px 2px 0; }
+  .misses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .misses span { font-size: 12px; font-weight: 600; color: var(--hue-red); background: var(--surface-2); border-radius: 999px; padding: 4px 10px; text-decoration: line-through; }
+  .hint { font-size: 12px; color: var(--text-dim); text-align: center; margin: 14px 0 0; line-height: 1.5; }
+
+  /* хронология */
+  .chrono { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 18px; margin: 10px 4px 22px; }
+  .pick { background: none; border: none; padding: 0; cursor: pointer; display: grid; justify-items: center; gap: 8px; position: relative; }
+  .pick .avatar-wrap { width: 72%; }
+  .pick .name { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.25; }
+  .pick .badge {
+    position: absolute; top: -4px; right: 10%; z-index: 3; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--hue-blue); color: #fff; font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; line-height: 1; padding-top: 2px;
+  }
+  .pick .badge.ok { background: var(--hue-green); } .pick .badge.bad { background: var(--hue-red); }
+  .pick .year { font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text-dim); line-height: 1; }
+  .pick:disabled { cursor: default; }
+  .order { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; font-size: 12px; color: var(--text-dim); }
+  .order b { font-family: 'Teko', sans-serif; font-size: 16px; color: var(--text); }
+
+  /* интро */
+  .player { display: grid; justify-items: center; gap: 14px; margin: 4px 0 18px; }
+  .play {
+    width: 96px; height: 96px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface-2);
+    box-shadow: var(--shadow-orb); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;
+  }
+  .play svg { width: 34px; height: 34px; color: var(--text); }
+  .play-wrap { position: relative; }
+  .play-wrap .avatar-glow { inset: -30%; }
+  .meter { width: 100%; height: 8px; border-radius: 999px; background: var(--surface-2); position: relative; overflow: hidden; }
+  .meter .open { position: absolute; inset: 0 auto 0 0; background: var(--sheen-blue); }
+  .meter .pos { position: absolute; inset: 0 auto 0 0; background: var(--hue-blue); width: 0; }
+  .meter-scale { width: 100%; display: flex; justify-content: space-between; font-family: 'Teko', sans-serif; font-size: 14px; color: var(--text-faint); margin-top: -8px; }
+  .opts { display: grid; gap: 8px; }
+  .opt { text-align: left; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 14px; padding: 11px 14px; cursor: pointer; display: grid; gap: 1px; }
+  .opt span { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+  .opt b { font-size: 14px; font-weight: 700; }
+  .opt:hover:not(:disabled) { border-color: var(--hue-blue); }
+  .opt.ok { border-color: var(--hue-green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hue-green) 25%, transparent); }
+  .opt.bad { border-color: var(--hue-red); opacity: .7; }
+  .opt:disabled { cursor: default; }
+
+  /* итог */
+  .champ { text-align: center; }
+  .score { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 6px; }
+  .score .side { display: grid; justify-items: center; gap: 2px; }
+  .score .pts { font-family: 'Teko', sans-serif; font-size: 56px; font-weight: 600; line-height: .9; font-variant-numeric: tabular-nums; }
+  .score .who { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+  .score .colon { font-family: 'Teko', sans-serif; font-size: 40px; color: var(--text-faint); }
+  .champ h1 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 700; margin: 6px 0 4px; text-wrap: balance; }
+  .champ .sub { font-size: 13px; color: var(--text-dim); margin: 0 0 18px; line-height: 1.6; }
+  .lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); text-align: left; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .lb-name { font-size: 13px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+  .lb-tag { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .lb-pts { min-width: 54px; text-align: right; font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lb-pts b { color: var(--text); font-weight: 600; }
+  .results { margin-bottom: 18px; }
+
+  .rules { display: grid; gap: 14px; font-size: 14px; line-height: 1.55; }
+  .rules p { margin: 0; }
+  .rules h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; margin: 0 0 4px; }
+  .note { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; margin: 14px 0 0; }
+</style>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="panel-head">
+      <span class="eyebrow">Рок-дуэль · против Васи</span>
+      <span class="round-tag" id="roundTag"></span>
+    </div>
+
+    <div class="tabbar" role="tablist">
+      <button type="button" class="tab active" data-tab="game" role="tab" aria-selected="true">Битва</button>
+      <button type="button" class="tab" data-tab="rules" role="tab" aria-selected="false">Правила</button>
+    </div>
+
+    <div id="gameTab">
+      <div class="ladder" id="ladder"></div>
+      <div class="dots" id="dots"></div>
+      <div id="stage"></div>
+    </div>
+
+    <div id="rulesTab" hidden>
+      <div class="rules">
+        <p>Вася бросил тебе вызов. Дуэль — четыре раунда, вы оба проходите одни и те же задания, каждый в своё время. Ответы Васи откроются в конце. При равном счёте побеждает тот, кто ответил быстрее: время засекает сервер.</p>
+        <div><h3>1. Рок-детектив</h3><p>Пять фактов о группе сразу. Назови группу: 3 очка с первой попытки, 2 со второй, 1 с третьей.</p></div>
+        <div><h3>2. Обложка</h3><p>Обложка альбома. Начни писать название группы: подсказка покажет все группы на эту букву. Очки те же: 3, 2, 1.</p></div>
+        <div><h3>3. Хронология</h3><p>Четыре группы. Нажимай их по порядку: от самой старой к самой молодой по году основания. Очко за каждую группу на своём месте.</p></div>
+        <div><h3>4. Угадай интро</h3><p>Сначала звучат 2 секунды. Угадал сразу — 3 очка. Можно открыть 5 секунд (2 очка) или все 10 (1 очко).</p></div>
+      </div>
+      <p class="note">Это макет. Кружки на лесенке нажимаются: можно сразу перейти к любому раунду. Досье есть у 16 групп, интро — три примера.</p>
+    </div>
+  </div>
+</div>
+<audio id="player" preload="auto"></audio>
+
+<script>
+  // ── Данные макета ─────────────────────────────────────────────
+
+  // Досье: пять фактов на группу без её названия. Ключи — как в tournament_bands.json.
+  var DOSSIERS = {
+    queen: ["Название группы придумал вокалист, хотя остальным оно поначалу казалось слишком вызывающим.", "Гитарист играет на гитаре, которую в юности собрал вместе с отцом из дерева старой каминной полки.", "Тот же гитарист — доктор астрофизики, диссертацию он защитил в 2007 году.", "Их 20 минут на Live Aid в 1985 году часто называют лучшим концертным выступлением в истории рока.", "Хиты: «Bohemian Rhapsody», «We Will Rock You»."],
+    metallica: ["Их басист погиб в 1986 году, когда на гастролях в Швеции перевернулся автобус группы.", "Гитарист, уволенный из группы в 1983 году, основал собственную, ставшую её главным соперником.", "В 2013 году группа сыграла концерт в Антарктиде.", "Их пятый альбом называется просто по имени группы, но все зовут его «Чёрным».", "Хиты: «Enter Sandman», «Nothing Else Matters»."],
+    iron_maiden: ["Основатель и главный автор песен — басист, а не гитарист или вокалист.", "Вокалист — профессиональный пилот и сам водил гастрольный «Боинг» группы.", "Название группы — средневековое орудие пыток.", "Талисман группы — зомби по имени Эдди, он есть почти на каждой обложке.", "Хиты: «The Trooper», «Fear of the Dark»."],
+    ac_dc: ["Группу основали два брата, родившиеся в Глазго.", "Название подсмотрели на швейной машинке их сестры.", "Первый вокалист умер в 1980 году, а следующий альбом, уже с новым певцом, стал одним из самых продаваемых в истории.", "Соло-гитарист выходит на сцену в школьной форме.", "Хиты: «Highway to Hell», «Thunderstruck»."],
+    nirvana: ["Группа собралась в городке Абердин, штат Вашингтон, а прославилась на сиэтлской сцене.", "Барабанщик потом основал собственную группу, где сам поёт и играет на гитаре.", "Их акустический концерт для MTV вышел альбомом уже после гибели лидера.", "На обложке их второго альбома младенец плывёт за долларом на рыболовном крючке.", "Хиты: «Smells Like Teen Spirit», «Come As You Are»."],
+    pink_floyd: ["Название сложено из имён двух малоизвестных американских блюзменов.", "Первый лидер покинул группу в 1968 году из-за проблем с психикой.", "На фотосессии для обложки одного из альбомов надувная свинья сорвалась с привязи и улетела над Лондоном.", "Альбом с призмой на обложке провёл в чарте Billboard больше 900 недель.", "Хиты: «Another Brick in the Wall», «Wish You Were Here»."],
+    black_sabbath: ["Гитарист в юности лишился кончиков двух пальцев на заводе и играл с самодельными напёрстками.", "Группа из Бирмингема, до нынешнего названия называлась Earth.", "Название взято у фильма ужасов с Борисом Карлоффом.", "Вокалист позже стал звездой реалити-шоу о своей семье.", "Хиты: «Paranoid», «Iron Man»."],
+    the_beatles: ["До славы группа годами играла в клубах Гамбурга.", "Первого барабанщика заменили в 1962 году, перед записью первого сингла.", "Последний совместный концерт группа сыграла на крыше своей студии в Лондоне в январе 1969 года.", "Обложку одного из их альбомов, где четверо идут по пешеходному переходу, повторяют туристы со всего мира.", "Хиты: «Yesterday», «Hey Jude»."],
+    led_zeppelin: ["Первые концерты группа дала под именем The New Yardbirds.", "Название — шутка музыканта другой группы: затея, мол, рухнет, как свинцовый дирижабль.", "На обложке четвёртого альбома нет ни названия, ни имён — только четыре символа.", "Группа распалась в 1980 году после смерти барабанщика.", "Хиты: «Stairway to Heaven», «Whole Lotta Love»."],
+    kiss: ["Басист родился в Израиле и до славы работал школьным учителем.", "В 1983 году участники впервые появились на публике без грима.", "У каждого участника свой образ: Демон, Звёздное дитя, Космический туз и Кот.", "Басист показывает на сцене огромный язык и «плюётся кровью».", "Хиты: «I Was Made for Lovin' You», «Rock and Roll All Nite»."],
+    guns_n_roses: ["Название сложено из названий двух прежних групп участников.", "Их дебютный альбом — самый продаваемый дебют в истории США.", "Гитарист выступает в цилиндре, с сигаретой и с лицом, закрытым кудрями.", "В 2016 году классический состав частично воссоединился ради тура Not in This Lifetime.", "Хиты: «Sweet Child o' Mine», «November Rain»."],
+    scorpions: ["Группа из Ганновера, первый альбом вышел ещё в 1972 году.", "В 1989 году они выступали в Лужниках на Московском фестивале мира.", "Под впечатлением от той поездки вокалист написал песню, ставшую гимном конца холодной войны.", "Вокалиста группы зовут Клаус Майне.", "Хиты: «Wind of Change», «Still Loving You»."],
+    depeche_mode: ["Группа из Базилдона, графство Эссекс.", "Один из основателей ушёл после первого альбома и потом создал Yazoo и Erasure.", "Название взято у французского модного журнала.", "Вокалиста зовут Дэйв Гаан.", "Хиты: «Enjoy the Silence», «Personal Jesus»."],
+    the_doors: ["У группы не было бас-гитариста: басовые партии клавишник играл левой рукой.", "Название взято из книги Олдоса Хаксли.", "Вокалист умер в Париже в 1971 году в 27 лет.", "Его могила на кладбище Пер-Лашез — одна из самых посещаемых в мире.", "Хиты: «Light My Fire», «Riders on the Storm»."],
+    ramones: ["Группа из нью-йоркского района Куинс, начинала в клубе CBGB.", "Их первый альбом — 14 песен меньше чем за полчаса.", "Все участники взяли одну и ту же «фамилию», хотя родственниками не были.", "Их футболка с гербом-орлом — один из самых продаваемых рок-мерчей в мире.", "Хиты: «Blitzkrieg Bop», «I Wanna Be Sedated»."],
+    motorhead: ["Лидер до этого играл в спейс-рок-группе Hawkwind, откуда его выгнали в 1975 году.", "Название — английский сленг для любителя амфетаминов.", "Две точки над буквой в названии поставили просто для грозного вида.", "Лидер пел, задрав микрофон высоко над головой, и играл на басу как на ритм-гитаре.", "Хиты: «Ace of Spades», «Overkill»."]
+  };
+
+  // Группы турнира и квалификации (есть фото) — по ним работают подсказки ввода.
+  var BANDS = [
+    ["the_beatles","The Beatles","Битлз|Битлы|Beatles"],["rolling_stones","The Rolling Stones","Роллинг Стоунз|Стоунз"],
+    ["led_zeppelin","Led Zeppelin","Лед Зеппелин|Цеппелин"],["queen","Queen","Квин"],["pink_floyd","Pink Floyd","Пинк Флойд"],
+    ["ac_dc","AC/DC","ЭйСи/ДиСи|АСДС|ACDC"],["black_sabbath","Black Sabbath","Блэк Саббат|Саббат"],["the_who","The Who","Зе Ху|Ху"],
+    ["jimi_hendrix","Jimi Hendrix","Джими Хендрикс|Хендрикс"],["bowie","David Bowie","Дэвид Боуи|Боуи"],["kiss","Kiss","Кисс"],
+    ["deep_purple","Deep Purple","Дип Пёрпл|Дип Перпл"],["iron_maiden","Iron Maiden","Айрон Мейден|Мейден"],["the_doors","The Doors","Дорз|Doors"],
+    ["fleetwood_mac","Fleetwood Mac","Флитвуд Мак"],["the_cure","The Cure","Кьюр|Cure"],["the_kinks","The Kinks","Кинкс|Kinks"],
+    ["van_halen","Van Halen","Ван Хален"],["the_clash","The Clash","Клэш|Clash"],["joy_division","Joy Division","Джой Дивижн"],
+    ["the_zombies","The Zombies","Зомбис|Zombies"],["bee_gees","Bee Gees","Би Джиз"],["the_stooges","The Stooges","Студжес|Stooges"],
+    ["judas_priest","Judas Priest","Джудас Прист|Прист"],["motorhead","Motörhead","Моторхед|Motorhead"],["aerosmith","Aerosmith","Аэросмит"],
+    ["eagles","Eagles","Иглз"],["rush","Rush","Раш"],["sex_pistols","Sex Pistols","Секс Пистолз"],["ramones","Ramones","Рамонс"],
+    ["metallica","Metallica","Металлика"],["megadeth","Megadeth","Мегадет"],["slayer","Slayer","Слэйер|Слейер"],
+    ["helloween","Helloween","Хэллоуин|Хеллоуин"],["guns_n_roses","Guns N' Roses","Ганз н Роузес|Ганзы|GNR"],
+    ["motley_crue","Mötley Crüe","Мотли Крю|Motley Crue"],["bon_jovi","Bon Jovi","Бон Джови"],["def_leppard","Def Leppard","Деф Леппард"],
+    ["europe","Europe","Юроп"],["u2","U2","Ю Ту|Ю2"],["inxs","INXS","Инэксэс"],["rem","R.E.M.","Р.Е.М.|REM"],["pixies","Pixies","Пиксиз"],
+    ["the_smiths","The Smiths","Смитс|Smiths"],["new_order","New Order","Нью Ордер"],["depeche_mode","Depeche Mode","Депеш Мод|Депеша"],
+    ["duran_duran","Duran Duran","Дюран Дюран"],["tears_for_fears","Tears for Fears","Тирс фор Фирс"],["a_ha","a-ha","А-ха|Аха"],
+    ["nirvana","Nirvana","Нирвана"],["rhcp","Red Hot Chili Peppers","Ред Хот Чили Пепперс|Чили Пепперс|RHCP"],["deftones","Deftones","Дефтонс"],
+    ["scorpions","Scorpions","Скорпионс|Скорпы"],["dire_straits","Dire Straits","Дайр Стрейтс"],["pantera","Pantera","Пантера"],
+    ["the_police","The Police","Полис|Police"],["whitesnake","Whitesnake","Уайтснейк"],["cinderella","Cinderella","Синдерелла"]
+  ].map(function (r) { return { key: r[0], name: r[1], aliases: r[2].split("|"), photo: true }; });
+
+  // Обложки из тестов бота (content/quiz_covers_*.json). Группы без фото добавляются в подсказки.
+  var COVERS = [
+    ["aerosmith-toys-in-the-attic.jpeg","Aerosmith","Toys in the Attic"],["black-sabbath-paranoid.jpeg","Black Sabbath","Paranoid"],
+    ["cage-the-elephant-melophobia.jpeg","Cage the Elephant","Melophobia"],["deep-purple-burn.jpeg","Deep Purple","Burn"],
+    ["guns-n-roses-appetite-for-destruction.jpeg","Guns N' Roses","Appetite for Destruction"],["led-zeppelin-led-zeppelin.jpeg","Led Zeppelin","Led Zeppelin"],
+    ["nirvana-in-utero.jpg","Nirvana","In Utero"],["radiohead-ok-computer.jpeg","Radiohead","OK Computer"],
+    ["red-hot-chili-peppers-californication.jpeg","Red Hot Chili Peppers","Californication"],["tame-impala-the-slow-rush.jpeg","Tame Impala","The Slow Rush"],
+    ["the-cure-disintegration.jpeg","The Cure","Disintegration"],["the-rolling-stones-sticky-fingers.jpeg","The Rolling Stones","Sticky Fingers"],
+    ["the-velvet-underground-and-nico.jpeg","The Velvet Underground","The Velvet Underground & Nico"],["the-zombies-odessey-and-oracle.jpeg","The Zombies","Odessey and Oracle"],
+    ["bauhaus-mask.jpeg","Bauhaus","Mask"],["black-sabbath-heaven-and-hell.jpeg","Black Sabbath","Heaven and Hell"],
+    ["david-bowie-ziggy-stardust.jpg","David Bowie","Ziggy Stardust"],["duran-duran-rio.jpeg","Duran Duran","Rio"],
+    ["joy-division-unknown-pleasures.jpeg","Joy Division","Unknown Pleasures"],["led-zeppelin-in-through-the-out-door.jpeg","Led Zeppelin","In Through the Out Door"],
+    ["megadeth-rust-in-peace.jpeg","Megadeth","Rust in Peace"],["oasis-be-here-now.jpg","Oasis","Be Here Now"],
+    ["rammstein.png","Rammstein","Rammstein"],["scorpions-love-at-first-sting.jpeg","Scorpions","Love at First Sting"],
+    ["the-beatles-abbey-road.jpeg","The Beatles","Abbey Road"],["the-doors-strange-days.jpeg","The Doors","Strange Days"],
+    ["the-rolling-stones-let-it-bleed.jpeg","The Rolling Stones","Let It Bleed"],["the-white-stripes-elephant.jpg","The White Stripes","Elephant"],
+    ["three-days-grace-one-x.jpeg","Three Days Grace","One-X"],["cream-live-cream-vol-2.jpeg","Cream","Live Cream, Vol. 2"],
+    ["rush-moving-pictures.jpeg","Rush","Moving Pictures"],["david-bowie-lets-dance.jpeg","David Bowie","Let's Dance"],
+    ["grand-funk-railroad-e-pluribus-funk.jpeg","Grand Funk Railroad","E Pluribus Funk"],["jimi-hendrix-axis-bold-as-love.jpeg","Jimi Hendrix","Axis: Bold as Love"],
+    ["dio-holy-diver.jpeg","Dio","Holy Diver"],["electric-light-orchestra-out-of-the-blue.jpeg","Electric Light Orchestra","Out of the Blue"],
+    ["pixies-bossanova.jpeg","Pixies","Bossanova"],["u2-all-that-you-cant-leave-behind.jpeg","U2","All That You Can't Leave Behind"],
+    ["talking-heads-more-songs-about-buildings-and-food.jpeg","Talking Heads","More Songs About Buildings and Food"],
+    ["fleetwood-mac-tango-in-the-night.jpeg","Fleetwood Mac","Tango in the Night"],["grateful-dead-from-the-mars-hotel.jpeg","Grateful Dead","From the Mars Hotel"],
+    ["nine-inch-nails-pretty-hate-machine.jpeg","Nine Inch Nails","Pretty Hate Machine"],["rage-against-the-machine.jpeg","Rage Against the Machine","Rage Against the Machine"],
+    ["creedence-clearwater-revival-green-river.jpeg","Creedence Clearwater Revival","Green River"]
+  ];
+  var EXTRA_ALIASES = { "Radiohead": "Радиохед", "Oasis": "Оазис", "Rammstein": "Раммштайн|Рамштайн", "Cream": "Крим", "Dio": "Дио",
+    "Tame Impala": "Тейм Импала", "Nine Inch Nails": "NIN", "Rage Against the Machine": "RATM", "Creedence Clearwater Revival": "CCR|Криденс",
+    "Electric Light Orchestra": "ELO", "The White Stripes": "Уайт Страйпс", "Three Days Grace": "Три Дейз Грейс" };
+
+  var normName = function (s) { return s.toLowerCase().replace(/[öő]/g, "o").replace(/ü/g, "u").replace(/^the\s+/, "").replace(/[^a-z0-9]+/g, ""); };
+  var byKey = {}, byName = {};
+  BANDS.forEach(function (b) { byKey[b.key] = b; byName[normName(b.name)] = b; });
+  var COVER_ITEMS = COVERS.map(function (c) {
+    var b = byName[normName(c[1])];
+    if (!b) {
+      b = { key: "x_" + normName(c[1]), name: c[1], aliases: (EXTRA_ALIASES[c[1]] || "").split("|").filter(Boolean), photo: false };
+      BANDS.push(b); byKey[b.key] = b; byName[normName(c[1])] = b;
+    }
+    return { file: c[0], key: b.key, album: c[2] };
+  });
+
+  // Год основания — только бесспорные даты, и в одной задаче группы разнесены минимум на 3 года.
+  var FOUNDED = {
+    the_beatles: 1960, rolling_stones: 1962, the_who: 1964, the_doors: 1965, scorpions: 1965, pink_floyd: 1965,
+    led_zeppelin: 1968, black_sabbath: 1968, deep_purple: 1968, rush: 1968, queen: 1970, aerosmith: 1970, eagles: 1971,
+    ac_dc: 1973, kiss: 1973, ramones: 1974, iron_maiden: 1975, sex_pistols: 1975, motorhead: 1975, u2: 1976, the_clash: 1976,
+    def_leppard: 1977, dire_straits: 1977, depeche_mode: 1980, metallica: 1981, slayer: 1981, motley_crue: 1981,
+    bon_jovi: 1983, megadeth: 1983, rhcp: 1983, guns_n_roses: 1985, pixies: 1986, nirvana: 1987, deftones: 1988
+  };
+
+  // Интро: 10-секундные нарезки из content/duel_intros/. Первый вариант — верный.
+  var INTROS = [
+    { file: "led_zeppelin_stairway_to_heaven.mp3", key: "led_zeppelin", opts: [["Led Zeppelin", "Stairway to Heaven"], ["Led Zeppelin", "Babe I'm Gonna Leave You"], ["Pink Floyd", "Wish You Were Here"], ["Deep Purple", "Soldier of Fortune"]] },
+    { file: "guns_n_roses_welcome_to_the_jungle.mp3", key: "guns_n_roses", opts: [["Guns N' Roses", "Welcome to the Jungle"], ["Guns N' Roses", "Paradise City"], ["Mötley Crüe", "Kickstart My Heart"], ["AC/DC", "Thunderstruck"]] },
+    { file: "the_doors_break_on_through.mp3", key: "the_doors", opts: [["The Doors", "Break On Through (To the Other Side)"], ["The Doors", "Light My Fire"], ["The Doors", "Roadhouse Blues"], ["The Stooges", "I Wanna Be Your Dog"]] }
+  ];
+  var INTRO_STEPS = [2, 5, 10];
+
+  var ROUNDS = [
+    { id: "detective", name: "Детектив", count: 3 },
+    { id: "covers", name: "Обложка", count: 3 },
+    { id: "chrono", name: "Хронология", count: 2 },
+    { id: "intro", name: "Интро", count: 3 }
+  ];
+
+  // ── Помощники ─────────────────────────────────────────────────
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var plural = function (n, a, b, c) { var m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
+  var pts = function (n) { return n + " " + plural(n, "очко", "очка", "очков"); };
+  var fmt = function (s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  var shuffle = function (a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+  var photoUrl = function (key) { return "photos/" + key + ".jpg"; };
+  function bandHue(key) { var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return h % 360; }
+  function mini(b) { return '<span class="mini">' + (b.photo ? '<img src="' + photoUrl(b.key) + '" alt="">' : esc(b.name.replace(/^The\s+/, "").charAt(0))) + "</span>"; }
+  function orb(key, cls) {
+    return '<div class="avatar-wrap ' + (cls || "") + '"><div class="avatar-glow" style="--gr:' + bandHue(key) + 'deg"></div><div class="avatar">' +
+      (byKey[key] && byKey[key].photo ? '<img src="' + photoUrl(key) + '" alt="">' : '<span class="qmark">?</span>') + "</div></div>";
+  }
+  function qOrb(i) { return '<div class="avatar-wrap hero-orb"><div class="avatar-glow" style="--gr:' + (i * 117 + 200) % 360 + 'deg"></div><div class="avatar"><span class="qmark">?</span></div></div>'; }
+
+  // ── Состояние дуэли ───────────────────────────────────────────
+  var state, clock = null;
+
+  function pickChrono() {
+    var keys = Object.keys(FOUNDED);
+    for (;;) {
+      var set = shuffle(keys).slice(0, 4);
+      var ys = set.map(function (k) { return FOUNDED[k]; }).sort(function (a, b) { return a - b; });
+      if (ys[1] - ys[0] >= 3 && ys[2] - ys[1] >= 3 && ys[3] - ys[2] >= 3) return set;
+    }
+  }
+
+  function newDuel() {
+    state = {
+      items: [
+        shuffle(Object.keys(DOSSIERS)).slice(0, 3),
+        shuffle(COVER_ITEMS).slice(0, 3),
+        [pickChrono(), pickChrono()],
+        shuffle(INTROS)
+      ],
+      results: [[], [], [], []],
+      r: 0, i: 0
+    };
+    renderStep();
+  }
+
+  function startClock() {
+    clearInterval(clock);
+    state.startedAt = Date.now();
+    var draw = function () { var el = $("clock"); if (el) el.textContent = fmt(Math.floor((Date.now() - state.startedAt) / 1000)); };
+    draw(); clock = setInterval(draw, 500);
+  }
+  function elapsed() { return Math.max(1, Math.round((Date.now() - state.startedAt) / 1000)); }
+
+  function renderChrome() {
+    var r = state.r;
+    $("ladder").innerHTML = ROUNDS.map(function (R, k) {
+      var done = state.results[k].length === R.count;
+      return (k ? '<div class="rung-line"></div>' : "") +
+        '<button type="button" class="step' + (k === r && !state.final ? " active" : "") + (done ? " done" : "") + '" data-r="' + k + '">' +
+        '<span class="rung">' + (k + 1) + "</span><small>" + R.name + "</small></button>";
+    }).join("");
+    if (state.final) { $("dots").innerHTML = ""; $("roundTag").textContent = "Итог"; return; }
+    var R = ROUNDS[r];
+    $("roundTag").textContent = (r === 2 ? "Задача " : r === 3 ? "Трек " : "Загадка ") + (state.i + 1) + " из " + R.count;
+    $("dots").innerHTML = Array.from({ length: R.count }, function (_, k) {
+      var res = state.results[r][k];
+      return '<i class="' + (res ? (res.points > 0 ? "ok" : "bad") : k === state.i ? "on" : "") + '"></i>';
+    }).join("");
+  }
+
+  $("ladder").addEventListener("click", function (e) {
+    var b = e.target.closest(".step"); if (!b) return;
+    player.pause();
+    state.final = false; state.r = +b.dataset.r; state.i = 0; state.results[state.r] = [];
+    renderStep();
+  });
+
+  function renderStep() {
+    player.pause();
+    renderChrome();
+    var id = ROUNDS[state.r].id;
+    if (id === "detective") renderGuess("detective");
+    else if (id === "covers") renderGuess("covers");
+    else if (id === "chrono") renderChrono();
+    else renderIntro();
+  }
+
+  function record(res) {
+    clearInterval(clock);
+    state.results[state.r][state.i] = res;
+    renderChrome();
+  }
+
+  function nextButton() {
+    var last = state.i + 1 >= ROUNDS[state.r].count;
+    var label = !last ? "Дальше" : state.r + 1 < ROUNDS.length ? "Раунд " + (state.r + 2) + ": " + ROUNDS[state.r + 1].name : "Итог дуэли";
+    return '<button class="btn wide" id="nextBtn" type="button">' + label + "</button>";
+  }
+  function bindNext() {
+    $("nextBtn").addEventListener("click", function () {
+      player.pause();
+      if (state.i + 1 < ROUNDS[state.r].count) state.i++;
+      else if (state.r + 1 < ROUNDS.length) { state.r++; state.i = 0; }
+      else return showFinal();
+      renderStep();
+    });
+    $("nextBtn").focus({ preventScroll: true });
+  }
+
+  // ── Раунды 1–2: детектив и обложка (ввод названия с подсказками) ──
+  function renderGuess(kind) {
+    var item = state.items[state.r][state.i];
+    var key = kind === "detective" ? item : item.key;
+    var top = kind === "detective"
+      ? '<div id="visual">' + qOrb(state.i) + '</div><div id="verdict" class="verdict" hidden></div>' +
+        '<ul class="facts">' + DOSSIERS[key].map(function (f, k) { return '<li><span class="n">' + (k + 1) + "</span><span>" + esc(f) + "</span></li>"; }).join("") + "</ul>"
+      : '<div class="cover-wrap" id="visual"><div class="avatar-glow" style="--gr:' + bandHue(item.file) + 'deg"></div><div class="cover"><img src="covers/' + encodeURIComponent(item.file) + '" alt="Обложка альбома"></div></div>' +
+        '<div id="verdict" class="verdict" hidden></div>';
+    $("stage").innerHTML = top +
+      '<div id="answerBox">' +
+        '<div class="worth"><span>Сейчас стоит <span class="num" id="worth">3</span> <span id="worthWord">очка</span></span><span>⏱ <span class="clock" id="clock">0:00</span></span></div>' +
+        '<form class="guess" id="guessForm" autocomplete="off">' +
+          '<input id="guess" type="text" placeholder="' + (kind === "covers" ? "Чья это обложка?" : "Что за группа?") + '" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list">' +
+          '<button class="btn" type="submit">Ответить</button><ul class="sugg" id="sugg" role="listbox" hidden></ul>' +
+        "</form>" +
+        '<div class="err" id="err" role="status"></div><div class="misses" id="misses"></div>' +
+        '<p class="hint">' + (kind === "covers" ? "Начни с первой буквы — покажем все группы на неё. " : "") + "Три попытки, ошибка снимает одно очко.</p>" +
+      '</div><div id="after"></div>';
+
+    var misses = [];
+    startClock();
+    mountSuggest(function () { return misses; }, function (band) {
+      $("err").textContent = "";
+      if (band.key === key) return done(3 - misses.length);
+      misses.push(band);
+      $("misses").innerHTML = misses.map(function (b) { return "<span>" + esc(b.name) + "</span>"; }).join("");
+      if (misses.length >= 3) return done(0);
+      $("worth").textContent = 3 - misses.length;
+      $("worthWord").textContent = plural(3 - misses.length, "очко", "очка", "очков");
+      $("err").textContent = "Не " + band.name + ". Осталось попыток: " + (3 - misses.length) + ".";
+      $("guess").focus();
+    });
+
+    function done(points) {
+      var secs = elapsed();
+      record({ points: points, tries: points ? misses.length + 1 : 0, secs: secs, label: kind === "covers" ? item.album : byKey[key].name, key: key });
+      var b = byKey[key];
+      if (kind === "detective") { $("visual").innerHTML = orb(key, "hero-orb solved"); }
+      else { $("visual").classList.add("solved"); }
+      $("verdict").innerHTML = "<h2>" + esc(kind === "covers" ? item.album : b.name) + "</h2><p>" +
+        (kind === "covers" ? esc(b.name) + " · " : "") +
+        (points ? '<span class="plus">+' + pts(points) + "</span> · " + fmt(secs) : '<span class="zero">Не угадал</span> · 0 очков') + "</p>";
+      $("verdict").hidden = false;
+      $("answerBox").hidden = true;
+      $("after").innerHTML = nextButton(); bindNext();
+    }
+  }
+
+  // Подсказки: при вводе одной буквы показываем все группы на неё, дальше — по совпадению.
+  var lower = function (s) { return s.toLowerCase().replace(/ё/g, "е").replace(/[öő]/g, "o").replace(/ü/g, "u"); };
+  var norm = function (s) { return lower(s).replace(/^the\s+/, "").replace(/[^a-zа-я0-9]+/g, ""); };
+  var words = function (s) { return lower(s).split(/[^a-zа-я0-9]+/).filter(Boolean); };
+  function search(q, exclude) {
+    var nq = norm(q), wq = lower(q).trim();
+    if (!nq) return [];
+    var out = [];
+    BANDS.forEach(function (b) {
+      if (exclude.some(function (m) { return m.key === b.key; })) return;
+      var best = 0, via = "";
+      [b.name].concat(b.aliases).forEach(function (label) {
+        var nl = norm(label), s = 0;
+        if (nl === nq) s = 4;
+        else if (nl.indexOf(nq) === 0) s = 3;
+        else if (nq.length >= 2 && words(label).some(function (w) { return w.indexOf(wq) === 0; })) s = 2;
+        else if (nq.length >= 3 && nl.indexOf(nq) >= 0) s = 1;
+        if (s > best) { best = s; via = label === b.name ? "" : label; }
+      });
+      if (best) out.push({ b: b, s: best, via: via });
+    });
+    out.sort(function (x, y) { return y.s - x.s || x.b.name.replace(/^The /, "").localeCompare(y.b.name.replace(/^The /, "")); });
+    return nq.length === 1 ? out : out.slice(0, 8);
+  }
+
+  function mountSuggest(getExclude, onPick) {
+    var input = $("guess"), list = $("sugg"), sugg = [], active = -1;
+    function open() {
+      sugg = search(input.value, getExclude()); active = sugg.length ? 0 : -1;
+      if (!sugg.length) return close();
+      var letter = norm(input.value).length === 1 ? '<li class="letter" role="presentation">Все группы на «' + esc(input.value.trim().toUpperCase()) + "» · " + sugg.length + "</li>" : "";
+      list.innerHTML = letter + sugg.map(function (x, i) {
+        return '<li role="option" id="opt' + i + '" data-i="' + i + '" aria-selected="' + (i === active) + '">' + mini(x.b) + esc(x.b.name) +
+          (x.via ? '<span class="alias">' + esc(x.via) + "</span>" : "") + "</li>";
+      }).join("");
+      list.hidden = false; list.scrollTop = 0;
+      input.setAttribute("aria-expanded", "true"); input.setAttribute("aria-activedescendant", "opt0");
+    }
+    function close() { list.hidden = true; sugg = []; active = -1; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); }
+    function move(d) {
+      if (!sugg.length) return;
+      active = (active + d + sugg.length) % sugg.length;
+      list.querySelectorAll('[role="option"]').forEach(function (li, i) { li.setAttribute("aria-selected", i === active); });
+      input.setAttribute("aria-activedescendant", "opt" + active);
+      $("opt" + active).scrollIntoView({ block: "nearest" });
+    }
+    function pick(b) { input.value = ""; close(); onPick(b); }
+    input.addEventListener("input", function () { $("err").textContent = ""; open(); });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") { e.preventDefault(); move(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
+      else if (e.key === "Escape") close();
+    });
+    input.addEventListener("blur", function () { setTimeout(close, 120); });
+    list.addEventListener("mousedown", function (e) {
+      var li = e.target.closest('[role="option"]'); if (!li) return;
+      e.preventDefault(); pick(sugg[+li.dataset.i].b);
+    });
+    $("guessForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!input.value.trim()) { $("err").textContent = "Начни вводить название группы."; return; }
+      var found = sugg.length ? sugg : search(input.value, getExclude());
+      if (!found.length) { $("err").textContent = "Такой группы нет в списке. Выбери из подсказок."; return; }
+      pick(found[Math.max(active, 0)].b);
+    });
+  }
+
+  // ── Раунд 3: хронология ───────────────────────────────────────
+  function renderChrono() {
+    var set = state.items[state.r][state.i];
+    var order = [];
+    $("stage").innerHTML =
+      '<div class="worth"><span>Нажимай от самой старой группы к самой молодой</span><span>⏱ <span class="clock" id="clock">0:00</span></span></div>' +
+      '<div class="chrono" id="chrono">' + set.map(function (k) {
+        return '<button type="button" class="pick" data-k="' + k + '">' + orb(k) + '<span class="badge" hidden></span>' +
+          '<span class="name">' + esc(byKey[k].name) + '</span><span class="year" hidden>' + FOUNDED[k] + "</span></button>";
+      }).join("") + "</div>" +
+      '<div id="chronoAct" class="row2"><button class="btn soft" id="resetBtn" type="button">Сбросить</button><button class="btn" id="checkBtn" type="button" disabled>Проверить</button></div>' +
+      '<div id="verdict" class="verdict" hidden></div><div id="after"></div>';
+    startClock();
+
+    function paint() {
+      $("chrono").querySelectorAll(".pick").forEach(function (el) {
+        var n = order.indexOf(el.dataset.k), badge = el.querySelector(".badge");
+        badge.hidden = n < 0; badge.textContent = n + 1;
+      });
+      $("checkBtn").disabled = order.length < 4;
+    }
+    $("chrono").addEventListener("click", function (e) {
+      var el = e.target.closest(".pick"); if (!el || el.disabled) return;
+      var k = el.dataset.k, n = order.indexOf(k);
+      if (n >= 0) order.splice(n, 1); else order.push(k);
+      paint();
+    });
+    $("resetBtn").addEventListener("click", function () { order = []; paint(); });
+    $("checkBtn").addEventListener("click", function () {
+      var right = set.slice().sort(function (a, b) { return FOUNDED[a] - FOUNDED[b]; });
+      var points = order.filter(function (k, n) { return right[n] === k; }).length;
+      var secs = elapsed();
+      record({ points: points, secs: secs, label: right.map(function (k) { return byKey[k].name; }).join(" → ") });
+      $("chrono").querySelectorAll(".pick").forEach(function (el) {
+        var k = el.dataset.k, n = order.indexOf(k), badge = el.querySelector(".badge");
+        el.disabled = true;
+        badge.className = "badge " + (right[n] === k ? "ok" : "bad");
+        el.querySelector(".year").hidden = false;
+        if (right[n] === k) el.querySelector(".avatar-wrap").classList.add("solved");
+      });
+      $("chronoAct").hidden = true;
+      $("verdict").innerHTML = "<p>" + (points ? '<span class="plus">+' + pts(points) + "</span>" : '<span class="zero">0 очков</span>') +
+        " · " + points + " из 4 на своём месте · " + fmt(secs) + "</p><p>Верный порядок: " + right.map(function (k) { return esc(byKey[k].name); }).join(" → ") + "</p>";
+      $("verdict").hidden = false;
+      $("after").innerHTML = nextButton(); bindNext();
+    });
+  }
+
+  // ── Раунд 4: угадай интро ─────────────────────────────────────
+  var player = $("player"), stopAt = 0, rafId = 0;
+  player.addEventListener("timeupdate", function () { if (player.currentTime >= stopAt) player.pause(); });
+  function animate() {
+    var pos = document.querySelector(".meter .pos");
+    if (pos) pos.style.width = Math.min(100, player.currentTime / 10 * 100) + "%";
+    if (!player.paused) rafId = requestAnimationFrame(animate);
+  }
+  player.addEventListener("play", function () { cancelAnimationFrame(rafId); rafId = requestAnimationFrame(animate); setPlayIcon(true); });
+  player.addEventListener("pause", function () { setPlayIcon(false); });
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+  var ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>';
+  function setPlayIcon(on) { var b = $("playBtn"); if (b) { b.innerHTML = on ? ICON_PAUSE : ICON_PLAY; b.setAttribute("aria-label", on ? "Пауза" : "Слушать"); } }
+
+  function renderIntro() {
+    var item = state.items[state.r][state.i];
+    var level = 0, answered = false;
+    var opts = shuffle(item.opts.map(function (o, k) { return { band: o[0], song: o[1], right: k === 0 }; }));
+    player.src = "intros/" + item.file; player.load();
+    $("stage").innerHTML =
+      '<div class="player"><div class="play-wrap"><div class="avatar-glow" style="--gr:' + bandHue(item.file) + 'deg"></div>' +
+      '<button type="button" class="play" id="playBtn" aria-label="Слушать">' + ICON_PLAY + "</button></div>" +
+      '<div class="meter" aria-hidden="true"><div class="open" id="open"></div><div class="pos"></div></div>' +
+      '<div class="meter-scale" aria-hidden="true"><span>0</span><span>2</span><span>5</span><span>10 сек</span></div></div>' +
+      '<div class="worth"><span>Сейчас стоит <span class="num" id="worth">3</span> <span id="worthWord">очка</span> · слушаешь <b id="secs">2</b> сек</span><span>⏱ <span class="clock" id="clock">0:00</span></span></div>' +
+      '<div class="opts" id="opts">' + opts.map(function (o, k) { return '<button type="button" class="opt" data-k="' + k + '"><span>' + esc(o.band) + "</span><b>" + esc(o.song) + "</b></button>"; }).join("") + "</div>" +
+      '<button class="btn soft wide" id="moreBtn" type="button" style="margin-top:10px">Открыть 5 секунд · −1 очко</button>' +
+      '<div id="verdict" class="verdict" hidden style="margin-top:16px"></div><div id="after"></div>';
+    startClock();
+
+    function limit() { return answered ? 10 : INTRO_STEPS[level]; }
+    function paint() {
+      $("open").style.width = limit() * 10 + "%";
+      $("secs").textContent = INTRO_STEPS[level];
+      $("worth").textContent = 3 - level;
+      $("worthWord").textContent = plural(3 - level, "очко", "очка", "очков");
+      var more = $("moreBtn");
+      more.hidden = answered || level >= 2;
+      if (level < 2) more.textContent = "Открыть " + INTRO_STEPS[level + 1] + " секунд · −1 очко";
+    }
+    function play() { stopAt = limit(); player.currentTime = 0; var p = player.play(); if (p && p.catch) p.catch(function () {}); }
+    $("playBtn").addEventListener("click", function () { if (!player.paused) player.pause(); else play(); });
+    $("moreBtn").addEventListener("click", function () { if (level < 2) { level++; paint(); play(); } });
+    $("opts").addEventListener("click", function (e) {
+      var el = e.target.closest(".opt"); if (!el || answered) return;
+      answered = true;
+      var o = opts[+el.dataset.k], points = o.right ? 3 - level : 0, secs = elapsed();
+      record({ points: points, secs: secs, label: item.opts[0][1], key: item.key, level: level });
+      $("opts").querySelectorAll(".opt").forEach(function (b, k) {
+        b.disabled = true;
+        if (opts[k].right) b.classList.add("ok"); else if (b === el) b.classList.add("bad");
+      });
+      paint();
+      $("verdict").innerHTML = "<p>" + (points ? '<span class="plus">+' + pts(points) + "</span> · за " + INTRO_STEPS[level] + " сек" : '<span class="zero">Мимо</span> · 0 очков') +
+        " · " + fmt(secs) + "</p><p>Нажми ▶, чтобы дослушать все 10 секунд.</p>";
+      $("verdict").hidden = false;
+      $("after").innerHTML = '<div style="margin-top:14px">' + nextButton() + "</div>"; bindNext();
+    });
+    paint();
+  }
+
+  // ── Итог ──────────────────────────────────────────────────────
+  // Вася — правдоподобный соперник: в угадайках чаще берёт 2–3 очка, в хронологии 1–4.
+  function botResult(r) {
+    var x = Math.random();
+    if (ROUNDS[r].id === "chrono") return { points: x < 0.15 ? 1 : x < 0.45 ? 2 : x < 0.75 ? 3 : 4, secs: Math.round(15 + Math.random() * 30) };
+    return { points: x < 0.42 ? 3 : x < 0.7 ? 2 : x < 0.85 ? 1 : 0, secs: Math.round(10 + Math.random() * 40) };
+  }
+
+  function showFinal() {
+    state.final = true;
+    clearInterval(clock); player.pause();
+    renderChrome();
+    var my = 0, his = 0, myT = 0, hisT = 0, played = 0;
+    var rows = ROUNDS.map(function (R, r) {
+      var res = state.results[r].filter(Boolean);
+      var bot = res.map(function () { return botResult(r); });
+      var a = res.reduce(function (s, x) { return s + x.points; }, 0), b = bot.reduce(function (s, x) { return s + x.points; }, 0);
+      my += a; his += b; played += res.length;
+      myT += res.reduce(function (s, x) { return s + x.secs; }, 0); hisT += bot.reduce(function (s, x) { return s + x.secs; }, 0);
+      var max = R.id === "chrono" ? R.count * 4 : R.count * 3;
+      var tag = res.length ? "из " + max + " возможных" + (res.length < R.count ? " · пройдено " + res.length + " из " + R.count : "") : "не сыгран";
+      return '<div class="lb-row"><span class="mini" style="font-family:Teko,sans-serif">' + (r + 1) + "</span>" +
+        '<div class="lb-main"><span class="lb-name">' + R.name + '</span><span class="lb-tag">' + tag + "</span></div>" +
+        '<span class="lb-pts"><b>' + a + "</b> : " + b + "</span></div>";
+    }).join("");
+    var title, sub;
+    if (my > his) { title = "Победа"; sub = "Вася получит уведомление и, скорее всего, попросит реванш."; }
+    else if (my < his) { title = "Вася сильнее"; sub = "Можно сразу бросить ответный вызов."; }
+    else if (myT !== hisT) { title = myT < hisT ? "Победа по времени" : "Поражение по времени"; sub = "Очков поровну, решили секунды: " + fmt(myT) + " против " + fmt(hisT) + "."; }
+    else { title = "Ничья"; sub = "Поровну и по очкам, и по времени."; }
+
+    $("stage").innerHTML = '<div class="champ">' +
+      '<div class="score"><div class="side"><span class="pts">' + my + '</span><span class="who">Ты</span></div>' +
+      '<span class="colon">:</span><div class="side"><span class="pts">' + his + '</span><span class="who">Вася</span></div></div>' +
+      "<h1>" + title + '</h1><p class="sub">' + sub + "</p>" +
+      '<div class="results">' + rows + "</div>" +
+      '<button class="btn wide" id="againBtn" type="button">Реванш</button></div>';
+    $("againBtn").addEventListener("click", newDuel);
+  }
+
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () {
+      document.querySelectorAll(".tab").forEach(function (x) { x.classList.toggle("active", x === t); x.setAttribute("aria-selected", x === t); });
+      $("gameTab").hidden = t.dataset.tab !== "game";
+      $("rulesTab").hidden = t.dataset.tab !== "rules";
+      if (t.dataset.tab !== "game") player.pause();
+    });
+  });
+
+  newDuel();
+</script>
