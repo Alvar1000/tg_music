@@ -223,8 +223,9 @@ function) and `tournament.parse_bracket()` (shape + per-round winner validation)
 
 - **A rating that can drop, instead of stage points.** Every bracket choice is a match
   (15 per run): the band that advances gets `WIN_POINTS` (+4), the loser loses
-  `LOSS_POINTS` (4), winning the final is `FINAL_WIN_POINTS` (+16); start 1500. Per run a
-  band nets −4 / 0 / +4 / +8 / +28 (out in 1/8 … champion); ties are broken by number of
+  `LOSS_POINTS` (4) — in every round, the final included: the owner explicitly wants no
+  final bonus (a +16 final win once shipped by mistake); start 1500. Per run a band nets
+  −4 / 0 / +4 / +8 / +16 (out in 1/8 … champion); ties are broken by number of
   final wins. The owner chose this fixed per-round scheme over the original Elo (which
   weighted a win by the opponent's strength) — don't reintroduce Elo. Matches, not
   ratings, are stored (`rated_matches`, with `round` 0–3) and the rating is recomputed from

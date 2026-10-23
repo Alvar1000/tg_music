@@ -5,8 +5,8 @@
 клиенте, одна зачётная сетка в день на человека, тот же формат /complete. Итог
 другой: рейтинг, который может и падать. Каждый выбор в сетке — матч двух
 групп: прошедшая в следующий раунд получает WIN_POINTS, вылетевшая теряет
-LOSS_POINTS, победа в финале стоит FINAL_WIN_POINTS. За сетку группа получает
-−4 (вылет в 1/8), 0 (1/4), +4 (1/2), +8 (финалист) или +28 (чемпион).
+LOSS_POINTS — в любом раунде одинаково, финал не исключение. За сетку группа
+получает −4 (вылет в 1/8), 0 (1/4), +4 (1/2), +8 (финалист) или +16 (чемпион).
 
 В БД лежат сами матчи (rated_matches), рейтинг пересчитывается из них на каждый
 запрос таблицы — несколько тысяч матчей за месяц это миллисекунды. Поэтому
@@ -45,11 +45,11 @@ CONTENT_FILE = "tournament_quals_80s.json"
 TITLE = "Квалификация 80-х"
 
 START_RATING = 1500
-# Очки за матч сетки, одинаковые в любом раунде, кроме победы в финале.
+# Очки за матч сетки — одинаковые в любом раунде, включая финал: надбавки за
+# финал нет, так решил владелец.
 WIN_POINTS = 4
 LOSS_POINTS = 4
-FINAL_WIN_POINTS = 16
-FINAL_ROUND = 3  # раунды в rated_matches: 0 — 1/8, 1 — 1/4, 2 — 1/2, 3 — финал
+FINAL_ROUND = 3  # раунды в rated_matches: 0 — 1/8, 1 — 1/4, 2 — 1/2, 3 — финал (для числа чемпионств)
 
 # Та же причина, что у tournament._complete_lock: проверка «уже играл сегодня»
 # и запись матчей должны быть атомарны, иначе пачка параллельных запросов
@@ -124,7 +124,7 @@ def compute_ratings(matches: list[dict], today: str) -> tuple[dict, dict, dict, 
             day_start = dict(rating)
         w, l = m["winner"], m["loser"]
         final = m["round"] == FINAL_ROUND
-        rating[w] = rating.get(w, START_RATING) + (FINAL_WIN_POINTS if final else WIN_POINTS)
+        rating[w] = rating.get(w, START_RATING) + WIN_POINTS
         rating[l] = rating.get(l, START_RATING) - LOSS_POINTS
         played[w] = played.get(w, 0) + 1
         played[l] = played.get(l, 0) + 1
