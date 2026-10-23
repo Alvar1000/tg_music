@@ -23,8 +23,8 @@ server.py — почему нельзя). Игровая логика (все 15
 
 Первый сезон закрыт (SEASON_CLOSED): очки заморожены, итоговая таблица с
 отметкой вылетевших лежит в истории турниров (history.py). Мини-аппа сейчас
-играет квалификацию 80-х — это отдельный модуль quals.py с рейтингом Эло
-вместо очков.
+играет квалификацию 80-х — это отдельный модуль quals.py с рейтингом (очки
+за каждый матч сетки, могут и уходить в минус) вместо очков за стадию.
 """
 import asyncio
 import json
@@ -124,9 +124,18 @@ async def _make_draw(pool: list[dict], today: str) -> list[str]:
     return pick_rotation(keys, history, today)
 
 
-def pick_rotation(keys: list[str], history: list[tuple[str, list[str]]], today: str) -> list[str]:
+def pick_rotation(
+    keys: list[str], history: list[tuple[str, list[str]]], today: str,
+    linked: list[list[str]] | None = None,
+) -> list[str]:
     """Сама ротация (см. _make_draw) — чистая функция от пула и истории сеток
     (по возрастанию даты), чтобы квалификация (quals.py) брала ту же самую.
+
+    linked — группы ключей, которые попадают в сетку только все вместе или не
+    попадают вовсе (Metallica и Megadeth в квалификации: соперники должны
+    играть в одни и те же дни). Такая связка идёт в отбор одним целым с
+    приоритетом самого «засидевшегося» участника; если на неё не хватает мест,
+    сетку добирают следующие, а связка стоит первой завтра.
     """
     keys = list(keys)
     last_played: dict[str, str] = {}
@@ -137,10 +146,23 @@ def pick_rotation(keys: list[str], history: list[tuple[str, list[str]]], today: 
             if k in times_played:
                 times_played[k] += 1
 
+    in_pool = set(keys)
+    units: list[list[str]] = []
+    taken: set[str] = set()
+    for group in linked or []:
+        members = [k for k in dict.fromkeys(group) if k in in_pool and k not in taken]
+        if len(members) > 1:
+            units.append(members)
+            taken.update(members)
+    units += [[k] for k in keys if k not in taken]
+
     rng = random.Random(today)
-    rng.shuffle(keys)  # порядок среди равных — случайный (сортировка ниже стабильная)
-    keys.sort(key=lambda k: (last_played.get(k, ""), times_played[k]))
-    chosen = keys[:BANDS_PER_DAY]
+    rng.shuffle(units)  # порядок среди равных — случайный (сортировка ниже стабильная)
+    units.sort(key=lambda u: min((last_played.get(k, ""), times_played[k]) for k in u))
+    chosen: list[str] = []
+    for unit in units:
+        if len(chosen) + len(unit) <= BANDS_PER_DAY:
+            chosen += unit
     rng.shuffle(chosen)
     return chosen
 

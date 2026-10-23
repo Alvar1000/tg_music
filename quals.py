@@ -3,22 +3,25 @@
 
 Сетка та же, что в tournament.py: 16 групп дня по ротации, 15 сравнений на
 клиенте, одна зачётная сетка в день на человека, тот же формат /complete. Итог
-другой: вместо очков за стадию — рейтинг Эло, как у шахматистов. Каждый выбор
-в сетке — матч двух групп; победитель забирает у проигравшего тем больше, чем
-сильнее был проигравший. Рейтинг не зависит от того, сколько раз группа
-выпадала в сетку, — у очков эта зависимость была, из-за неё и вводили ротацию.
+другой: рейтинг, который может и падать. Каждый выбор в сетке — матч двух
+групп: прошедшая в следующий раунд получает WIN_POINTS, вылетевшая теряет
+LOSS_POINTS, победа в финале стоит FINAL_WIN_POINTS. За сетку группа получает
+−4 (вылет в 1/8), 0 (1/4), +4 (1/2), +8 (финалист) или +28 (чемпион).
 
 В БД лежат сами матчи (rated_matches), рейтинг пересчитывается из них на каждый
 запрос таблицы — несколько тысяч матчей за месяц это миллисекунды. Поэтому
-коэффициенты ниже можно поменять в любой момент, и вся история пересчитается
-по новым, без миграций.
+очки ниже можно поменять в любой момент, и вся история пересчитается по новым,
+без миграций (так уже было: сначала рейтинг считался по Эло).
 
 Состав и даты — content/tournament_quals_80s.json:
-  {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "promote": 10, "bands": [...]}
+  {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "promote": 10,
+   "linked": [["metallica", "megadeth"]], "bands": [...]}
 Даты включительные, по UTC (как всё в боте). Группа с "contender": false
 играет вне конкурса — она уже в основном турнире: рейтинг у неё считается,
 место в отборе она не занимает. По итогам `promote` лучших претендентов
-переходят в основной турнир.
+переходят в основной турнир. "linked" (необязательно) — группы, которые
+попадают в сетку дня только вместе, чтобы у прямых соперников были равные
+условия (см. tournament.pick_rotation).
 """
 import asyncio
 import json
@@ -42,13 +45,11 @@ CONTENT_FILE = "tournament_quals_80s.json"
 TITLE = "Квалификация 80-х"
 
 START_RATING = 1500
-# Шаг рейтинга: при равных соперниках победитель получает K/2. 16 — обычный
-# шахматный коэффициент для опытных игроков.
-K = 16
-# Первые CALIBRATION_MATCHES матчей шаг вдвое больше, чтобы новичок быстрее
-# нашёл своё место (в таблице у него пометка «калибровка»).
-K_CALIBRATION = 32
-CALIBRATION_MATCHES = 30
+# Очки за матч сетки, одинаковые в любом раунде, кроме победы в финале.
+WIN_POINTS = 4
+LOSS_POINTS = 4
+FINAL_WIN_POINTS = 16
+FINAL_ROUND = 3  # раунды в rated_matches: 0 — 1/8, 1 — 1/4, 2 — 1/2, 3 — финал
 
 # Та же причина, что у tournament._complete_lock: проверка «уже играл сегодня»
 # и запись матчей должны быть атомарны, иначе пачка параллельных запросов
@@ -72,7 +73,11 @@ def load_config() -> dict:
         promote = int(cfg.get("promote", 10))
     except (TypeError, ValueError):
         promote = 10
-    return {"start": start, "end": end, "promote": promote, "bands": bands}
+    linked = [
+        [k for k in group if isinstance(k, str)]
+        for group in cfg.get("linked", []) if isinstance(group, list)
+    ] if isinstance(cfg.get("linked"), list) else []
+    return {"start": start, "end": end, "promote": promote, "linked": linked, "bands": bands}
 
 
 def quals_status(q: dict, today: str) -> str:
@@ -85,9 +90,11 @@ def quals_status(q: dict, today: str) -> str:
     return "active"
 
 
-async def _today_draw(bands: list[dict], today: str) -> list[dict]:
+async def _today_draw(q: dict, today: str) -> list[dict]:
     """Сегодняшние 16 групп в порядке пар — та же ротация, что в основном
-    турнире, и тоже считается один раз и хранится (rated_draws)."""
+    турнире (со связками из q["linked"]), и тоже считается один раз и
+    хранится (rated_draws)."""
+    bands = q["bands"]
     keys = await db.get_rated_draw(TOURNAMENT, today)
     if keys is None:
         day = date.fromisoformat(today)
@@ -96,39 +103,34 @@ async def _today_draw(bands: list[dict], today: str) -> list[dict]:
             (day - timedelta(days=tournament.HISTORY_DAYS)).isoformat(),
             (day - timedelta(days=1)).isoformat(),
         )
-        draw = tournament.pick_rotation([b["key"] for b in bands], history, today)
+        draw = tournament.pick_rotation([b["key"] for b in bands], history, today, q["linked"])
         await db.save_rated_draw(TOURNAMENT, today, draw)
         keys = await db.get_rated_draw(TOURNAMENT, today)
     by_key = {b["key"]: b for b in bands}
     return [by_key.get(k, {"key": k, "display": k}) for k in keys]
 
 
-def compute_ratings(matches: list[dict], today: str) -> tuple[dict, dict, dict]:
+def compute_ratings(matches: list[dict], today: str) -> tuple[dict, dict, dict, dict]:
     """Прогоняет матчи по порядку и возвращает (рейтинг сейчас, рейтинг на
-    начало сегодняшнего дня UTC — для ▲/▼ за день, число сыгранных матчей).
-
-    Классическое Эло: ожидаемый результат победителя
-    E = 1 / (1 + 10^((Rпроигравшего − Rпобедителя) / 400)), победитель
-    получает K·(1 − E), проигравший теряет столько же со своим K.
+    начало сегодняшнего дня UTC — для ▲/▼ за день, число сыгранных матчей,
+    число чемпионств — тай-брейк при равном рейтинге).
     """
-    rating: dict[str, float] = {}
+    rating: dict[str, int] = {}
     played: dict[str, int] = {}
+    titles: dict[str, int] = {}
     day_start = None
     for m in matches:
         if day_start is None and m["play_date"] >= today:
             day_start = dict(rating)
         w, l = m["winner"], m["loser"]
-        rw, rl = rating.get(w, START_RATING), rating.get(l, START_RATING)
-        upset = 1 - 1 / (1 + 10 ** ((rl - rw) / 400))
-        rating[w] = rw + _k(played.get(w, 0)) * upset
-        rating[l] = rl - _k(played.get(l, 0)) * upset
+        final = m["round"] == FINAL_ROUND
+        rating[w] = rating.get(w, START_RATING) + (FINAL_WIN_POINTS if final else WIN_POINTS)
+        rating[l] = rating.get(l, START_RATING) - LOSS_POINTS
         played[w] = played.get(w, 0) + 1
         played[l] = played.get(l, 0) + 1
-    return rating, day_start if day_start is not None else dict(rating), played
-
-
-def _k(matches_played: int) -> int:
-    return K_CALIBRATION if matches_played < CALIBRATION_MATCHES else K
+        if final:
+            titles[w] = titles.get(w, 0) + 1
+    return rating, day_start if day_start is not None else dict(rating), played, titles
 
 
 async def quals_today(request: web.Request) -> web.Response:
@@ -142,7 +144,7 @@ async def quals_today(request: web.Request) -> web.Response:
     if status == "active":
         bands = [
             {"key": b["key"], "display": b["display"], "photo": b.get("photo")}
-            for b in await _today_draw(q["bands"], today)
+            for b in await _today_draw(q, today)
         ]
 
     already_completed = None
@@ -190,7 +192,7 @@ async def quals_complete(request: web.Request) -> web.Response:
     if quals_status(q, today) != "active":
         return web.json_response({"error": "quals_closed"}, status=410)
 
-    rounds, error = tournament.parse_bracket(body, [b["key"] for b in await _today_draw(q["bands"], today)])
+    rounds, error = tournament.parse_bracket(body, [b["key"] for b in await _today_draw(q, today)])
     if error:
         return web.json_response({"error": error}, status=400)
 
@@ -221,29 +223,28 @@ async def standings(q: dict, today: str) -> list[dict]:
     «проходила» бы, не сыграв ни разу. С ротацией это ровно один день.
     """
     matches = await db.get_rated_matches(TOURNAMENT)
-    rating, day_start, played = compute_ratings(matches, today)
+    rating, day_start, played, titles = compute_ratings(matches, today)
 
     rows = []
     for b in q["bands"]:
         key = b["key"]
-        exact = rating.get(key, START_RATING)
         rows.append({
             "key": key,
             "display": b["display"],
             "photo": b.get("photo"),
             "contender": b.get("contender", True) is not False,
-            "rating": round(exact),
-            "delta": round(exact) - round(day_start.get(key, START_RATING)),
+            "rating": rating.get(key, START_RATING),
+            "delta": rating.get(key, START_RATING) - day_start.get(key, START_RATING),
             "matches": played.get(key, 0),
-            "calibrating": played.get(key, 0) < CALIBRATION_MATCHES,
-            "_exact": exact,
+            "titles": titles.get(key, 0),
         })
-    rows.sort(key=lambda r: (-r["_exact"], r["display"].lower()))
+    # Очки целые, равенство частое — выше та, у кого больше чемпионств, а не
+    # та, что раньше в файле или по алфавиту.
+    rows.sort(key=lambda r: (-r["rating"], -r["titles"], r["display"].lower()))
 
     zone_ready = all(row["matches"] > 0 for row in rows if row["contender"])
     place = 0
     for row in rows:
-        del row["_exact"]
         row["place"] = None
         row["qualifies"] = False
         if row["contender"]:

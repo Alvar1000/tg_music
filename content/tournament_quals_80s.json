@@ -2,6 +2,7 @@
   "start": "2026-10-14",
   "end": "2026-11-13",
   "promote": 10,
+  "linked": [["metallica", "megadeth"]],
   "bands": [
     {"key": "metallica", "display": "Metallica", "photo": "metallica.jpg"},
     {"key": "megadeth", "display": "Megadeth", "photo": "megadeth.jpg"},
@@ -24,9 +25,12 @@
     {"key": "a_ha", "display": "a-ha", "photo": "a_ha.jpg"},
     {"key": "nirvana", "display": "Nirvana", "photo": "nirvana.jpg"},
     {"key": "rhcp", "display": "Red Hot Chili Peppers", "photo": "rhcp.jpg"},
-    {"key": "iron_maiden", "display": "Iron Maiden", "photo": "iron_maiden.jpg", "contender": false},
-    {"key": "the_cure", "display": "The Cure", "photo": "the_cure.jpg", "contender": false},
-    {"key": "van_halen", "display": "Van Halen", "photo": "van_halen.jpg", "contender": false},
-    {"key": "motorhead", "display": "Motörhead", "photo": "motorhead.jpg", "contender": false}
+    {"key": "deftones", "display": "Deftones", "photo": "deftones.jpg"},
+    {"key": "scorpions", "display": "Scorpions", "photo": "scorpions.jpg"},
+    {"key": "dire_straits", "display": "Dire Straits", "photo": "dire_straits.jpg"},
+    {"key": "pantera", "display": "Pantera", "photo": "pantera.jpg"},
+    {"key": "the_police", "display": "The Police", "photo": "the_police.jpg"},
+    {"key": "whitesnake", "display": "Whitesnake", "photo": "whitesnake.jpg"},
+    {"key": "cinderella", "display": "Cinderella", "photo": "cinderella.jpg"}
   ]
 }

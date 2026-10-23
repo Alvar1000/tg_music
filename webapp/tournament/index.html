@@ -349,7 +349,7 @@
     </div>
 
     <div id="ratingTab" hidden>
-      <p class="lb-note">Рейтинг Эло: у всех старт с 1500, победа над сильным даёт больше, чем над слабым. ▲▼ — изменение за сегодня.</p>
+      <p class="lb-note">У всех старт с 1500. Прошла в следующий раунд +4, вылетела −4, победа в финале +16. ▲▼ — изменение за сегодня.</p>
       <div class="lb-list" id="ratingList"></div>
     </div>
 
@@ -594,7 +594,7 @@
     }
 
     // Строки рейтинга — и живой таблицы, и итога квалификации в истории (там
-    // нет delta и calibrating, эти ячейки просто остаются пустыми).
+    // нет delta, этой ячейки просто нет).
     function ratingRowsHtml(rows, cutLabel) {
       var lastPass = -1;
       rows.forEach(function (row, i) { if (row.qualifies) lastPass = i; });
@@ -602,7 +602,6 @@
       rows.forEach(function (row, i) {
         var tags = [];
         if (!row.contender) tags.push("вне конкурса");
-        if (row.calibrating) tags.push("калибровка");
         var delta = row.delta === undefined
           ? ""
           : row.delta > 0
@@ -653,13 +652,13 @@
     // итоговая таблица. Верхняя (самая свежая) раскрыта сразу.
     function historyCardHtml(t, open) {
       var rows = t.standings || [];
-      var elo = t.kind === "elo";
-      var winner = elo
+      var rated = t.kind === "rating";
+      var winner = rated
         ? rows.filter(function (r) { return r.place === 1; })[0]
         : rows[0];
       var champ = "";
       if (winner) {
-        champ = "🏆 " + escapeHtml(winner.display) + " · " + (elo
+        champ = "🏆 " + escapeHtml(winner.display) + " · " + (rated
           ? "рейтинг " + winner.rating
           : winner.points + " " + plural(winner.points, "очко", "очка", "очков"));
       }
@@ -669,9 +668,9 @@
         t.players + " " + plural(t.players, "игрок", "игрока", "игроков");
 
       var note, table;
-      if (elo) {
+      if (rated) {
         var passed = rows.filter(function (r) { return r.qualifies; }).length;
-        note = "Рейтинг Эло на конец квалификации." + (passed
+        note = "Рейтинг на конец квалификации: раунд +4, вылет −4, победа в финале +16." + (passed
           ? " " + passed + " " + plural(passed, "лучший прошёл", "лучших прошли", "лучших прошли") + " в основной турнир."
           : "");
         table = ratingRowsHtml(rows, "↑ прошли в основной турнир");

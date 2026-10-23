@@ -221,11 +221,15 @@ adds `/api/quals/{today,complete,rating}`; the page and band photos are still se
 Bracket mechanics are reused, not copied: `tournament.pick_rotation()` (pure rotation
 function) and `tournament.parse_bracket()` (shape + per-round winner validation).
 
-- **Elo rating instead of stage points.** Every bracket choice is a match (15 per run);
-  start 1500, K = 16, K = 32 for a band's first 30 matches («калибровка»). Matches, not
-  ratings, are stored (`rated_matches`) and the rating is recomputed from all of them on
-  every `/api/quals/rating` request (`quals.compute_ratings()`, matches in `id` order) — so
-  changing the constants rewrites history consistently, no migration. `rated_draws` /
+- **A rating that can drop, instead of stage points.** Every bracket choice is a match
+  (15 per run): the band that advances gets `WIN_POINTS` (+4), the loser loses
+  `LOSS_POINTS` (4), winning the final is `FINAL_WIN_POINTS` (+16); start 1500. Per run a
+  band nets −4 / 0 / +4 / +8 / +28 (out in 1/8 … champion); ties are broken by number of
+  final wins. The owner chose this fixed per-round scheme over the original Elo (which
+  weighted a win by the opponent's strength) — don't reintroduce Elo. Matches, not
+  ratings, are stored (`rated_matches`, with `round` 0–3) and the rating is recomputed from
+  all of them on every `/api/quals/rating` request (`quals.compute_ratings()`, matches in
+  `id` order) — so changing the points rewrites history consistently, no migration. `rated_draws` /
   `rated_matches` carry a `tournament` column (`"quals_80s"`) so a future rated season can
   share them; `tournament_draws` couldn't (its PK is `play_date` alone).
 - **Config is content**: `content/tournament_quals_80s.json` —
@@ -233,7 +237,11 @@ function) and `tournament.parse_bracket()` (shape + per-round winner validation)
   inclusive UTC. Status is derived per request (`off`/`upcoming`/`active`/`finished`);
   `/complete` only accepts results while `active`, so the final table freezes by itself
   after `end`. `"contender": false` = out of competition (already in the main tournament):
-  rated, but takes no qualification slot.
+  rated, but takes no qualification slot. Optional `"linked": [["metallica","megadeth"]]` —
+  bands drawn only together or not at all (owner's fairness rule for direct rivals);
+  `tournament.pick_rotation(..., linked)` treats each group as one unit with its most
+  overdue member's priority. Without `linked` the draw is byte-identical to before, so the
+  main tournament's rotation is unaffected.
 - **The pass zone (top `promote` contenders) only appears once every contender has played
   at least one match** — on day one, bands not yet drawn sit at 1500, above bands that
   played and lost, and would "qualify" without playing. Rotation makes this exactly one day.

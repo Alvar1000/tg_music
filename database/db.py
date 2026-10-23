@@ -782,7 +782,7 @@ async def add_rated_matches(
 async def get_rated_matches(tournament: str) -> list[dict]:
     """Все матчи турнира в порядке записи — вход для расчёта рейтинга."""
     async with _db.execute(
-        "SELECT play_date, winner, loser FROM rated_matches WHERE tournament = ? ORDER BY id",
+        "SELECT play_date, round, winner, loser FROM rated_matches WHERE tournament = ? ORDER BY id",
         (tournament,),
     ) as cur:
         rows = await cur.fetchall()

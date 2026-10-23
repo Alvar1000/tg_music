@@ -49,11 +49,9 @@ async def _archive_quals() -> None:
         return
     rows = await quals.standings(q, today)
     for row in rows:
-        # Изменение за день и «калибровка» — про живую таблицу, не про итог.
-        row.pop("delta", None)
-        row.pop("calibrating", None)
+        row.pop("delta", None)  # изменение за день — про живую таблицу, не про итог
     await db.save_tournament_archive(
-        quals.TOURNAMENT, quals.TITLE, "elo", q["start"], q["end"],
+        quals.TOURNAMENT, quals.TITLE, "rating", q["start"], q["end"],
         stats["runs"], stats["players"], rows,
     )
     logger.info("Итоги квалификации сохранены в историю")
