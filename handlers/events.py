@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery
 
 import config
 from handlers.menu import safe_edit
-from keyboards.kb import back_to_menu_kb
+from keyboards.kb import events_kb
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -22,8 +22,10 @@ NO_EVENTS_TEXT = (
 async def show_events(callback: CallbackQuery) -> None:
     await callback.answer()
     events = config.load_content("events.json", default=[])
+    duel_url = f"{config.WEBAPP_URL}/duel/" if config.WEBAPP_URL else None
+    kb = events_kb(duel_url)
     if not events:
-        await safe_edit(callback, NO_EVENTS_TEXT, back_to_menu_kb())
+        await safe_edit(callback, NO_EVENTS_TEXT, kb)
         return
 
     lines = ["📅 <b>Ближайшие мероприятия</b>\n"]
@@ -49,4 +51,4 @@ async def show_events(callback: CallbackQuery) -> None:
         lines.append("")  # пустая строка между событиями
 
     text = "\n".join(lines).strip()
-    await safe_edit(callback, text, back_to_menu_kb())
+    await safe_edit(callback, text, kb)

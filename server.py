@@ -13,6 +13,7 @@ from aiohttp import web
 
 import config
 import dashboard
+import duel
 import history
 import quals
 import tournament
@@ -82,13 +83,14 @@ async def healthz(request: web.Request) -> web.Response:
     return web.Response(text="ok")
 
 
-def create_app() -> web.Application:
+def create_app(bot=None) -> web.Application:
     app = web.Application()
     app.router.add_get("/rockle/", rockle_page)
     app.router.add_get("/rockle", rockle_page)
     app.router.add_get("/api/rockle/today", rockle_today)
     app.router.add_post("/api/rockle/complete", rockle_complete)
     app.router.add_get("/healthz", healthz)
+    duel.register_routes(app, bot)
     dashboard.register_routes(app)
     tournament.register_routes(app)
     quals.register_routes(app)
@@ -96,9 +98,9 @@ def create_app() -> web.Application:
     return app
 
 
-async def start_server() -> web.AppRunner:
+async def start_server(bot=None) -> web.AppRunner:
     """Поднимает aiohttp на config.PORT. Возвращает раннер — его нужно cleanup() при остановке."""
-    app = create_app()
+    app = create_app(bot)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", config.PORT)

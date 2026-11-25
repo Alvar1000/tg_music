@@ -11,7 +11,7 @@ import config
 import history
 import server
 from database import db
-from handlers import admin, events, facts, fallback, menu, start, tests
+from handlers import admin, duel, events, facts, fallback, menu, start, tests
 from middlewares.subscription import SubscriptionMiddleware
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,7 @@ def create_dispatcher() -> Dispatcher:
     dp.include_router(facts.router)
     dp.include_router(tests.router)
     dp.include_router(events.router)
+    dp.include_router(duel.router)
     dp.include_router(admin.router)
     # Фолбэк для устаревших кнопок — строго последним, чтобы не перехватывать
     # настоящие callback'и (роутеры проверяются по порядку включения).
@@ -70,7 +71,7 @@ async def main() -> None:
     dp = create_dispatcher()
 
     # Веб-сервер мини-игры живёт в этом же процессе (см. server.py — почему).
-    runner = await server.start_server()
+    runner = await server.start_server(bot)
 
     try:
         logger.info("Бот запускается (long polling)...")

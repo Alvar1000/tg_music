@@ -1,0 +1,1457 @@
+{
+  "note": "Досье для раунда «Рок-детектив» (пункт 2.1 в DUEL_PLAN.md): пять фактов от сложного к простому, пятый — известные, но не главные песни. В фактах нет названия группы, имена участников — не раньше 4-го факта, песни и альбомы — только в 5-м. У каждого факта src — источник для проверки, в игру он не идёт. key — как в tournament_bands.json и tournament_quals_80s.json; \"ask\": \"who\" — сольный исполнитель (вопрос «Кто это?»).",
+  "dossiers": [
+    {
+      "key": "queen",
+      "facts": [
+        {
+          "text": "Название группы придумал вокалист, а остальные участники поначалу в нём сомневались.",
+          "src": "https://en.wikipedia.org/wiki/Queen_(band)"
+        },
+        {
+          "text": "Гитарист вместе с отцом сам собрал свою гитару, а гриф вырезал из старой каминной полки.",
+          "src": "https://en.wikipedia.org/wiki/Red_Special"
+        },
+        {
+          "text": "Тот же гитарист — доктор астрофизики: учёную степень он получил в 2007 году.",
+          "src": "https://en.wikipedia.org/wiki/Brian_May"
+        },
+        {
+          "text": "Их 21 минута на Live Aid в 1985 году в опросе 2005 года признана лучшим концертным выступлением в истории рока.",
+          "src": "https://en.wikipedia.org/wiki/Live_Aid"
+        },
+        {
+          "text": "Песни: «Somebody to Love», «Don't Stop Me Now».",
+          "src": "https://en.wikipedia.org/wiki/Queen_(band)"
+        }
+      ]
+    },
+    {
+      "key": "metallica",
+      "facts": [
+        {
+          "text": "Их басист погиб в 1986 году: на гастролях в Швеции перевернулся автобус группы.",
+          "src": "https://en.wikipedia.org/wiki/Metallica"
+        },
+        {
+          "text": "Уволенный в 1983 году гитарист основал собственную группу, ставшую их соперником.",
+          "src": "https://en.wikipedia.org/wiki/Metallica"
+        },
+        {
+          "text": "В 2013 году группа сыграла концерт в Антарктиде.",
+          "src": "https://en.wikipedia.org/wiki/Metallica"
+        },
+        {
+          "text": "Их пятый альбом назван просто по имени группы, но все зовут его «Чёрным».",
+          "src": "https://en.wikipedia.org/wiki/Metallica"
+        },
+        {
+          "text": "Песни: «Fade to Black», «The Unforgiven».",
+          "src": "https://en.wikipedia.org/wiki/Metallica"
+        }
+      ]
+    },
+    {
+      "key": "iron_maiden",
+      "facts": [
+        {
+          "text": "Основатель и главный автор песен — басист, а не гитарист или вокалист.",
+          "src": "https://en.wikipedia.org/wiki/Iron_Maiden"
+        },
+        {
+          "text": "Вокалист — пилот пассажирских самолётов и сам водил гастрольный «Боинг» группы.",
+          "src": "https://en.wikipedia.org/wiki/Bruce_Dickinson"
+        },
+        {
+          "text": "Название группы — так называют орудие пыток: шкаф с шипами внутри.",
+          "src": "https://en.wikipedia.org/wiki/Iron_Maiden"
+        },
+        {
+          "text": "Талисман группы — зомби по имени Эдди, он есть почти на всех их обложках.",
+          "src": "https://en.wikipedia.org/wiki/Iron_Maiden"
+        },
+        {
+          "text": "Песни: «Aces High», «Wasted Years».",
+          "src": "https://en.wikipedia.org/wiki/Iron_Maiden"
+        }
+      ]
+    },
+    {
+      "key": "ac_dc",
+      "facts": [
+        {
+          "text": "Группу основали два брата из Глазго: их семья переехала в Сидней в 1963 году.",
+          "src": "https://en.wikipedia.org/wiki/Angus_Young"
+        },
+        {
+          "text": "Название подсмотрела сестра основателей — на адаптере своей швейной машинки.",
+          "src": "https://en.wikipedia.org/wiki/AC/DC"
+        },
+        {
+          "text": "Вокалист умер в 1980 году, а следующий альбом, уже с новым певцом, стал одним из самых продаваемых в истории.",
+          "src": "https://en.wikipedia.org/wiki/AC/DC"
+        },
+        {
+          "text": "Соло-гитарист выступает в школьной форме.",
+          "src": "https://en.wikipedia.org/wiki/AC/DC"
+        },
+        {
+          "text": "Песни: «Hells Bells», «Let There Be Rock».",
+          "src": "https://en.wikipedia.org/wiki/AC/DC"
+        }
+      ]
+    },
+    {
+      "key": "nirvana",
+      "facts": [
+        {
+          "text": "Группа собралась в 1987 году в городке Абердин, штат Вашингтон.",
+          "src": "https://en.wikipedia.org/wiki/Nirvana_(band)"
+        },
+        {
+          "text": "Барабанщик потом основал собственную группу, где сам поёт и играет на гитаре.",
+          "src": "https://en.wikipedia.org/wiki/Foo_Fighters"
+        },
+        {
+          "text": "Их акустический концерт для MTV вышел альбомом уже после гибели лидера.",
+          "src": "https://en.wikipedia.org/wiki/Nirvana_(band)"
+        },
+        {
+          "text": "Их второй альбом в январе 1992 года сместил с первого места чарта Billboard альбом Майкла Джексона.",
+          "src": "https://en.wikipedia.org/wiki/Nevermind"
+        },
+        {
+          "text": "Песни: «In Bloom», «All Apologies».",
+          "src": "https://en.wikipedia.org/wiki/Nirvana_(band)"
+        }
+      ]
+    },
+    {
+      "key": "pink_floyd",
+      "facts": [
+        {
+          "text": "Название сложено из имён двух малоизвестных американских блюзменов.",
+          "src": "https://en.wikipedia.org/wiki/Pink_Floyd"
+        },
+        {
+          "text": "Первый лидер ушёл из группы в 1968 году, когда его психическое здоровье пошатнулось.",
+          "src": "https://en.wikipedia.org/wiki/Pink_Floyd"
+        },
+        {
+          "text": "На съёмке обложки надувная свинья сорвалась с привязи, пролетела над Хитроу и приземлилась в Кенте.",
+          "src": "https://en.wikipedia.org/wiki/Animals_(Pink_Floyd_album)"
+        },
+        {
+          "text": "Альбом с призмой на обложке провёл в чарте Billboard больше 900 недель.",
+          "src": "https://en.wikipedia.org/wiki/The_Dark_Side_of_the_Moon"
+        },
+        {
+          "text": "Песни: «Time», «Shine On You Crazy Diamond».",
+          "src": "https://en.wikipedia.org/wiki/Pink_Floyd"
+        }
+      ]
+    },
+    {
+      "key": "black_sabbath",
+      "facts": [
+        {
+          "text": "В 17 лет гитарист на заводе лишился кончиков двух пальцев и стал играть с напёрстками из бутылки от моющего средства.",
+          "src": "https://en.wikipedia.org/wiki/Tony_Iommi"
+        },
+        {
+          "text": "Группа из Бирмингема, раньше называлась Earth.",
+          "src": "https://en.wikipedia.org/wiki/Black_Sabbath"
+        },
+        {
+          "text": "Название взято у фильма ужасов 1963 года с Борисом Карлоффом.",
+          "src": "https://en.wikipedia.org/wiki/Black_Sabbath"
+        },
+        {
+          "text": "Вокалист позже стал звездой реалити-шоу MTV о своей семье.",
+          "src": "https://en.wikipedia.org/wiki/The_Osbournes"
+        },
+        {
+          "text": "Песни: «Children of the Grave», «Sweet Leaf».",
+          "src": "https://en.wikipedia.org/wiki/Black_Sabbath"
+        }
+      ]
+    },
+    {
+      "key": "the_beatles",
+      "facts": [
+        {
+          "text": "До славы группа два года выступала в клубах Гамбурга.",
+          "src": "https://en.wikipedia.org/wiki/The_Beatles"
+        },
+        {
+          "text": "Барабанщика заменили в 1962 году — за несколько недель до записи первого сингла.",
+          "src": "https://en.wikipedia.org/wiki/The_Beatles"
+        },
+        {
+          "text": "Последний раз на публике группа выступила на крыше офиса своей компании в Лондоне в январе 1969 года.",
+          "src": "https://en.wikipedia.org/wiki/The_Beatles%27_rooftop_concert"
+        },
+        {
+          "text": "В апреле 1964 года их песни заняли все пять первых мест американского чарта синглов.",
+          "src": "https://en.wikipedia.org/wiki/The_Beatles"
+        },
+        {
+          "text": "Песни: «Eleanor Rigby», «Penny Lane».",
+          "src": "https://en.wikipedia.org/wiki/The_Beatles"
+        }
+      ]
+    },
+    {
+      "key": "led_zeppelin",
+      "facts": [
+        {
+          "text": "Первые концерты группа дала под именем The New Yardbirds.",
+          "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+        },
+        {
+          "text": "В 1973 году их концерт в Тампе собрал 56 800 зрителей и побил рекорд The Beatles.",
+          "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+        },
+        {
+          "text": "У четвёртого альбома нет названия — вместо него четыре символа, по числу участников.",
+          "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+        },
+        {
+          "text": "Группа распалась в 1980 году после смерти барабанщика.",
+          "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+        },
+        {
+          "text": "Песни: «Ramble On», «Rock and Roll».",
+          "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+        }
+      ]
+    },
+    {
+      "key": "kiss",
+      "facts": [
+        {
+          "text": "Басист родился в Израиле и до славы полгода работал учителем в нью-йоркской школе.",
+          "src": "https://en.wikipedia.org/wiki/Gene_Simmons"
+        },
+        {
+          "text": "В 1983 году участники впервые появились на публике без грима — на MTV.",
+          "src": "https://en.wikipedia.org/wiki/Kiss_(band)"
+        },
+        {
+          "text": "У каждого участника свой образ: Демон, Звёздное дитя, Космический туз и Кот.",
+          "src": "https://en.wikipedia.org/wiki/Kiss_(band)"
+        },
+        {
+          "text": "Басист высовывает на сцене длинный язык, плюётся бутафорской кровью и выдыхает огонь.",
+          "src": "https://en.wikipedia.org/wiki/Gene_Simmons"
+        },
+        {
+          "text": "Песни: «Detroit Rock City», «Beth».",
+          "src": "https://en.wikipedia.org/wiki/Kiss_(band)"
+        }
+      ]
+    },
+    {
+      "key": "guns_n_roses",
+      "facts": [
+        {
+          "text": "Название сложено из названий двух прежних групп участников.",
+          "src": "https://en.wikipedia.org/wiki/Guns_N%27_Roses"
+        },
+        {
+          "text": "Их дебютный альбом — самый продаваемый дебют в истории США.",
+          "src": "https://en.wikipedia.org/wiki/Guns_N%27_Roses"
+        },
+        {
+          "text": "В 2016 году гитарист и басист классического состава вернулись в группу ради тура Not in This Lifetime.",
+          "src": "https://en.wikipedia.org/wiki/Guns_N%27_Roses"
+        },
+        {
+          "text": "Фирменный знак гитариста — цилиндр.",
+          "src": "https://en.wikipedia.org/wiki/Slash_(musician)"
+        },
+        {
+          "text": "Песни: «Patience», «Don't Cry».",
+          "src": "https://en.wikipedia.org/wiki/Guns_N%27_Roses"
+        }
+      ]
+    },
+    {
+      "key": "scorpions",
+      "facts": [
+        {
+          "text": "Группа из Ганновера: собралась в 1965 году, первый альбом выпустила в 1972-м.",
+          "src": "https://en.wikipedia.org/wiki/Scorpions_(band)"
+        },
+        {
+          "text": "В августе 1989 года они выступили на Московском фестивале мира в Лужниках.",
+          "src": "https://en.wikipedia.org/wiki/Moscow_Music_Peace_Festival"
+        },
+        {
+          "text": "Под впечатлением от того фестиваля вокалист написал песню, ставшую гимном конца холодной войны.",
+          "src": "https://en.wikipedia.org/wiki/Wind_of_Change_(Scorpions_song)"
+        },
+        {
+          "text": "Вокалиста группы зовут Клаус Майне.",
+          "src": "https://en.wikipedia.org/wiki/Scorpions_(band)"
+        },
+        {
+          "text": "Песни: «Send Me an Angel», «Holiday».",
+          "src": "https://en.wikipedia.org/wiki/Scorpions_(band)"
+        }
+      ]
+    },
+    {
+      "key": "depeche_mode",
+      "facts": [
+        {
+          "text": "Группа собралась в 1980 году в Базилдоне, графство Эссекс.",
+          "src": "https://en.wikipedia.org/wiki/Depeche_Mode"
+        },
+        {
+          "text": "Один из основателей ушёл в конце 1981 года и потом создал Yazoo и Erasure.",
+          "src": "https://en.wikipedia.org/wiki/Depeche_Mode"
+        },
+        {
+          "text": "Название взято у французского журнала мод.",
+          "src": "https://en.wikipedia.org/wiki/Depeche_Mode"
+        },
+        {
+          "text": "Вокалиста зовут Дэйв Гаан.",
+          "src": "https://en.wikipedia.org/wiki/Dave_Gahan"
+        },
+        {
+          "text": "Песни: «Never Let Me Down Again», «Precious».",
+          "src": "https://en.wikipedia.org/wiki/Depeche_Mode"
+        }
+      ]
+    },
+    {
+      "key": "the_doors",
+      "facts": [
+        {
+          "text": "На концертах у группы не было бас-гитариста: басовые партии играл клавишник.",
+          "src": "https://en.wikipedia.org/wiki/The_Doors"
+        },
+        {
+          "text": "В 1967 году вокалиста арестовали прямо во время концерта в Нью-Хейвене.",
+          "src": "https://en.wikipedia.org/wiki/The_Doors"
+        },
+        {
+          "text": "Название взято у книги Олдоса Хаксли.",
+          "src": "https://en.wikipedia.org/wiki/The_Doors"
+        },
+        {
+          "text": "Вокалист умер в Париже в 1971 году, ему было 27 лет.",
+          "src": "https://en.wikipedia.org/wiki/The_Doors"
+        },
+        {
+          "text": "Песни: «Soul Kitchen», «Peace Frog».",
+          "src": "https://en.wikipedia.org/wiki/Morrison_Hotel"
+        }
+      ]
+    },
+    {
+      "key": "ramones",
+      "facts": [
+        {
+          "text": "Их первый альбом — 14 песен за 29 минут.",
+          "src": "https://en.wikipedia.org/wiki/Ramones_(album)"
+        },
+        {
+          "text": "Группа из нью-йоркского района Куинс: в первый же год сыграла в клубе CBGB 74 концерта.",
+          "src": "https://en.wikipedia.org/wiki/Ramones"
+        },
+        {
+          "text": "Главным заработком группы были футболки с их логотипом.",
+          "src": "https://en.wikipedia.org/wiki/Ramones"
+        },
+        {
+          "text": "Все участники взяли одну и ту же «фамилию», хотя родственниками не были.",
+          "src": "https://en.wikipedia.org/wiki/Ramones"
+        },
+        {
+          "text": "Песни: «Rockaway Beach», «Pet Sematary».",
+          "src": "https://en.wikipedia.org/wiki/Ramones"
+        }
+      ]
+    },
+    {
+      "key": "motorhead",
+      "facts": [
+        {
+          "text": "Лидера в 1975 году выгнали из группы Hawkwind после ареста в Канаде за наркотики.",
+          "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+        },
+        {
+          "text": "Название — последняя песня, которую лидер написал для своей прежней группы.",
+          "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+        },
+        {
+          "text": "Группа объявила о роспуске на следующий день после смерти лидера в декабре 2015 года.",
+          "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+        },
+        {
+          "text": "Лидер — басист и вокалист Лемми, единственный, кто играл в группе с первого дня до последнего.",
+          "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+        },
+        {
+          "text": "Песни: «Bomber», «Killed by Death».",
+          "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+        }
+      ]
+    },
+    {
+      "key": "bowie",
+      "ask": "who",
+      "facts": [
+        {
+          "text": "В 1997 году он продал облигации под будущие доходы от своих альбомов и получил 55 миллионов долларов.",
+          "src": "https://en.wikipedia.org/wiki/Bowie_Bonds"
+        },
+        {
+          "text": "После школьной драки из-за девушки зрачок одного его глаза навсегда остался расширенным.",
+          "src": "https://en.wikipedia.org/wiki/David_Bowie"
+        },
+        {
+          "text": "Настоящая фамилия — Джонс; он сменил её, чтобы его не путали с певцом из The Monkees.",
+          "src": "https://en.wikipedia.org/wiki/David_Bowie"
+        },
+        {
+          "text": "В 1986 году сыграл в фэнтези-фильме «Лабиринт» и написал для него пять песен.",
+          "src": "https://en.wikipedia.org/wiki/David_Bowie"
+        },
+        {
+          "text": "Песни: «Rebel Rebel», «Ashes to Ashes».",
+          "src": "https://en.wikipedia.org/wiki/David_Bowie"
+        }
+      ]
+    },
+    {
+      "key": "the_who",
+      "facts": [
+        {
+          "text": "Гитарист впервые разбил гитару случайно: задел грифом низкий потолок клуба, а потом доломал её от злости.",
+          "src": "https://en.wikipedia.org/wiki/The_Who"
+        },
+        {
+          "text": "В 1967 году на съёмках американского телешоу барабанщик взорвал свою установку — гитаристу опалило волосы.",
+          "src": "https://en.wikipedia.org/wiki/Keith_Moon"
+        },
+        {
+          "text": "Их рок-опера о слепоглухонемом мальчике в 1975 году стала фильмом.",
+          "src": "https://en.wikipedia.org/wiki/The_Who"
+        },
+        {
+          "text": "Заставки всех сериалов «C.S.I.: Место преступления» — ремиксы их песен.",
+          "src": "https://en.wikipedia.org/wiki/CSI_(franchise)"
+        },
+        {
+          "text": "Песни: «Substitute», «I Can See for Miles».",
+          "src": "https://en.wikipedia.org/wiki/The_Who"
+        }
+      ]
+    },
+    {
+      "key": "megadeth",
+      "facts": [
+        {
+          "text": "Название лидер нашёл в листовке американского сенатора.",
+          "src": "https://en.wikipedia.org/wiki/Megadeth"
+        },
+        {
+          "text": "Талисман группы по имени Вик Раттлхед часто появляется на обложках и концертах.",
+          "src": "https://en.wikipedia.org/wiki/Megadeth"
+        },
+        {
+          "text": "Лидера в 1983 году выгнали из другой знаменитой группы, и он поклялся собрать группу быстрее и тяжелее.",
+          "src": "https://en.wikipedia.org/wiki/Megadeth"
+        },
+        {
+          "text": "Свою первую «Грэмми» группа получила только в 2017 году — за лучшее метал-исполнение.",
+          "src": "https://en.wikipedia.org/wiki/Megadeth"
+        },
+        {
+          "text": "Песни: «A Tout le Monde», «Trust».",
+          "src": "https://en.wikipedia.org/wiki/Megadeth"
+        }
+      ]
+    },
+    {
+      "key": "a_ha",
+      "facts": [
+        {
+          "text": "В 1991 году их концерт на стадионе «Маракана» в Рио собрал 198 тысяч зрителей — рекорд Книги Гиннесса.",
+          "src": "https://en.wikipedia.org/wiki/A-ha"
+        },
+        {
+          "text": "Они записали заглавную песню к фильму о Джеймсе Бонде.",
+          "src": "https://en.wikipedia.org/wiki/A-ha"
+        },
+        {
+          "text": "Трое участников уехали из Норвегии в Лондон, чтобы сделать карьеру в музыке.",
+          "src": "https://en.wikipedia.org/wiki/A-ha"
+        },
+        {
+          "text": "Клип на их главный хит нарисован карандашом поверх видеосъёмки.",
+          "src": "https://en.wikipedia.org/wiki/A-ha"
+        },
+        {
+          "text": "Песни: «Hunting High and Low», «Stay on These Roads».",
+          "src": "https://en.wikipedia.org/wiki/A-ha"
+        }
+      ]
+    },
+    {
+      "key": "joy_division",
+      "facts": [
+        {
+          "text": "Название взято из романа 1953 года: так называлось отделение концлагеря, где нацисты держали женщин в сексуальном рабстве.",
+          "src": "https://en.wikipedia.org/wiki/Joy_Division"
+        },
+        {
+          "text": "Группа собралась после концерта Sex Pistols в Манчестере в июне 1976 года.",
+          "src": "https://en.wikipedia.org/wiki/Joy_Division"
+        },
+        {
+          "text": "Обложка их дебютного альбома — график радиоимпульсов пульсара.",
+          "src": "https://en.wikipedia.org/wiki/Unknown_Pleasures"
+        },
+        {
+          "text": "Вокалист покончил с собой в мае 1980 года, накануне первого тура по Северной Америке; остальные собрали новую группу.",
+          "src": "https://en.wikipedia.org/wiki/Joy_Division"
+        },
+        {
+          "text": "Песни: «Transmission», «She's Lost Control».",
+          "src": "https://en.wikipedia.org/wiki/Joy_Division"
+        }
+      ]
+    },
+    {
+      "key": "bee_gees",
+      "facts": [
+        {
+          "text": "Двое из трёх братьев-участников — близнецы.",
+          "src": "https://en.wikipedia.org/wiki/Robin_Gibb"
+        },
+        {
+          "text": "Семья переехала из Англии в Австралию в 1958 году — там братья и начали выступать.",
+          "src": "https://en.wikipedia.org/wiki/Bee_Gees"
+        },
+        {
+          "text": "Они писали хиты и для других звёзд — Барбры Стрейзанд, Дайаны Росс, Долли Партон и Кенни Роджерса.",
+          "src": "https://en.wikipedia.org/wiki/Bee_Gees"
+        },
+        {
+          "text": "Их песни к фильму «Лихорадка субботнего вечера» сделали саундтрек одним из самых продаваемых в истории.",
+          "src": "https://en.wikipedia.org/wiki/Bee_Gees"
+        },
+        {
+          "text": "Песни: «Massachusetts», «Tragedy».",
+          "src": "https://en.wikipedia.org/wiki/Bee_Gees"
+        }
+      ]
+    },
+    {
+      "key": "rolling_stones",
+      "facts": [
+        {
+          "text": "Название группа взяла из песни Мадди Уотерса.",
+          "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+        },
+        {
+          "text": "Основатель группы утонул в бассейне в июле 1969 года — меньше чем через месяц после ухода из неё.",
+          "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+        },
+        {
+          "text": "Логотип с губами и высунутым языком нарисовали в 1970 году для их собственного лейбла.",
+          "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+        },
+        {
+          "text": "Вокалист и гитарист дружили в детстве, а в 1961 году снова встретились на вокзале — у вокалиста в руках были пластинки Чака Берри.",
+          "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+        },
+        {
+          "text": "Песни: «Ruby Tuesday», «Wild Horses».",
+          "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+        }
+      ]
+    },
+    {
+      "key": "jimi_hendrix",
+      "ask": "who",
+      "facts": [
+        {
+          "text": "В армии он служил в 101-й воздушно-десантной дивизии США.",
+          "src": "https://en.wikipedia.org/wiki/Jimi_Hendrix"
+        },
+        {
+          "text": "Он играл на гитарах для правшей, перевернув их и переставив струны под левую руку.",
+          "src": "https://en.wikipedia.org/wiki/Jimi_Hendrix"
+        },
+        {
+          "text": "На фестивале в Монтерее в 1967 году он поджёг свою гитару прямо на сцене.",
+          "src": "https://en.wikipedia.org/wiki/Jimi_Hendrix"
+        },
+        {
+          "text": "Он закрывал фестиваль Вудсток в 1969 году и сыграл там на гитаре гимн США.",
+          "src": "https://en.wikipedia.org/wiki/Jimi_Hendrix"
+        },
+        {
+          "text": "Песни: «Little Wing», «The Wind Cries Mary».",
+          "src": "https://en.wikipedia.org/wiki/Jimi_Hendrix"
+        }
+      ]
+    },
+    {
+      "key": "deep_purple",
+      "facts": [
+        {
+          "text": "Составы группы принято нумеровать: Mark I, Mark II и так далее.",
+          "src": "https://en.wikipedia.org/wiki/Deep_Purple"
+        },
+        {
+          "text": "В 1975 году Книга рекордов Гиннесса назвала их самой громкой группой в мире.",
+          "src": "https://en.wikipedia.org/wiki/Deep_Purple"
+        },
+        {
+          "text": "Их самая известная песня написана под впечатлением от пожара в казино Монтрё на концерте Фрэнка Заппы в 1971 году.",
+          "src": "https://en.wikipedia.org/wiki/Deep_Purple"
+        },
+        {
+          "text": "Вокалист Иэн Гиллан пел партию Иисуса на первой записи рок-оперы «Иисус Христос — суперзвезда».",
+          "src": "https://en.wikipedia.org/wiki/Ian_Gillan"
+        },
+        {
+          "text": "Песни: «Burn», «Perfect Strangers».",
+          "src": "https://en.wikipedia.org/wiki/Deep_Purple"
+        }
+      ]
+    },
+    {
+      "key": "fleetwood_mac",
+      "facts": [
+        {
+          "text": "Название сложено из фамилий барабанщика и басиста, хотя басист поначалу в группу не пошёл.",
+          "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+        },
+        {
+          "text": "Начинали они как британский блюз-рок, а прославились, когда в группу пришла пара — гитарист и певица.",
+          "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+        },
+        {
+          "text": "Их самый знаменитый альбом записывали, пока в группе распадались сразу две пары.",
+          "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+        },
+        {
+          "text": "Вокалистка Стиви Никс потом стала самой успешной из участников в сольной карьере.",
+          "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+        },
+        {
+          "text": "Песни: «Rhiannon», «Little Lies».",
+          "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+        }
+      ]
+    },
+    {
+      "key": "the_cure",
+      "facts": [
+        {
+          "text": "Группа собралась в 1976 году в Кроули, графство Западный Суссекс.",
+          "src": "https://en.wikipedia.org/wiki/The_Cure"
+        },
+        {
+          "text": "Их первый сингл написан по мотивам романа Альбера Камю «Посторонний».",
+          "src": "https://en.wikipedia.org/wiki/The_Cure"
+        },
+        {
+          "text": "В 1982 году лидер группы стал ещё и гитаристом Siouxsie and the Banshees.",
+          "src": "https://en.wikipedia.org/wiki/The_Cure"
+        },
+        {
+          "text": "Лидер Роберт Смит знаменит взлохмаченными чёрными волосами и размазанной красной помадой.",
+          "src": "https://en.wikipedia.org/wiki/Robert_Smith_(musician)"
+        },
+        {
+          "text": "Песни: «Lullaby», «Close to Me».",
+          "src": "https://en.wikipedia.org/wiki/The_Cure"
+        }
+      ]
+    },
+    {
+      "key": "the_kinks",
+      "facts": [
+        {
+          "text": "В 1965 году американский профсоюз музыкантов на четыре года запретил им концерты в США.",
+          "src": "https://en.wikipedia.org/wiki/The_Kinks"
+        },
+        {
+          "text": "Гитарист и барабанщик однажды подрались прямо на сцене в Кардиффе.",
+          "src": "https://en.wikipedia.org/wiki/The_Kinks"
+        },
+        {
+          "text": "Рваный звук гитары в их первом большом хите гитарист получил, разрезав динамик своего усилителя.",
+          "src": "https://en.wikipedia.org/wiki/The_Kinks"
+        },
+        {
+          "text": "Вокалист и главный автор — Рэй Дэвис, соло-гитарист — его младший брат Дэйв.",
+          "src": "https://en.wikipedia.org/wiki/The_Kinks"
+        },
+        {
+          "text": "Песни: «Sunny Afternoon», «Dedicated Follower of Fashion».",
+          "src": "https://en.wikipedia.org/wiki/The_Kinks"
+        }
+      ]
+    },
+    {
+      "key": "van_halen",
+      "facts": [
+        {
+          "text": "В райдере группы значилась миска M&M's — но без единой коричневой конфеты.",
+          "src": "https://en.wikipedia.org/wiki/Van_Halen"
+        },
+        {
+          "text": "Группу основали братья, родившиеся в Амстердаме: в 1962 году семья переехала в Пасадену, Калифорния.",
+          "src": "https://en.wikipedia.org/wiki/Van_Halen"
+        },
+        {
+          "text": "Гитарист бесплатно записал соло для хита Майкла Джексона.",
+          "src": "https://en.wikipedia.org/wiki/Eddie_Van_Halen"
+        },
+        {
+          "text": "Гитарист Эдди прославил тэппинг — игру двумя руками на грифе.",
+          "src": "https://en.wikipedia.org/wiki/Eddie_Van_Halen"
+        },
+        {
+          "text": "Песни: «Dreams», «Why Can't This Be Love».",
+          "src": "https://en.wikipedia.org/wiki/Van_Halen"
+        }
+      ]
+    },
+    {
+      "key": "the_clash",
+      "facts": [
+        {
+          "text": "Вокалист родился в Анкаре, в семье британского дипломата.",
+          "src": "https://en.wikipedia.org/wiki/Joe_Strummer"
+        },
+        {
+          "text": "Их называли «единственной группой, которая имеет значение».",
+          "src": "https://en.wikipedia.org/wiki/The_Clash"
+        },
+        {
+          "text": "Снимок, где басист разбивает бас-гитару о сцену, стал обложкой их альбома.",
+          "src": "https://en.wikipedia.org/wiki/The_Clash"
+        },
+        {
+          "text": "Вокалист Джо Страммер до группы играл паб-рок в The 101ers.",
+          "src": "https://en.wikipedia.org/wiki/The_Clash"
+        },
+        {
+          "text": "Песни: «White Riot», «Train in Vain».",
+          "src": "https://en.wikipedia.org/wiki/The_Clash"
+        }
+      ]
+    },
+    {
+      "key": "the_zombies",
+      "facts": [
+        {
+          "text": "Группа собралась в 1962 году в Сент-Олбансе, когда участники ещё учились в школе.",
+          "src": "https://en.wikipedia.org/wiki/The_Zombies"
+        },
+        {
+          "text": "В 2019 году группу приняли в Зал славы рок-н-ролла.",
+          "src": "https://en.wikipedia.org/wiki/The_Zombies"
+        },
+        {
+          "text": "Опечатку в названии их главного альбома допустил художник обложки — её так и оставили.",
+          "src": "https://en.wikipedia.org/wiki/Odessey_and_Oracle"
+        },
+        {
+          "text": "Тот альбом вышел уже после распада группы, а песня с него стала хитом в США только в 1969 году.",
+          "src": "https://en.wikipedia.org/wiki/The_Zombies"
+        },
+        {
+          "text": "Песни: «Tell Her No», «Care of Cell 44».",
+          "src": "https://en.wikipedia.org/wiki/The_Zombies"
+        }
+      ]
+    },
+    {
+      "key": "the_stooges",
+      "facts": [
+        {
+          "text": "Группа собралась в 1967 году в Энн-Арборе, штат Мичиган.",
+          "src": "https://en.wikipedia.org/wiki/The_Stooges"
+        },
+        {
+          "text": "Вокалист одним из первых стал прыгать со сцены в толпу.",
+          "src": "https://en.wikipedia.org/wiki/Iggy_Pop"
+        },
+        {
+          "text": "На концертах вокалист мазал голую грудь арахисовым маслом и сырым фаршем и резал себя осколками стекла.",
+          "src": "https://en.wikipedia.org/wiki/The_Stooges"
+        },
+        {
+          "text": "Вокалиста зовут Игги Поп.",
+          "src": "https://en.wikipedia.org/wiki/Iggy_Pop"
+        },
+        {
+          "text": "Песни: «No Fun», «Search and Destroy».",
+          "src": "https://en.wikipedia.org/wiki/The_Stooges"
+        }
+      ]
+    },
+    {
+      "key": "judas_priest",
+      "facts": [
+        {
+          "text": "Название взято из песни Боба Дилана.",
+          "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+        },
+        {
+          "text": "В 1990 году на группу подали в суд: её песню обвиняли в скрытом послании, якобы толкнувшем двух юношей к самоубийству; иск отклонили.",
+          "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+        },
+        {
+          "text": "Участники группы прославились образом в чёрной коже и заклёпках.",
+          "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+        },
+        {
+          "text": "Вокалист Роб Хэлфорд выезжает на сцену на мотоцикле Harley-Davidson.",
+          "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+        },
+        {
+          "text": "Песни: «Electric Eye», «Turbo Lover».",
+          "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+        }
+      ]
+    },
+    {
+      "key": "aerosmith",
+      "facts": [
+        {
+          "text": "Вокалиста и гитариста прозвали «Токсичными близнецами» за пристрастие к наркотикам.",
+          "src": "https://en.wikipedia.org/wiki/Aerosmith"
+        },
+        {
+          "text": "В 1986 году они сыграли в кавер-версии своей старой песни, которую записала хип-хоп-группа Run-DMC, — и это воскресило их карьеру.",
+          "src": "https://en.wikipedia.org/wiki/Aerosmith"
+        },
+        {
+          "text": "Песня из фильма «Армагеддон» стала их первым и единственным хитом номер один в США.",
+          "src": "https://en.wikipedia.org/wiki/Aerosmith"
+        },
+        {
+          "text": "Вокалист Стивен Тайлер — отец актрисы Лив Тайлер.",
+          "src": "https://en.wikipedia.org/wiki/Steven_Tyler"
+        },
+        {
+          "text": "Песни: «Livin' on the Edge», «Janie's Got a Gun».",
+          "src": "https://en.wikipedia.org/wiki/Aerosmith"
+        }
+      ]
+    },
+    {
+      "key": "eagles",
+      "facts": [
+        {
+          "text": "Основатели группы до этого играли в аккомпанирующем составе певицы Линды Ронстадт.",
+          "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+        },
+        {
+          "text": "Группа распалась в 1980 году и снова собралась только в 1994-м.",
+          "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+        },
+        {
+          "text": "Их сборник лучших песен 1971–1975 годов — самый продаваемый альбом в истории США.",
+          "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+        },
+        {
+          "text": "Барабанщик Дон Хенли — ещё и один из главных вокалистов группы.",
+          "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+        },
+        {
+          "text": "Песни: «Lyin' Eyes», «Take It Easy».",
+          "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+        }
+      ]
+    },
+    {
+      "key": "rush",
+      "facts": [
+        {
+          "text": "Группа из Торонто, тексты в которой писал барабанщик.",
+          "src": "https://en.wikipedia.org/wiki/Rush_(band)"
+        },
+        {
+          "text": "Басист и вокалист заодно играл на синтезаторах, в том числе на басовых педалях.",
+          "src": "https://en.wikipedia.org/wiki/Rush_(band)"
+        },
+        {
+          "text": "Потеряв за год дочь и жену, барабанщик проехал на мотоцикле 88 тысяч километров, а потом вернулся в группу.",
+          "src": "https://en.wikipedia.org/wiki/Neil_Peart"
+        },
+        {
+          "text": "Вокалист и басист — Гедди Ли, барабанщик — Нил Пирт.",
+          "src": "https://en.wikipedia.org/wiki/Rush_(band)"
+        },
+        {
+          "text": "Песни: «Closer to the Heart», «Subdivisions».",
+          "src": "https://en.wikipedia.org/wiki/Rush_(band)"
+        }
+      ]
+    },
+    {
+      "key": "sex_pistols",
+      "facts": [
+        {
+          "text": "Менеджер группы держал магазин одежды на Кингс-роуд в Лондоне.",
+          "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+        },
+        {
+          "text": "Басиста, главного автора мелодий, в 1977 году заменили человеком, который почти не умел играть на басу.",
+          "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+        },
+        {
+          "text": "В 1977 году BBC запретило их антимонархическую песню, но сингл всё равно стал вторым в британском чарте.",
+          "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+        },
+        {
+          "text": "Вокалиста Джонни Роттена в жизни зовут Джон Лайдон.",
+          "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+        },
+        {
+          "text": "Песни: «Holidays in the Sun», «Pretty Vacant».",
+          "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+        }
+      ]
+    },
+    {
+      "key": "slayer",
+      "facts": [
+        {
+          "text": "Группа собралась в 1981 году в Хантингтон-Парке, Калифорния.",
+          "src": "https://en.wikipedia.org/wiki/Slayer"
+        },
+        {
+          "text": "Лейбл Columbia отказался выпускать один их альбом из-за песни на нём — его выпустил Geffen.",
+          "src": "https://en.wikipedia.org/wiki/Slayer"
+        },
+        {
+          "text": "Их причисляют к «большой четвёрке» трэш-метала — вместе с Metallica, Megadeth и Anthrax.",
+          "src": "https://en.wikipedia.org/wiki/Slayer"
+        },
+        {
+          "text": "Вокалист и басист — Том Арайя.",
+          "src": "https://en.wikipedia.org/wiki/Slayer"
+        },
+        {
+          "text": "Песни: «South of Heaven», «Seasons in the Abyss».",
+          "src": "https://en.wikipedia.org/wiki/Slayer"
+        }
+      ]
+    },
+    {
+      "key": "helloween",
+      "facts": [
+        {
+          "text": "Группа из Гамбурга: её называют «отцами пауэр-метала».",
+          "src": "https://en.wikipedia.org/wiki/Helloween"
+        },
+        {
+          "text": "В 2017 году группа отправилась в мировой тур с тремя вокалистами — двое прежних вернулись.",
+          "src": "https://en.wikipedia.org/wiki/Helloween"
+        },
+        {
+          "text": "Свои туры группа называет в честь тыкв.",
+          "src": "https://en.wikipedia.org/wiki/Helloween"
+        },
+        {
+          "text": "Гитарист Кай Хансен в 1989 году ушёл и основал группу Gamma Ray.",
+          "src": "https://en.wikipedia.org/wiki/Helloween"
+        },
+        {
+          "text": "Песни: «Dr. Stein», «Future World».",
+          "src": "https://en.wikipedia.org/wiki/Helloween"
+        }
+      ]
+    },
+    {
+      "key": "motley_crue",
+      "facts": [
+        {
+          "text": "Название гитарист вспомнил по фразе, которой когда-то описали его прежнюю группу.",
+          "src": "https://en.wikipedia.org/wiki/M%C3%B6tley_Cr%C3%BCe"
+        },
+        {
+          "text": "Барабанщик играл соло на установке, которая вращалась вместе с ним.",
+          "src": "https://en.wikipedia.org/wiki/Tommy_Lee"
+        },
+        {
+          "text": "Басист в 1987 году после передозировки две минуты был в состоянии клинической смерти — и потом написал об этом песню.",
+          "src": "https://en.wikipedia.org/wiki/M%C3%B6tley_Cr%C3%BCe"
+        },
+        {
+          "text": "Барабанщик группы был женат на Памеле Андерсон.",
+          "src": "https://en.wikipedia.org/wiki/Tommy_Lee"
+        },
+        {
+          "text": "Песни: «Home Sweet Home», «Wild Side».",
+          "src": "https://en.wikipedia.org/wiki/M%C3%B6tley_Cr%C3%BCe"
+        }
+      ]
+    },
+    {
+      "key": "bon_jovi",
+      "facts": [
+        {
+          "text": "Их альбом 1986 года стал самым продаваемым альбомом 1987 года в США по версии Billboard.",
+          "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+        },
+        {
+          "text": "Вокалист до славы работал в нью-йоркской студии, совладельцем которой был его двоюродный брат.",
+          "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+        },
+        {
+          "text": "Название придумали по примеру Van Halen — группы, названной по фамилии участников.",
+          "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+        },
+        {
+          "text": "Гитарист Ричи Самбора, соавтор их песен, ушёл из группы в 2013 году.",
+          "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+        },
+        {
+          "text": "Песни: «Bed of Roses», «Wanted Dead or Alive».",
+          "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+        }
+      ]
+    },
+    {
+      "key": "def_leppard",
+      "facts": [
+        {
+          "text": "Их альбом 1987 года дал семь синглов в американском чарте.",
+          "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+        },
+        {
+          "text": "Один из гитаристов умер в 1991 году от смеси лекарств и алкоголя.",
+          "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+        },
+        {
+          "text": "Барабанщик в 1984 году потерял руку в автокатастрофе и остался в группе, играя на особой установке.",
+          "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+        },
+        {
+          "text": "Группа из Шеффилда, вокалист — Джо Эллиотт.",
+          "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+        },
+        {
+          "text": "Песни: «Animal», «Photograph».",
+          "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+        }
+      ]
+    },
+    {
+      "key": "europe",
+      "facts": [
+        {
+          "text": "Группа из шведского Упландс-Весбю, первое название — Force.",
+          "src": "https://en.wikipedia.org/wiki/Europe_(band)"
+        },
+        {
+          "text": "В 1982 году выиграла телевизионный конкурс Rock-SM — шведский рок-чемпионат.",
+          "src": "https://en.wikipedia.org/wiki/Europe_(band)"
+        },
+        {
+          "text": "Клавишный рифф главного хита вокалист сочинил ещё в 1981–1982 годах на синтезаторе, взятом у клавишника.",
+          "src": "https://en.wikipedia.org/wiki/The_Final_Countdown_(song)"
+        },
+        {
+          "text": "Вокалист — Джоуи Темпест.",
+          "src": "https://en.wikipedia.org/wiki/Europe_(band)"
+        },
+        {
+          "text": "Песни: «Carrie», «Rock the Night».",
+          "src": "https://en.wikipedia.org/wiki/Europe_(band)"
+        }
+      ]
+    },
+    {
+      "key": "u2",
+      "facts": [
+        {
+          "text": "Группа собралась в 1976 году в дублинской школе — по объявлению барабанщика на доске.",
+          "src": "https://en.wikipedia.org/wiki/U2"
+        },
+        {
+          "text": "В 2014 году их альбом бесплатно раздали всем пользователям iTunes — многим он попал в библиотеку без спроса.",
+          "src": "https://en.wikipedia.org/wiki/Songs_of_Innocence_(U2_album)"
+        },
+        {
+          "text": "В 2023 году они концертами открывали новую площадку Sphere в Лас-Вегасе.",
+          "src": "https://en.wikipedia.org/wiki/U2"
+        },
+        {
+          "text": "Вокалист — Боно, гитарист — Эдж.",
+          "src": "https://en.wikipedia.org/wiki/U2"
+        },
+        {
+          "text": "Песни: «Vertigo», «Elevation».",
+          "src": "https://en.wikipedia.org/wiki/U2"
+        }
+      ]
+    },
+    {
+      "key": "inxs",
+      "facts": [
+        {
+          "text": "В группе было шесть участников, трое из них — братья.",
+          "src": "https://en.wikipedia.org/wiki/INXS"
+        },
+        {
+          "text": "Группа из Сиднея; поначалу называлась по фамилии братьев-основателей.",
+          "src": "https://en.wikipedia.org/wiki/INXS"
+        },
+        {
+          "text": "Вокалиста нашли мёртвым в 1997 году в номере сиднейского отеля.",
+          "src": "https://en.wikipedia.org/wiki/INXS"
+        },
+        {
+          "text": "Вокалист Майкл Хатченс встречался с Кайли Миноуг.",
+          "src": "https://en.wikipedia.org/wiki/Michael_Hutchence"
+        },
+        {
+          "text": "Песни: «New Sensation», «Suicide Blonde».",
+          "src": "https://en.wikipedia.org/wiki/Michael_Hutchence"
+        }
+      ]
+    },
+    {
+      "key": "rem",
+      "facts": [
+        {
+          "text": "Группа собралась в 1980 году в Атенсе, штат Джорджия: участники учились в местном университете.",
+          "src": "https://en.wikipedia.org/wiki/R.E.M."
+        },
+        {
+          "text": "В 1995 году барабанщику стало плохо прямо на сцене — аневризма; через два года он ушёл из группы.",
+          "src": "https://en.wikipedia.org/wiki/R.E.M."
+        },
+        {
+          "text": "В 2011 году группа мирно объявила о роспуске.",
+          "src": "https://en.wikipedia.org/wiki/R.E.M."
+        },
+        {
+          "text": "Вокалист — Майкл Стайп.",
+          "src": "https://en.wikipedia.org/wiki/R.E.M."
+        },
+        {
+          "text": "Песни: «Imitation of Life», «Man on the Moon».",
+          "src": "https://en.wikipedia.org/wiki/R.E.M."
+        }
+      ]
+    },
+    {
+      "key": "pixies",
+      "facts": [
+        {
+          "text": "Группа из Бостона: двое основателей жили по соседству, когда учились в университете.",
+          "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+        },
+        {
+          "text": "Басистка пришла по объявлению, где искали поклонника Hüsker Dü и Peter, Paul and Mary.",
+          "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+        },
+        {
+          "text": "Их песня звучит в кульминации фильма «Бойцовский клуб».",
+          "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+        },
+        {
+          "text": "Лидер выступает как Блэк Фрэнсис, а сольно — как Фрэнк Блэк.",
+          "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+        },
+        {
+          "text": "Песни: «Here Comes Your Man», «Debaser».",
+          "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+        }
+      ]
+    },
+    {
+      "key": "the_smiths",
+      "facts": [
+        {
+          "text": "Группа из Манчестера просуществовала всего пять лет — с 1982 по 1987 год.",
+          "src": "https://en.wikipedia.org/wiki/The_Smiths"
+        },
+        {
+          "text": "Гитарист сам пришёл к будущему вокалисту домой и постучал в дверь, чтобы позвать его в группу.",
+          "src": "https://en.wikipedia.org/wiki/The_Smiths"
+        },
+        {
+          "text": "Заглавная песня их второго альбома — в защиту вегетарианства.",
+          "src": "https://en.wikipedia.org/wiki/The_Smiths"
+        },
+        {
+          "text": "Вокалист Моррисси часто размахивал на сцене гладиолусами.",
+          "src": "https://en.wikipedia.org/wiki/The_Smiths"
+        },
+        {
+          "text": "Песни: «Panic», «Bigmouth Strikes Again».",
+          "src": "https://en.wikipedia.org/wiki/The_Smiths"
+        }
+      ]
+    },
+    {
+      "key": "new_order",
+      "facts": [
+        {
+          "text": "Группу собрали трое оставшихся участников другой группы после гибели её вокалиста.",
+          "src": "https://en.wikipedia.org/wiki/New_Order_(band)"
+        },
+        {
+          "text": "Их сингл 1983 года — самый продаваемый 12-дюймовый сингл в истории.",
+          "src": "https://en.wikipedia.org/wiki/Blue_Monday_(New_Order_song)"
+        },
+        {
+          "text": "Конверт того сингла сделали в виде дискеты, и лейбл терял деньги на каждой проданной копии.",
+          "src": "https://en.wikipedia.org/wiki/Blue_Monday_(New_Order_song)"
+        },
+        {
+          "text": "Вокалист Бернард Самнер, басист Питер Хук и барабанщик Стивен Моррис раньше играли в Joy Division.",
+          "src": "https://en.wikipedia.org/wiki/New_Order_(band)"
+        },
+        {
+          "text": "Песни: «True Faith», «Regret».",
+          "src": "https://en.wikipedia.org/wiki/New_Order_(band)"
+        }
+      ]
+    },
+    {
+      "key": "duran_duran",
+      "facts": [
+        {
+          "text": "Название взято у персонажа фантастического фильма «Барбарелла» (1968).",
+          "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+        },
+        {
+          "text": "Группа из Бирмингема начинала постоянным составом клуба Rum Runner.",
+          "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+        },
+        {
+          "text": "Их песня к фильму о Джеймсе Бонде первой из бондовских возглавила чарт США.",
+          "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+        },
+        {
+          "text": "Вокалиста зовут Саймон Ле Бон.",
+          "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+        },
+        {
+          "text": "Песни: «Planet Earth», «Girls on Film».",
+          "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+        }
+      ]
+    },
+    {
+      "key": "tears_for_fears",
+      "facts": [
+        {
+          "text": "Название навеяно первичной терапией — методом психолога Артура Янова.",
+          "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+        },
+        {
+          "text": "Двое участников познакомились подростками в английском Бате.",
+          "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+        },
+        {
+          "text": "Свой большой хит они слегка переписали для благотворительной акции Sport Aid в 1986 году.",
+          "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+        },
+        {
+          "text": "Участники — Роланд Орзабал и Курт Смит.",
+          "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+        },
+        {
+          "text": "Песни: «Head over Heels», «Sowing the Seeds of Love».",
+          "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+        }
+      ]
+    },
+    {
+      "key": "rhcp",
+      "facts": [
+        {
+          "text": "Гитарист-основатель умер от передозировки героина в 1988 году.",
+          "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+        },
+        {
+          "text": "Основатели группы учились в одном классе лос-анджелесской школы Fairfax High.",
+          "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+        },
+        {
+          "text": "Их гитарист дважды уходил из группы и дважды возвращался.",
+          "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+        },
+        {
+          "text": "Басист группы — Фли, вокалист — Энтони Кидис.",
+          "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+        },
+        {
+          "text": "Песни: «Otherside», «Dani California».",
+          "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+        }
+      ]
+    },
+    {
+      "key": "deftones",
+      "facts": [
+        {
+          "text": "Группа собралась в 1988 году в Сакраменто, Калифорния.",
+          "src": "https://en.wikipedia.org/wiki/Deftones"
+        },
+        {
+          "text": "Басист в 2008 году попал в автокатастрофу и до своей смерти в 2013-м так и не пришёл в сознание полностью.",
+          "src": "https://en.wikipedia.org/wiki/Deftones"
+        },
+        {
+          "text": "Песня с их альбома 2000 года получила «Грэмми» за лучшее метал-исполнение.",
+          "src": "https://en.wikipedia.org/wiki/Deftones"
+        },
+        {
+          "text": "Вокалист — Чино Морено.",
+          "src": "https://en.wikipedia.org/wiki/Deftones"
+        },
+        {
+          "text": "Песни: «Digital Bath», «Be Quiet and Drive (Far Away)».",
+          "src": "https://en.wikipedia.org/wiki/Deftones"
+        }
+      ]
+    },
+    {
+      "key": "dire_straits",
+      "facts": [
+        {
+          "text": "Их альбом 1985 года первым в истории разошёлся миллионным тиражом на компакт-дисках.",
+          "src": "https://en.wikipedia.org/wiki/Dire_Straits"
+        },
+        {
+          "text": "Демо они отправили диджею BBC Radio London просто за советом, а тот поставил их песню в эфир — через два месяца у группы был контракт.",
+          "src": "https://en.wikipedia.org/wiki/Dire_Straits"
+        },
+        {
+          "text": "До группы лидер работал репортёром в газете, а потом три года преподавал в колледже.",
+          "src": "https://en.wikipedia.org/wiki/Mark_Knopfler"
+        },
+        {
+          "text": "Вокалист и гитарист Марк Нопфлер знаменит игрой на гитаре пальцами.",
+          "src": "https://en.wikipedia.org/wiki/Dire_Straits"
+        },
+        {
+          "text": "Песни: «Walk of Life», «Romeo and Juliet».",
+          "src": "https://en.wikipedia.org/wiki/Dire_Straits"
+        }
+      ]
+    },
+    {
+      "key": "pantera",
+      "facts": [
+        {
+          "text": "Группа собралась в 1981 году в Арлингтоне, штат Техас, и начинала как глэм-метал.",
+          "src": "https://en.wikipedia.org/wiki/Pantera"
+        },
+        {
+          "text": "Гитариста застрелили прямо на сцене в 2004 году — во время концерта его новой группы.",
+          "src": "https://en.wikipedia.org/wiki/Pantera"
+        },
+        {
+          "text": "Их альбом 1994 года дебютировал на первом месте в американском чарте.",
+          "src": "https://en.wikipedia.org/wiki/Pantera"
+        },
+        {
+          "text": "Гитарист и барабанщик группы — родные братья.",
+          "src": "https://en.wikipedia.org/wiki/Pantera"
+        },
+        {
+          "text": "Песни: «Cemetery Gates», «This Love».",
+          "src": "https://en.wikipedia.org/wiki/Pantera"
+        }
+      ]
+    },
+    {
+      "key": "the_police",
+      "facts": [
+        {
+          "text": "Отец барабанщика был одним из основателей ЦРУ.",
+          "src": "https://en.wikipedia.org/wiki/Stewart_Copeland"
+        },
+        {
+          "text": "Ради рекламы жевательной резинки участники перекрасились в блондинов — а реклама так и не вышла.",
+          "src": "https://en.wikipedia.org/wiki/The_Police"
+        },
+        {
+          "text": "Басист и вокалист раньше работал учителем, а прозвище получил за свитер в чёрно-жёлтую полоску.",
+          "src": "https://en.wikipedia.org/wiki/Sting_(musician)"
+        },
+        {
+          "text": "Группу в 1977 году основали барабанщик Стюарт Копленд и басист Стинг.",
+          "src": "https://en.wikipedia.org/wiki/Stewart_Copeland"
+        },
+        {
+          "text": "Песни: «Walking on the Moon», «Every Little Thing She Does Is Magic».",
+          "src": "https://en.wikipedia.org/wiki/The_Police"
+        }
+      ]
+    },
+    {
+      "key": "whitesnake",
+      "facts": [
+        {
+          "text": "Группа начиналась в 1978 году как аккомпанирующий состав певца, только что ушедшего из Deep Purple.",
+          "src": "https://en.wikipedia.org/wiki/Whitesnake"
+        },
+        {
+          "text": "Название взято из заглавной песни его первого сольного альбома.",
+          "src": "https://en.wikipedia.org/wiki/Whitesnake"
+        },
+        {
+          "text": "В трёх их клипах 1987 года снялась актриса Тони Китэйн — будущая жена вокалиста.",
+          "src": "https://en.wikipedia.org/wiki/Whitesnake"
+        },
+        {
+          "text": "Вокалист и основатель — Дэвид Ковердейл.",
+          "src": "https://en.wikipedia.org/wiki/Whitesnake"
+        },
+        {
+          "text": "Песни: «Still of the Night», «Fool for Your Loving».",
+          "src": "https://en.wikipedia.org/wiki/Whitesnake"
+        }
+      ]
+    },
+    {
+      "key": "cinderella",
+      "facts": [
+        {
+          "text": "Их заметил Джон Бон Джови и рассказал о них сотруднику своего лейбла.",
+          "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+        },
+        {
+          "text": "Их дебютный альбом стал трижды платиновым.",
+          "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+        },
+        {
+          "text": "В 1991 году вокалист потерял голос из-за пареза голосовых связок.",
+          "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+        },
+        {
+          "text": "Группа из пригородов Филадельфии; вокалист и гитарист — Том Кифер.",
+          "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+        },
+        {
+          "text": "Песни: «Shake Me», «Gypsy Road».",
+          "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+        }
+      ]
+    }
+  ]
+}

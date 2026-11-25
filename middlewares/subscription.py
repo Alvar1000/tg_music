@@ -34,6 +34,10 @@ GATE_TEXT = (
 ALERT_NOT_SUBSCRIBED = "Ты ещё не подписан 🤘 Подпишись и нажми кнопку снова"
 
 
+def member_is_subscribed(member) -> bool:
+    return member.status in _SUBSCRIBED_STATUSES
+
+
 async def is_subscribed(bot, user_id: int) -> bool:
     """Проверяет подписку через get_chat_member. При ошибке считает «не подписан».
 
@@ -41,7 +45,7 @@ async def is_subscribed(bot, user_id: int) -> bool:
     """
     try:
         member = await bot.get_chat_member(config.CHANNEL_ID, user_id)
-        return member.status in _SUBSCRIBED_STATUSES
+        return member_is_subscribed(member)
     except (TelegramBadRequest, TelegramForbiddenError) as e:
         logger.warning("Не удалось проверить подписку user_id=%s: %s", user_id, e)
         return False
@@ -82,6 +86,10 @@ class SubscriptionMiddleware(BaseMiddleware):
         if isinstance(event, Message) and event.text and event.text.startswith("/start"):
             return await handler(event, data)
         if isinstance(event, CallbackQuery) and event.data == "check_sub":
+            return await handler(event, data)
+
+        # Принятие само проверяет подписку и показывает гейт отдельным сообщением.
+        if isinstance(event, CallbackQuery) and (event.data or "").startswith("duel:a:"):
             return await handler(event, data)
 
         # Админов не запираем, иначе они не смогут вызвать /stats.

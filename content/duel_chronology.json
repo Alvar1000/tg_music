@@ -1,0 +1,570 @@
+{
+ "note": "Годы основания для раунда «Хронология» (пункт 2.3 в DUEL_PLAN.md). Год — первый год активности группы по английской Википедии (поле «Years active», оно же год во вступлении статьи), даже если нынешнее название появилось позже: Black Sabbath — 1968 (ещё как Earth). Сольных артистов (Bowie, Hendrix) в хронологии нет. min_gap — на сколько лет минимум разнесены соседние по году группы в одной задаче.",
+ "min_gap": 1,
+ "bands": [
+  {
+   "key": "bee_gees",
+   "name": "Bee Gees",
+   "year": 1958,
+   "src": "https://en.wikipedia.org/wiki/Bee_Gees"
+  },
+  {
+   "key": "creedence_clearwater_revival",
+   "name": "Creedence Clearwater Revival",
+   "year": 1959,
+   "src": "https://en.wikipedia.org/wiki/Creedence_Clearwater_Revival"
+  },
+  {
+   "key": "the_beatles",
+   "name": "The Beatles",
+   "year": 1960,
+   "src": "https://en.wikipedia.org/wiki/The_Beatles"
+  },
+  {
+   "key": "the_beach_boys",
+   "name": "The Beach Boys",
+   "year": 1961,
+   "src": "https://en.wikipedia.org/wiki/The_Beach_Boys"
+  },
+  {
+   "key": "the_kinks",
+   "name": "The Kinks",
+   "year": 1962,
+   "src": "https://en.wikipedia.org/wiki/The_Kinks"
+  },
+  {
+   "key": "rolling_stones",
+   "name": "The Rolling Stones",
+   "year": 1962,
+   "src": "https://en.wikipedia.org/wiki/The_Rolling_Stones"
+  },
+  {
+   "key": "the_zombies",
+   "name": "The Zombies",
+   "year": 1962,
+   "src": "https://en.wikipedia.org/wiki/The_Zombies"
+  },
+  {
+   "key": "the_yardbirds",
+   "name": "The Yardbirds",
+   "year": 1963,
+   "src": "https://en.wikipedia.org/wiki/The_Yardbirds"
+  },
+  {
+   "key": "the_velvet_underground",
+   "name": "The Velvet Underground",
+   "year": 1964,
+   "src": "https://en.wikipedia.org/wiki/The_Velvet_Underground"
+  },
+  {
+   "key": "the_who",
+   "name": "The Who",
+   "year": 1964,
+   "src": "https://en.wikipedia.org/wiki/The_Who"
+  },
+  {
+   "key": "grateful_dead",
+   "name": "Grateful Dead",
+   "year": 1965,
+   "src": "https://en.wikipedia.org/wiki/Grateful_Dead"
+  },
+  {
+   "key": "pink_floyd",
+   "name": "Pink Floyd",
+   "year": 1965,
+   "src": "https://en.wikipedia.org/wiki/Pink_Floyd"
+  },
+  {
+   "key": "scorpions",
+   "name": "Scorpions",
+   "year": 1965,
+   "src": "https://en.wikipedia.org/wiki/Scorpions_(band)"
+  },
+  {
+   "key": "the_doors",
+   "name": "The Doors",
+   "year": 1965,
+   "src": "https://en.wikipedia.org/wiki/The_Doors"
+  },
+  {
+   "key": "cream",
+   "name": "Cream",
+   "year": 1966,
+   "src": "https://en.wikipedia.org/wiki/Cream_(band)"
+  },
+  {
+   "key": "fleetwood_mac",
+   "name": "Fleetwood Mac",
+   "year": 1967,
+   "src": "https://en.wikipedia.org/wiki/Fleetwood_Mac"
+  },
+  {
+   "key": "genesis",
+   "name": "Genesis",
+   "year": 1967,
+   "src": "https://en.wikipedia.org/wiki/Genesis_(band)"
+  },
+  {
+   "key": "the_stooges",
+   "name": "The Stooges",
+   "year": 1967,
+   "src": "https://en.wikipedia.org/wiki/The_Stooges"
+  },
+  {
+   "key": "black_sabbath",
+   "name": "Black Sabbath",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/Black_Sabbath"
+  },
+  {
+   "key": "deep_purple",
+   "name": "Deep Purple",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/Deep_Purple"
+  },
+  {
+   "key": "king_crimson",
+   "name": "King Crimson",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/King_Crimson"
+  },
+  {
+   "key": "led_zeppelin",
+   "name": "Led Zeppelin",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/Led_Zeppelin"
+  },
+  {
+   "key": "rush",
+   "name": "Rush",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/Rush_(band)"
+  },
+  {
+   "key": "yes",
+   "name": "Yes",
+   "year": 1968,
+   "src": "https://en.wikipedia.org/wiki/Yes_(band)"
+  },
+  {
+   "key": "judas_priest",
+   "name": "Judas Priest",
+   "year": 1969,
+   "src": "https://en.wikipedia.org/wiki/Judas_Priest"
+  },
+  {
+   "key": "aerosmith",
+   "name": "Aerosmith",
+   "year": 1970,
+   "src": "https://en.wikipedia.org/wiki/Aerosmith"
+  },
+  {
+   "key": "queen",
+   "name": "Queen",
+   "year": 1970,
+   "src": "https://en.wikipedia.org/wiki/Queen_(band)"
+  },
+  {
+   "key": "eagles",
+   "name": "Eagles",
+   "year": 1971,
+   "src": "https://en.wikipedia.org/wiki/Eagles_(band)"
+  },
+  {
+   "key": "van_halen",
+   "name": "Van Halen",
+   "year": 1972,
+   "src": "https://en.wikipedia.org/wiki/Van_Halen"
+  },
+  {
+   "key": "ac_dc",
+   "name": "AC/DC",
+   "year": 1973,
+   "src": "https://en.wikipedia.org/wiki/AC/DC"
+  },
+  {
+   "key": "kiss",
+   "name": "Kiss",
+   "year": 1973,
+   "src": "https://en.wikipedia.org/wiki/Kiss_(band)"
+  },
+  {
+   "key": "ramones",
+   "name": "Ramones",
+   "year": 1974,
+   "src": "https://en.wikipedia.org/wiki/Ramones"
+  },
+  {
+   "key": "iron_maiden",
+   "name": "Iron Maiden",
+   "year": 1975,
+   "src": "https://en.wikipedia.org/wiki/Iron_Maiden"
+  },
+  {
+   "key": "motorhead",
+   "name": "Motörhead",
+   "year": 1975,
+   "src": "https://en.wikipedia.org/wiki/Mot%C3%B6rhead"
+  },
+  {
+   "key": "rainbow",
+   "name": "Rainbow",
+   "year": 1975,
+   "src": "https://en.wikipedia.org/wiki/Rainbow_(rock_band)"
+  },
+  {
+   "key": "sex_pistols",
+   "name": "Sex Pistols",
+   "year": 1975,
+   "src": "https://en.wikipedia.org/wiki/Sex_Pistols"
+  },
+  {
+   "key": "def_leppard",
+   "name": "Def Leppard",
+   "year": 1976,
+   "src": "https://en.wikipedia.org/wiki/Def_Leppard"
+  },
+  {
+   "key": "joy_division",
+   "name": "Joy Division",
+   "year": 1976,
+   "src": "https://en.wikipedia.org/wiki/Joy_Division"
+  },
+  {
+   "key": "the_clash",
+   "name": "The Clash",
+   "year": 1976,
+   "src": "https://en.wikipedia.org/wiki/The_Clash"
+  },
+  {
+   "key": "the_cure",
+   "name": "The Cure",
+   "year": 1976,
+   "src": "https://en.wikipedia.org/wiki/The_Cure"
+  },
+  {
+   "key": "u2",
+   "name": "U2",
+   "year": 1976,
+   "src": "https://en.wikipedia.org/wiki/U2"
+  },
+  {
+   "key": "dire_straits",
+   "name": "Dire Straits",
+   "year": 1977,
+   "src": "https://en.wikipedia.org/wiki/Dire_Straits"
+  },
+  {
+   "key": "inxs",
+   "name": "INXS",
+   "year": 1977,
+   "src": "https://en.wikipedia.org/wiki/INXS"
+  },
+  {
+   "key": "the_police",
+   "name": "The Police",
+   "year": 1977,
+   "src": "https://en.wikipedia.org/wiki/The_Police"
+  },
+  {
+   "key": "bauhaus",
+   "name": "Bauhaus",
+   "year": 1978,
+   "src": "https://en.wikipedia.org/wiki/Bauhaus_(band)"
+  },
+  {
+   "key": "duran_duran",
+   "name": "Duran Duran",
+   "year": 1978,
+   "src": "https://en.wikipedia.org/wiki/Duran_Duran"
+  },
+  {
+   "key": "pulp",
+   "name": "Pulp",
+   "year": 1978,
+   "src": "https://en.wikipedia.org/wiki/Pulp_(band)"
+  },
+  {
+   "key": "tsol",
+   "name": "T.S.O.L.",
+   "year": 1978,
+   "src": "https://en.wikipedia.org/wiki/T.S.O.L."
+  },
+  {
+   "key": "whitesnake",
+   "name": "Whitesnake",
+   "year": 1978,
+   "src": "https://en.wikipedia.org/wiki/Whitesnake"
+  },
+  {
+   "key": "europe",
+   "name": "Europe",
+   "year": 1979,
+   "src": "https://en.wikipedia.org/wiki/Europe_(band)"
+  },
+  {
+   "key": "depeche_mode",
+   "name": "Depeche Mode",
+   "year": 1980,
+   "src": "https://en.wikipedia.org/wiki/Depeche_Mode"
+  },
+  {
+   "key": "new_order",
+   "name": "New Order",
+   "year": 1980,
+   "src": "https://en.wikipedia.org/wiki/New_Order_(band)"
+  },
+  {
+   "key": "rem",
+   "name": "R.E.M.",
+   "year": 1980,
+   "src": "https://en.wikipedia.org/wiki/R.E.M."
+  },
+  {
+   "key": "metallica",
+   "name": "Metallica",
+   "year": 1981,
+   "src": "https://en.wikipedia.org/wiki/Metallica"
+  },
+  {
+   "key": "motley_crue",
+   "name": "Mötley Crüe",
+   "year": 1981,
+   "src": "https://en.wikipedia.org/wiki/M%C3%B6tley_Cr%C3%BCe"
+  },
+  {
+   "key": "pantera",
+   "name": "Pantera",
+   "year": 1981,
+   "src": "https://en.wikipedia.org/wiki/Pantera"
+  },
+  {
+   "key": "slayer",
+   "name": "Slayer",
+   "year": 1981,
+   "src": "https://en.wikipedia.org/wiki/Slayer"
+  },
+  {
+   "key": "tears_for_fears",
+   "name": "Tears for Fears",
+   "year": 1981,
+   "src": "https://en.wikipedia.org/wiki/Tears_for_Fears"
+  },
+  {
+   "key": "dio",
+   "name": "Dio",
+   "year": 1982,
+   "src": "https://en.wikipedia.org/wiki/Dio_(band)"
+  },
+  {
+   "key": "rhcp",
+   "name": "Red Hot Chili Peppers",
+   "year": 1982,
+   "src": "https://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers"
+  },
+  {
+   "key": "the_smiths",
+   "name": "The Smiths",
+   "year": 1982,
+   "src": "https://en.wikipedia.org/wiki/The_Smiths"
+  },
+  {
+   "key": "a_ha",
+   "name": "a-ha",
+   "year": 1982,
+   "src": "https://en.wikipedia.org/wiki/A-ha"
+  },
+  {
+   "key": "bon_jovi",
+   "name": "Bon Jovi",
+   "year": 1983,
+   "src": "https://en.wikipedia.org/wiki/Bon_Jovi"
+  },
+  {
+   "key": "cinderella",
+   "name": "Cinderella",
+   "year": 1983,
+   "src": "https://en.wikipedia.org/wiki/Cinderella_(band)"
+  },
+  {
+   "key": "megadeth",
+   "name": "Megadeth",
+   "year": 1983,
+   "src": "https://en.wikipedia.org/wiki/Megadeth"
+  },
+  {
+   "key": "the_cult",
+   "name": "The Cult",
+   "year": 1983,
+   "src": "https://en.wikipedia.org/wiki/The_Cult"
+  },
+  {
+   "key": "helloween",
+   "name": "Helloween",
+   "year": 1984,
+   "src": "https://en.wikipedia.org/wiki/Helloween"
+  },
+  {
+   "key": "the_offspring",
+   "name": "The Offspring",
+   "year": 1984,
+   "src": "https://en.wikipedia.org/wiki/The_Offspring"
+  },
+  {
+   "key": "guns_n_roses",
+   "name": "Guns N' Roses",
+   "year": 1985,
+   "src": "https://en.wikipedia.org/wiki/Guns_N%27_Roses"
+  },
+  {
+   "key": "radiohead",
+   "name": "Radiohead",
+   "year": 1985,
+   "src": "https://en.wikipedia.org/wiki/Radiohead"
+  },
+  {
+   "key": "pixies",
+   "name": "Pixies",
+   "year": 1986,
+   "src": "https://en.wikipedia.org/wiki/Pixies_(band)"
+  },
+  {
+   "key": "alice_in_chains",
+   "name": "Alice in Chains",
+   "year": 1987,
+   "src": "https://en.wikipedia.org/wiki/Alice_in_Chains"
+  },
+  {
+   "key": "green_day",
+   "name": "Green Day",
+   "year": 1987,
+   "src": "https://en.wikipedia.org/wiki/Green_Day"
+  },
+  {
+   "key": "nirvana",
+   "name": "Nirvana",
+   "year": 1987,
+   "src": "https://en.wikipedia.org/wiki/Nirvana_(band)"
+  },
+  {
+   "key": "blur",
+   "name": "Blur",
+   "year": 1988,
+   "src": "https://en.wikipedia.org/wiki/Blur_(band)"
+  },
+  {
+   "key": "deftones",
+   "name": "Deftones",
+   "year": 1988,
+   "src": "https://en.wikipedia.org/wiki/Deftones"
+  },
+  {
+   "key": "nine_inch_nails",
+   "name": "Nine Inch Nails",
+   "year": 1988,
+   "src": "https://en.wikipedia.org/wiki/Nine_Inch_Nails"
+  },
+  {
+   "key": "the_smashing_pumpkins",
+   "name": "The Smashing Pumpkins",
+   "year": 1988,
+   "src": "https://en.wikipedia.org/wiki/The_Smashing_Pumpkins"
+  },
+  {
+   "key": "hole",
+   "name": "Hole",
+   "year": 1989,
+   "src": "https://en.wikipedia.org/wiki/Hole_(band)"
+  },
+  {
+   "key": "pearl_jam",
+   "name": "Pearl Jam",
+   "year": 1990,
+   "src": "https://en.wikipedia.org/wiki/Pearl_Jam"
+  },
+  {
+   "key": "tool",
+   "name": "Tool",
+   "year": 1990,
+   "src": "https://en.wikipedia.org/wiki/Tool_(band)"
+  },
+  {
+   "key": "oasis",
+   "name": "Oasis",
+   "year": 1991,
+   "src": "https://en.wikipedia.org/wiki/Oasis_(band)"
+  },
+  {
+   "key": "blink_182",
+   "name": "Blink-182",
+   "year": 1992,
+   "src": "https://en.wikipedia.org/wiki/Blink-182"
+  },
+  {
+   "key": "weezer",
+   "name": "Weezer",
+   "year": 1992,
+   "src": "https://en.wikipedia.org/wiki/Weezer"
+  },
+  {
+   "key": "korn",
+   "name": "Korn",
+   "year": 1993,
+   "src": "https://en.wikipedia.org/wiki/Korn"
+  },
+  {
+   "key": "papa_roach",
+   "name": "Papa Roach",
+   "year": 1993,
+   "src": "https://en.wikipedia.org/wiki/Papa_Roach"
+  },
+  {
+   "key": "rammstein",
+   "name": "Rammstein",
+   "year": 1994,
+   "src": "https://en.wikipedia.org/wiki/Rammstein"
+  },
+  {
+   "key": "system_of_a_down",
+   "name": "System of a Down",
+   "year": 1994,
+   "src": "https://en.wikipedia.org/wiki/System_of_a_Down"
+  },
+  {
+   "key": "slipknot",
+   "name": "Slipknot",
+   "year": 1995,
+   "src": "https://en.wikipedia.org/wiki/Slipknot_(band)"
+  },
+  {
+   "key": "linkin_park",
+   "name": "Linkin Park",
+   "year": 1996,
+   "src": "https://en.wikipedia.org/wiki/Linkin_Park"
+  },
+  {
+   "key": "sum_41",
+   "name": "Sum 41",
+   "year": 1996,
+   "src": "https://en.wikipedia.org/wiki/Sum_41"
+  },
+  {
+   "key": "my_chemical_romance",
+   "name": "My Chemical Romance",
+   "year": 2001,
+   "src": "https://en.wikipedia.org/wiki/My_Chemical_Romance"
+  },
+  {
+   "key": "powerwolf",
+   "name": "Powerwolf",
+   "year": 2004,
+   "src": "https://en.wikipedia.org/wiki/Powerwolf"
+  },
+  {
+   "key": "she_wants_revenge",
+   "name": "She Wants Revenge",
+   "year": 2004,
+   "src": "https://en.wikipedia.org/wiki/She_Wants_Revenge"
+  }
+ ]
+}

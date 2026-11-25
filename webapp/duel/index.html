@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Рок-дуэль</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* {box-sizing:border-box}
+body {margin:0; min-height:100vh; padding:clamp(24px,8vh,80px) 18px; color:var(--tg-theme-text-color,#182034); background:var(--tg-theme-secondary-bg-color,#e9ebf0); font:16px/1.5 system-ui,sans-serif}
+main {max-width:470px; margin:auto; padding:clamp(22px,6vw,36px); border-radius:22px; background:var(--tg-theme-bg-color,#fff); box-shadow:0 15px 55px #1c325219}
+h1 {margin:0 0 20px; font-size:clamp(32px,9vw,48px); line-height:1.05; letter-spacing:-.045em}
+label {display:block; font-weight:600}
+input,button {width:100%; font:inherit; padding:12px 15px; margin-top:10px; border-radius:12px}
+input {background:transparent; color:inherit; border:1px solid #9199a8}
+button {border:0; color:var(--tg-theme-button-text-color,#fff); background:var(--tg-theme-button-color,#365fcc); font-weight:650; cursor:pointer}
+button:disabled {opacity:.6}
+#status {margin:12px 0; white-space:pre-line}
+a {color:var(--tg-theme-link-color,#365fcc)}
+#cover {width:100%;aspect-ratio:1;object-fit:contain;border-radius:16px;box-shadow:0 8px 28px #436bdc44}
+#facts {padding-left:1.4em}
+#facts li {margin:.55em 0}
+#choices button {display:flex;align-items:center;gap:10px;text-align:left;background:var(--tg-theme-secondary-bg-color,#edf1f9);color:inherit}
+#choices img,#reveal img {width:44px;height:44px;object-fit:cover;border-radius:50%;vertical-align:middle}
+#choices button[aria-pressed=true] {outline:2px solid var(--tg-theme-button-color,#365fcc);outline-offset:-2px}
+#choices .number {margin-left:auto;font-variant-numeric:tabular-nums}
+#wrong {text-decoration:line-through}
+#clock {float:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<main>
+<h1>⚔️ Рок-дуэль</h1>
+<form id="form" hidden>
+<label for="nickname">Ник соперника в Telegram</label>
+<input id="nickname" placeholder="@ник" maxlength="33" autocapitalize="none" spellcheck="false" required>
+<button id="send">Бросить вызов</button>
+</form>
+<p id="status" role="status">Загрузка…</p>
+<section id="card" hidden>
+<span id="clock"></span><strong id="position"></strong>
+<h2 id="prompt"></h2><ol id="facts"></ol><img id="cover" alt="Обложка загаданного альбома" hidden>
+<div id="tale" hidden><small id="taleTags"></small><p id="story"></p></div>
+<p id="wrong"></p>
+<div id="introControls" hidden>
+<button id="listen" type="button"></button>
+<button id="longer" type="button"></button>
+<p id="audioError" role="status"></p>
+</div>
+<label id="searchLabel" for="search">Найди ответ по названию</label>
+<input id="search" type="search" placeholder="Введи первые буквы" autocomplete="off">
+<button id="taleHint" hidden>Показать 4 варианта · за верный ответ 1 очко</button>
+<div id="choices"></div>
+<div id="orderControls" hidden>
+<button id="resetOrder" type="button">Сбросить</button>
+<button id="checkOrder" type="button">Проверить</button>
+</div>
+<p id="reveal" role="status"></p><ol id="timeline" hidden></ol>
+</section>
+<button id="play" hidden>Играть</button>
+<button id="home" hidden>К вызовам</button>
+<a id="channel" hidden>Подписаться на канал</a>
+<button id="cancel" hidden>Отменить вызов</button>
+<button id="refresh" hidden>Обновить</button>
+<details id="rating"><summary>Сезонный рейтинг</summary><p id="season"></p><ol id="standings"></ol></details>
+</main>
+<script>
+const tg = window.Telegram?.WebApp;
+const el = id => document.getElementById(id);
+const form = el('form'), statusLine = el('status'), nick = el('nickname');
+let current = null, busy = false;
+let draft = null;
+try { draft = JSON.parse(sessionStorage.getItem('duelInvite')); } catch {}
+function saveDraft(value) {
+  draft = value;
+  try {
+    if (value) sessionStorage.setItem('duelInvite', JSON.stringify(value));
+    else sessionStorage.removeItem('duelInvite');
+  } catch {}
+}
+async function api(path, body) {
+  const res = await fetch('/api/duel/' + path, {
+    method: body ? 'POST' : 'GET', cache:'no-store',
+    headers:{'X-Telegram-Init-Data':tg.initData, 'Content-Type':'application/json'},
+    body:body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json();
+  if (!res.ok) throw Object.assign(new Error(data.message), data);
+  return data;
+}
+let gameId = new URLSearchParams(location.search).get('id');
+if (!/^[0-9]{1,18}$/.test(gameId || '')) gameId = null;
+let task = null, artists = [], answerDraft = null, clockOffset = 0;
+let selectedOrder = [];
+let audioContext, audioBuffer, playing, audioUrl, listenSeconds;
+function stopIntro() {
+  if (playing) { playing.stop(); playing = null; }
+}
+function resetIntro() {
+  stopIntro();
+  audioBuffer = audioUrl = null;
+  el('introControls').hidden = true;
+  el('audioError').textContent = '';
+}
+function introButtons(seconds, revealed = false) {
+  listenSeconds = seconds;
+  el('introControls').hidden = false;
+  const reward = {5:'3 очка', 10:'2 очка', 15:'1 очко'};
+  el('listen').textContent = '▶ Слушать ' + seconds + ' с' + (revealed ? '' : ' · ' + reward[seconds]);
+  el('longer').hidden = seconds === 15;
+  const next = seconds + 5;
+  el('longer').textContent = 'Открыть ' + next + ' с · ' + reward[next];
+}
+el('listen').onclick = () => run(async () => {
+  stopIntro();
+  try {
+    audioContext ??= new AudioContext();
+    await audioContext.resume();
+    if (!audioBuffer) {
+      const res = await fetch(audioUrl);
+      if (!res.ok) throw new Error();
+      audioBuffer = await audioContext.decodeAudioData(await res.arrayBuffer());
+    }
+    if (document.hidden) return;
+    playing = audioContext.createBufferSource();
+    playing.buffer = audioBuffer;
+    playing.connect(audioContext.destination);
+    playing.start(0, 0, listenSeconds);
+    el('audioError').textContent = '';
+  } catch {
+    el('audioError').textContent = 'Не удалось воспроизвести фрагмент. Нажми «Слушать» ещё раз.';
+  }
+});
+el('longer').onclick = () => run(async () => {
+  const data = await api('duels/'+current.id+'/tasks/'+task.id+'/intro', {seconds:listenSeconds + 5});
+  if (data.duel) { render(data.duel); return; }
+  introButtons(data.seconds);
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopIntro(); });
+function track(id) {
+  gameId = id;
+  const url = new URL(location.href);
+  if (id) url.searchParams.set('id', id); else url.searchParams.delete('id');
+  history.replaceState(null, '', url);
+}
+function duration(seconds) {
+  return Math.floor(seconds/60) + ':' + String(seconds%60).padStart(2,'0');
+}
+function render(duel) {
+  resetIntro();
+  current = duel;
+  task = null;
+  el('card').hidden = el('play').hidden = el('home').hidden = true;
+  form.hidden = !!duel;
+  el('cancel').hidden = duel?.status !== 'pending' || duel.role !== 'author';
+  el('refresh').hidden = !duel || !['pending','active'].includes(duel.status);
+  statusLine.textContent = '';
+  if (!duel) return;
+  if (duel.status === 'pending') {
+    if (duel.role === 'opponent') statusLine.textContent = '@' + duel.peer + ' вызывает тебя на рок-дуэль. Ответь в личном чате с ботом.';
+    else statusLine.textContent = duel.delivery === 'sent' ? 'Вызов отправлен. Соперник: @' + duel.peer + '.' : 'Отправляем вызов…';
+    return;
+  }
+  if (duel.status === 'active') {
+    track(duel.id);
+    statusLine.textContent = 'Дуэль с @' + duel.peer + ' · Твои очки: ' + duel.points;
+    if (duel.next_task) {
+      el('play').hidden = false;
+      el('play').textContent = duel.opened ? 'Продолжить' : 'Играть';
+    } else statusLine.textContent += '\nТвоя часть готова. Ждём соперника.';
+    return;
+  }
+  el('home').hidden = false;
+  if (duel.status !== 'finished') {
+    statusLine.textContent = duel.reason === 'content_unavailable' ? 'Дуэль отменена: задание недоступно.' :
+      duel.reason === 'no_answers' ? 'Дуэль отменена: никто не ответил.' : 'Вызов закрыт.';
+    return;
+  }
+  const title = {win:'Победа',loss:'Поражение',draw:'Ничья'}[duel.outcome];
+  statusLine.textContent = title + (duel.decided_by === 'time' ? ' по времени' : '') +
+    '\nТы — @' + duel.peer + '\n' + duel.own.points + ' : ' + duel.opponent.points +
+    '\nВремя: ' + duration(duel.own.seconds) + ' и ' + duration(duel.opponent.seconds) +
+    (duel.reason === 'timeout' ? '\nСрок игры истёк. Незавершённые задания дали 0 очков.' : '');
+}
+function normalized(name) {
+  return name.toLowerCase().replace(/ё/g,'е').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/^the\s+/,'').replace(/[^a-zа-я0-9]/g,'');
+}
+function showArtist(parent, artist) {
+  if (artist?.photo) {
+    const img = document.createElement('img'); img.src = artist.photo; img.alt = ''; parent.append(img);
+  }
+  parent.append(document.createTextNode(artist?.name || ''));
+  if (artist?.band_name) parent.append(document.createTextNode(' · ' + artist.band_name));
+}
+function choices() {
+  const panel = el('choices'), query = normalized(el('search').value.trim());
+  panel.replaceChildren();
+  if (!task || (!query && !task.hinted)) return;
+  for (const artist of artists) {
+    if (task.round === 'intro') {
+      if (!normalized(artist.name).includes(query)) continue;
+    } else if (!task.hinted && ![artist.name,...artist.aliases].some(name => normalized(name).startsWith(query))) continue;
+    const button = document.createElement('button');
+    button.type = 'button'; showArtist(button, artist);
+    if (task.wrong.includes(artist.key)) continue;
+    button.onclick = () => run(() => submitAnswer(artist.key));
+    panel.append(button);
+  }
+  if (!panel.childElementCount) panel.textContent = 'Нет подходящих вариантов.';
+}
+el('search').oninput = choices;
+function updateOrder() {
+  for (const button of el('choices').children) {
+    const index = selectedOrder.indexOf(button.dataset.key);
+    button.setAttribute('aria-pressed', String(index >= 0));
+    button.lastElementChild.textContent = index >= 0 ? String(index + 1) : '';
+  }
+  el('resetOrder').disabled = !selectedOrder.length;
+  el('checkOrder').disabled = selectedOrder.length !== 4;
+}
+function showOrderChoices() {
+  selectedOrder = [];
+  const panel = el('choices');
+  panel.replaceChildren();
+  for (const artist of artists) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.dataset.key = artist.key;
+    showArtist(button, artist);
+    const number = document.createElement('span');
+    number.className = 'number'; button.append(number);
+    button.onclick = () => {
+      const index = selectedOrder.indexOf(artist.key);
+      if (index === -1) selectedOrder.push(artist.key);
+      else selectedOrder.splice(index, 1);
+      updateOrder();
+    };
+    panel.append(button);
+  }
+  updateOrder();
+}
+el('resetOrder').onclick = () => { selectedOrder = []; updateOrder(); };
+el('checkOrder').onclick = () => run(() => submitAnswer([...selectedOrder]));
+function showWrong() {
+  el('wrong').textContent = task.wrong.map(k => artists.find(a => a.key === k)?.name || k).join(' · ');
+}
+function tick() {
+  if (task) el('clock').textContent = duration(Math.max(0, Math.min(120, Math.floor((Date.now()+clockOffset-task.shown_at)/1000))));
+}
+setInterval(tick, 500);
+el('taleHint').onclick = () => run(() => openTask(true));
+async function openTask(hint = false) {
+  const data = await api('duels/'+current.id+'/tasks/'+current.next_task+(hint ? '/hint' : '/open'), {});
+  if (data.duel) { render(data.duel); return; }
+  task = data.task; artists = data.artists; clockOffset = data.server_time - Date.now();
+  resetIntro();
+  el('play').hidden = el('refresh').hidden = true;
+  el('card').hidden = false;
+  const cover = task.round === 'cover';
+  const chronology = task.round === 'chronology';
+  const intro = task.round === 'intro';
+  const tale = task.round === 'tale';
+  const titles = {detective:'Рок-детектив', cover:'Обложка', chronology:'Хронология', intro:'Угадай песню', tale:'Байка'};
+  el('position').textContent = titles[task.round] + ' · ' + task.position + ' из ' + current.count;
+  el('search').hidden = el('searchLabel').hidden = chronology || !!task.hinted;
+  el('taleHint').hidden = !tale || task.hinted;
+  el('searchLabel').textContent = intro ? 'Найди песню по исполнителю или названию' : tale || cover ? 'Выбери ответ · одна попытка' : 'Найди ответ по названию';
+  el('tale').hidden = !tale;
+  if (tale) {
+    el('taleTags').textContent = task.tags.map(tag => tag === 'death' ? 'Мрачное' : tag).join(' · ');
+    el('story').textContent = task.text;
+  }
+  el('orderControls').hidden = !chronology;
+  el('timeline').hidden = true;
+  el('cover').hidden = !cover;
+  if (cover) el('cover').src = task.image;
+  else el('cover').removeAttribute('src');
+  el('facts').hidden = task.round !== 'detective';
+  el('prompt').textContent = task.prompt;
+  el('facts').replaceChildren(...(task.facts || []).map(f => { const li = document.createElement('li'); li.textContent = f; return li; }));
+  el('reveal').replaceChildren(); el('search').value='';
+  if (intro) {
+    audioUrl = task.audio;
+    introButtons(task.seconds);
+    artists = task.songs.map(name => ({key:name, name}));
+    choices();
+  } else if (chronology) showOrderChoices(); else choices();
+  showWrong(); tick();
+}
+async function submitAnswer(key) {
+  if (!task) return;
+  const signature = JSON.stringify(key);
+  if (!answerDraft || answerDraft.task !== task.id || answerDraft.signature !== signature)
+    answerDraft = {task:task.id,signature,id:crypto.randomUUID()};
+  const choice = Array.isArray(key) ? {order:key} : {answer_key:key};
+  const data = await api('duels/'+current.id+'/tasks/'+task.id+'/answer', {...choice, request_id:answerDraft.id});
+  answerDraft = null;
+  if (!data.feedback || !['active','finished'].includes(data.duel.status)) { render(data.duel); return; }
+  current = data.duel;
+  const feedback = data.feedback;
+  if (feedback.points === null) {
+    task.wrong.push(key); showWrong(); el('search').value=''; choices();
+    el('reveal').textContent = 'Пока неверно. Осталось попыток: ' + feedback.remaining;
+    return;
+  }
+  el('taleHint').hidden = true;
+  task = null; el('choices').replaceChildren(); el('search').hidden = el('searchLabel').hidden = true;
+  el('orderControls').hidden = true;
+  if (feedback.song) {
+    stopIntro(); introButtons(15, true);
+    el('reveal').textContent = (feedback.points ? 'Верно! ' : 'Правильный ответ: ') +
+      feedback.song + ' · Очки за ответ: ' + feedback.points;
+  } else if (feedback.chronology) {
+    el('reveal').textContent = 'На своём месте: ' + feedback.points + ' из 4. Правильный порядок:';
+    el('timeline').replaceChildren(...feedback.chronology.map(({key, year}) => {
+      const li = document.createElement('li');
+      li.textContent = year + ' — ' + artists.find(a => a.key === key).name;
+      return li;
+    }));
+    el('timeline').hidden = false;
+  } else {
+    el('reveal').replaceChildren(); showArtist(el('reveal'), artists.find(a => a.key === feedback.solution));
+    if (feedback.album) el('reveal').append(document.createTextNode(' — «'+feedback.album+'»'));
+    el('reveal').append(document.createTextNode(' · Очки за ответ: '+feedback.points));
+    if (feedback.reveal) el('reveal').append(document.createElement('br'), document.createTextNode(feedback.reveal));
+  }
+  el('play').hidden = false;
+  el('play').textContent = current.next_task ? 'Следующая загадка' : (current.status === 'finished' ? 'Посмотреть итог' : 'Завершить');
+  statusLine.textContent = 'Твои очки: ' + (current.own?.points ?? current.points);
+}
+el('play').onclick = () => run(async () => {
+  if (current.next_task) await openTask();
+  else render((await api('duels/'+current.id)).duel);
+});
+el('home').onclick = () => {track(null); load();};
+async function run(action) {
+  if (busy) return;
+  busy = true;
+  for (const control of document.querySelectorAll('button,input')) control.disabled = true;
+  el('channel').hidden = true;
+  try { await action(); }
+  catch (err) {
+    statusLine.textContent = err.message && err.error ? err.message : 'Нет связи с сервером. Попробуй ещё раз.';
+    el('refresh').hidden = false;
+    if (gameId && err.error === 'duel_not_found') el('home').hidden = false;
+    if (err.channel_url) {
+      el('channel').href = err.channel_url;
+      el('channel').hidden = false;
+    }
+  } finally {
+    busy = false;
+    for (const control of document.querySelectorAll('button,input')) control.disabled = false;
+    if (task?.round === 'chronology') updateOrder();
+  }
+}
+function load() {
+  return run(async () => {
+    const {duel} = await api(gameId ? 'duels/'+gameId : 'bootstrap');
+    render(duel);
+    if (duel?.delivery === 'sent') saveDraft(null);
+    if (!duel && draft) nick.value = draft.nickname;
+  });
+}
+form.onsubmit = event => {
+  event.preventDefault();
+  run(async () => {
+    const nickname = nick.value.trim().replace(/^@/, '').toLowerCase();
+    if (!draft || draft.nickname !== nickname) saveDraft({mode:'direct', nickname, request_id:crypto.randomUUID()});
+    statusLine.textContent = 'Отправляем вызов…';
+    try {
+      const {duel} = await api('challenges', draft);
+      render(duel);
+      if (!current) statusLine.textContent = 'Этот вызов уже закрыт.';
+      if (duel.delivery !== 'sending') saveDraft(null);
+    } catch (err) {
+      if (err.error) saveDraft(null);
+      throw err;
+    }
+  });
+};
+el('cancel').onclick = () => run(async () => {
+  const {status} = await api('challenges/' + current.id + '/cancel', {});
+  saveDraft(null); render(null);
+  statusLine.textContent = status === 'cancelled' ? 'Вызов отменён.' : 'Этот вызов уже закрыт.';
+});
+el('refresh').onclick = load;
+el('rating').ontoggle = async () => {
+  if (!el('rating').open) return;
+  el('standings').replaceChildren();
+  try {
+    const {season, me, rows} = await api('rating');
+    el('season').textContent = season + ' · Твой Эло: ' + me.rating +
+      (me.played < 3 ? ' · Для места в таблице осталось дуэлей: ' + (3 - me.played) : '');
+    el('standings').replaceChildren(...rows.map(p => {
+      const li = document.createElement('li');
+      li.textContent = '@' + p.nickname + ' — ' + p.rating + ' · Побед: ' + p.wins;
+      return li;
+    }));
+  } catch { el('season').textContent = 'Не удалось загрузить рейтинг. Открой его ещё раз.'; }
+};
+if (tg?.initData) {
+  tg.ready(); load();
+  setInterval(() => {
+    if (!document.hidden && !task && el('card').hidden &&
+        (current?.status === 'pending' || (current?.status === 'active' && !current.next_task))) load();
+  }, 5000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !task) load(); });
+} else statusLine.textContent = 'Открой рок-дуэль из меню бота в Telegram.';
+</script>
+</body>
+</html>

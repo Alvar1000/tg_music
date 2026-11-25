@@ -68,6 +68,14 @@ def back_to_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[[_back_button()]])
 
 
+def events_kb(duel_url: str | None) -> InlineKeyboardMarkup:
+    rows = []
+    if duel_url:
+        rows.append([InlineKeyboardButton(text="⚔️ Рок-дуэль", web_app=WebAppInfo(url=duel_url))])
+    rows.append([_back_button()])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 def link_kb(text: str, url: str) -> InlineKeyboardMarkup:
     """Кнопка-ссылка + возврат в меню."""
     return InlineKeyboardMarkup(inline_keyboard=[
@@ -191,3 +199,19 @@ def broadcast_confirm_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="✅ Разослать", callback_data="broadcast_send")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="broadcast_cancel")],
     ])
+
+
+def duel_invite_kb(duel_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Принять", callback_data=f"duel:a:{duel_id}"),
+         InlineKeyboardButton(text="Отказаться", callback_data=f"duel:d:{duel_id}")],
+    ])
+
+
+def duel_play_kb(base_url: str, duel_id: int, *, result=False):
+    if not base_url:
+        return None
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
+        text="Посмотреть итог" if result else "▶️ Играть",
+        web_app=WebAppInfo(url=f"{base_url}/duel/?id={duel_id}"),
+    )]])

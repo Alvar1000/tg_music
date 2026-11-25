@@ -1,0 +1,945 @@
+{
+ "note": "Обложки для раунда «Обложка» (пункт 2.2 в DUEL_PLAN.md): по 2 на каждую группу турнира и квалификации (у INXS и Mötley Crüe по одной) плюс группы не из турнира (extra_bands). Название группы размывает владелец; в игре участвует только обложка, чей файл лежит в content/duel_covers/. Новую обложку без размытия кладём в content/duel_covers_raw/, владелец размывает её и сохраняет в content/duel_covers/ под тем же именем. Название альбома на обложке можно оставлять. src — откуда исходник: content/covers (тест «Угадай обложку») или Cover Art Archive.",
+ "extra_bands": [
+  {
+   "key": "bauhaus",
+   "name": "Bauhaus",
+   "aliases": [
+    "Баухаус"
+   ]
+  },
+  {
+   "key": "cage_the_elephant",
+   "name": "Cage the Elephant",
+   "aliases": [
+    "Кейдж зе Элефант"
+   ]
+  },
+  {
+   "key": "cream",
+   "name": "Cream",
+   "aliases": [
+    "Крим"
+   ]
+  },
+  {
+   "key": "creedence_clearwater_revival",
+   "name": "Creedence Clearwater Revival",
+   "aliases": [
+    "CCR",
+    "Криденс"
+   ]
+  },
+  {
+   "key": "dio",
+   "name": "Dio",
+   "aliases": [
+    "Дио"
+   ]
+  },
+  {
+   "key": "electric_light_orchestra",
+   "name": "Electric Light Orchestra",
+   "aliases": [
+    "ELO",
+    "Электрик Лайт Оркестра"
+   ]
+  },
+  {
+   "key": "grand_funk_railroad",
+   "name": "Grand Funk Railroad",
+   "aliases": [
+    "Grand Funk",
+    "Гранд Фанк"
+   ]
+  },
+  {
+   "key": "grateful_dead",
+   "name": "Grateful Dead",
+   "aliases": [
+    "Грейтфул Дэд"
+   ]
+  },
+  {
+   "key": "lana_del_rey",
+   "name": "Lana Del Rey",
+   "aliases": [
+    "Лана Дель Рей"
+   ]
+  },
+  {
+   "key": "nine_inch_nails",
+   "name": "Nine Inch Nails",
+   "aliases": [
+    "NIN",
+    "Найн Инч Нейлз"
+   ]
+  },
+  {
+   "key": "oasis",
+   "name": "Oasis",
+   "aliases": [
+    "Оазис"
+   ]
+  },
+  {
+   "key": "radiohead",
+   "name": "Radiohead",
+   "aliases": [
+    "Радиохед"
+   ]
+  },
+  {
+   "key": "rage_against_the_machine",
+   "name": "Rage Against the Machine",
+   "aliases": [
+    "RATM",
+    "Рейдж"
+   ]
+  },
+  {
+   "key": "rammstein",
+   "name": "Rammstein",
+   "aliases": [
+    "Раммштайн",
+    "Рамштайн"
+   ]
+  },
+  {
+   "key": "talking_heads",
+   "name": "Talking Heads",
+   "aliases": [
+    "Токинг Хедс"
+   ]
+  },
+  {
+   "key": "tame_impala",
+   "name": "Tame Impala",
+   "aliases": [
+    "Тейм Импала"
+   ]
+  },
+  {
+   "key": "the_velvet_underground",
+   "name": "The Velvet Underground",
+   "aliases": [
+    "Велвет Андеграунд",
+    "Velvet Underground"
+   ]
+  },
+  {
+   "key": "the_white_stripes",
+   "name": "The White Stripes",
+   "aliases": [
+    "Уайт Страйпс"
+   ]
+  },
+  {
+   "key": "three_days_grace",
+   "name": "Three Days Grace",
+   "aliases": [
+    "Три Дейз Грейс"
+   ]
+  }
+ ],
+ "covers": [
+  {
+   "file": "a-ha--hunting-high-and-low.jpg",
+   "key": "a_ha",
+   "album": "Hunting High and Low",
+   "src": "https://coverartarchive.org/release-group/af7347df-ef5a-3c41-826d-d884f8916c17/front-1200"
+  },
+  {
+   "file": "a-ha--scoundrel-days.jpg",
+   "key": "a_ha",
+   "album": "Scoundrel Days",
+   "src": "https://coverartarchive.org/release-group/4400a68a-2d6b-370a-b98e-3a8b991e87b3/front-1200"
+  },
+  {
+   "file": "ac-dc--for-those-about-to-rock-we-salute-you.jpg",
+   "key": "ac_dc",
+   "album": "For Those About to Rock (We Salute You)",
+   "src": "https://coverartarchive.org/release-group/331084ff-497b-3e3a-958e-0fefdae80cb6/front-1200"
+  },
+  {
+   "file": "ac-dc--highway-to-hell.jpg",
+   "key": "ac_dc",
+   "album": "Highway to Hell",
+   "src": "https://coverartarchive.org/release-group/f85647ec-a69b-3b0a-ad04-bb6076c4dcf1/front-1200"
+  },
+  {
+   "file": "aerosmith--rocks.jpg",
+   "key": "aerosmith",
+   "album": "Rocks",
+   "src": "https://coverartarchive.org/release-group/775d9a2d-effc-35c8-b80a-f9a4e4206d27/front-1200"
+  },
+  {
+   "file": "aerosmith-toys-in-the-attic.jpeg",
+   "key": "aerosmith",
+   "album": "Toys in the Attic",
+   "src": "content/covers/aerosmith-toys-in-the-attic.jpeg"
+  },
+  {
+   "file": "bauhaus-mask.jpeg",
+   "key": "bauhaus",
+   "album": "Mask",
+   "src": "content/covers/bauhaus-mask.jpeg"
+  },
+  {
+   "file": "the-beatles--revolver.jpg",
+   "key": "the_beatles",
+   "album": "Revolver",
+   "src": "https://coverartarchive.org/release-group/72d15666-99a7-321e-b1f3-a3f8c09dff9f/front-1200"
+  },
+  {
+   "file": "the-beatles-abbey-road.jpeg",
+   "key": "the_beatles",
+   "album": "Abbey Road",
+   "src": "content/covers/the-beatles-abbey-road.jpeg"
+  },
+  {
+   "file": "bee-gees--bee-gees-1st.jpg",
+   "key": "bee_gees",
+   "album": "Bee Gees’ 1st",
+   "src": "https://coverartarchive.org/release-group/1eeb9586-7c42-3de7-b367-2552b42de905/front-1200"
+  },
+  {
+   "file": "bee-gees--spirits-having-flown.jpg",
+   "key": "bee_gees",
+   "album": "Spirits Having Flown",
+   "src": "https://coverartarchive.org/release-group/4d9d85b2-ebf8-3693-9f8f-fc6b701b5926/front-1200"
+  },
+  {
+   "file": "black-sabbath-heaven-and-hell.jpeg",
+   "key": "black_sabbath",
+   "album": "Heaven and Hell",
+   "src": "content/covers/black-sabbath-heaven-and-hell.jpeg"
+  },
+  {
+   "file": "black-sabbath-paranoid.jpeg",
+   "key": "black_sabbath",
+   "album": "Paranoid",
+   "src": "content/covers/black-sabbath-paranoid.jpeg"
+  },
+  {
+   "file": "bon-jovi--new-jersey.jpg",
+   "key": "bon_jovi",
+   "album": "New Jersey",
+   "src": "https://coverartarchive.org/release-group/aa1ba758-0a80-3734-9bf8-4f554822b153/front-1200"
+  },
+  {
+   "file": "bon-jovi--slippery-when-wet.jpg",
+   "key": "bon_jovi",
+   "album": "Slippery When Wet",
+   "src": "http://coverartarchive.org/release/0afd7e26-13cf-474a-9054-40e67b178240/26004553633-1200.jpg"
+  },
+  {
+   "file": "cage-the-elephant-melophobia.jpeg",
+   "key": "cage_the_elephant",
+   "album": "Melophobia",
+   "src": "content/covers/cage-the-elephant-melophobia.jpeg"
+  },
+  {
+   "file": "cinderella--heartbreak-station.jpg",
+   "key": "cinderella",
+   "album": "Heartbreak Station",
+   "src": "https://coverartarchive.org/release-group/32da9709-3d2e-3980-84dd-282b45027c4b/front-1200"
+  },
+  {
+   "file": "cinderella--night-songs.jpg",
+   "key": "cinderella",
+   "album": "Night Songs",
+   "src": "https://coverartarchive.org/release-group/81f26831-9c03-34c6-bea4-2e64490e8b43/front-1200"
+  },
+  {
+   "file": "the-clash--london-calling.jpg",
+   "key": "the_clash",
+   "album": "London Calling",
+   "src": "https://coverartarchive.org/release-group/8d73e45e-7ca1-3cb4-ae28-6da76196c17c/front-1200"
+  },
+  {
+   "file": "the-clash--the-clash.jpg",
+   "key": "the_clash",
+   "album": "The Clash",
+   "src": "https://coverartarchive.org/release-group/ca91cb5a-7ecc-3c46-84a0-0d4951889374/front-1200"
+  },
+  {
+   "file": "cream-live-cream-vol-2.jpeg",
+   "key": "cream",
+   "album": "Live Cream, Vol. 2",
+   "src": "content/covers/cream-live-cream-vol-2.jpeg"
+  },
+  {
+   "file": "creedence-clearwater-revival-green-river.jpeg",
+   "key": "creedence_clearwater_revival",
+   "album": "Green River",
+   "src": "content/covers/creedence-clearwater-revival-green-river.jpeg"
+  },
+  {
+   "file": "the-cure--kiss-me-kiss-me-kiss-me.jpg",
+   "key": "the_cure",
+   "album": "Kiss Me Kiss Me Kiss Me",
+   "src": "https://coverartarchive.org/release-group/ab132c83-097a-33f0-b557-edd6b6ce1c7d/front-1200"
+  },
+  {
+   "file": "the-cure-disintegration.jpeg",
+   "key": "the_cure",
+   "album": "Disintegration",
+   "src": "content/covers/the-cure-disintegration.jpeg"
+  },
+  {
+   "file": "david-bowie-lets-dance.jpeg",
+   "key": "bowie",
+   "album": "Let's Dance",
+   "src": "content/covers/david-bowie-lets-dance.jpeg"
+  },
+  {
+   "file": "david-bowie-ziggy-stardust.jpg",
+   "key": "bowie",
+   "album": "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+   "src": "content/covers/david-bowie-ziggy-stardust.jpg"
+  },
+  {
+   "file": "deep-purple--deep-purple-in-rock.jpg",
+   "key": "deep_purple",
+   "album": "Deep Purple in Rock",
+   "src": "https://coverartarchive.org/release-group/ebdb53c3-fbae-34b1-81cb-f825c9a56822/front-1200"
+  },
+  {
+   "file": "deep-purple-burn.jpeg",
+   "key": "deep_purple",
+   "album": "Burn",
+   "src": "content/covers/deep-purple-burn.jpeg"
+  },
+  {
+   "file": "def-leppard--hysteria.jpg",
+   "key": "def_leppard",
+   "album": "Hysteria",
+   "src": "https://coverartarchive.org/release-group/12fa3845-7c62-36e5-a8da-8be137155a72/front-1200"
+  },
+  {
+   "file": "def-leppard--pyromania.jpg",
+   "key": "def_leppard",
+   "album": "Pyromania",
+   "src": "https://coverartarchive.org/release-group/d77df681-b779-3d6d-b66a-3bfd15985e3e/front-1200"
+  },
+  {
+   "file": "deftones--around-the-fur.jpg",
+   "key": "deftones",
+   "album": "Around the Fur",
+   "src": "https://coverartarchive.org/release-group/6f935b80-160f-3787-97d6-a4ce342cf8c5/front-1200"
+  },
+  {
+   "file": "deftones--white-pony.jpg",
+   "key": "deftones",
+   "album": "White Pony",
+   "src": "https://coverartarchive.org/release-group/a7d33e96-8e09-3aff-8629-44812a1b8489/front-1200"
+  },
+  {
+   "file": "depeche-mode--music-for-the-masses.jpg",
+   "key": "depeche_mode",
+   "album": "Music for the Masses",
+   "src": "https://coverartarchive.org/release-group/e59021bd-1710-3c13-9449-b78560039592/front-1200"
+  },
+  {
+   "file": "depeche-mode--violator.jpg",
+   "key": "depeche_mode",
+   "album": "Violator",
+   "src": "https://coverartarchive.org/release-group/71f1482e-e63f-3b2c-811b-939f62708f2a/front-1200"
+  },
+  {
+   "file": "dio-holy-diver.jpeg",
+   "key": "dio",
+   "album": "Holy Diver",
+   "src": "content/covers/dio-holy-diver.jpeg"
+  },
+  {
+   "file": "dire-straits--brothers-in-arms.jpg",
+   "key": "dire_straits",
+   "album": "Brothers in Arms",
+   "src": "https://coverartarchive.org/release-group/b02f651e-32a1-30ae-bc23-070b59170278/front-1200"
+  },
+  {
+   "file": "dire-straits--love-over-gold.jpg",
+   "key": "dire_straits",
+   "album": "Love Over Gold",
+   "src": "https://coverartarchive.org/release-group/935dde7e-8390-39fa-8e0d-1350db96bc3f/front-1200"
+  },
+  {
+   "file": "the-doors--morrison-hotel.jpg",
+   "key": "the_doors",
+   "album": "Morrison Hotel",
+   "src": "https://coverartarchive.org/release-group/deee6f92-2662-3095-8aea-6892b10b8265/front-1200"
+  },
+  {
+   "file": "the-doors-strange-days.jpeg",
+   "key": "the_doors",
+   "album": "Strange Days",
+   "src": "content/covers/the-doors-strange-days.jpeg"
+  },
+  {
+   "file": "duran-duran--duran-duran.jpg",
+   "key": "duran_duran",
+   "album": "Duran Duran",
+   "src": "https://coverartarchive.org/release-group/c5be9f5c-4c9e-3d74-a4a6-a225d03ffcf4/front-1200"
+  },
+  {
+   "file": "duran-duran-rio.jpeg",
+   "key": "duran_duran",
+   "album": "Rio",
+   "src": "content/covers/duran-duran-rio.jpeg"
+  },
+  {
+   "file": "eagles--hotel-california.jpg",
+   "key": "eagles",
+   "album": "Hotel California",
+   "src": "https://coverartarchive.org/release-group/836f349a-0434-3e8b-a0bc-261f77a9f99c/front-1200"
+  },
+  {
+   "file": "eagles--their-greatest-hits-1971-1975.jpg",
+   "key": "eagles",
+   "album": "Their Greatest Hits 1971-1975",
+   "src": "https://coverartarchive.org/release-group/56ecf5cb-ad82-3d7e-82bf-1904cc16f451/front-1200"
+  },
+  {
+   "file": "electric-light-orchestra-out-of-the-blue.jpeg",
+   "key": "electric_light_orchestra",
+   "album": "Out of the Blue",
+   "src": "content/covers/electric-light-orchestra-out-of-the-blue.jpeg"
+  },
+  {
+   "file": "europe--out-of-this-world.jpg",
+   "key": "europe",
+   "album": "Out of This World",
+   "src": "https://coverartarchive.org/release-group/8a2ac0cf-ff97-3894-bb42-8f1f57d9c791/front-1200"
+  },
+  {
+   "file": "europe--the-final-countdown.jpg",
+   "key": "europe",
+   "album": "The Final Countdown",
+   "src": "https://coverartarchive.org/release-group/da4f2d37-3eb9-3d62-800d-88d345551ec9/front-1200"
+  },
+  {
+   "file": "fleetwood-mac--rumours.jpg",
+   "key": "fleetwood_mac",
+   "album": "Rumours",
+   "src": "https://coverartarchive.org/release-group/416bb5e5-c7d1-3977-8fd7-7c9daf6c2be6/front-1200"
+  },
+  {
+   "file": "fleetwood-mac-tango-in-the-night.jpeg",
+   "key": "fleetwood_mac",
+   "album": "Tango in the Night",
+   "src": "content/covers/fleetwood-mac-tango-in-the-night.jpeg"
+  },
+  {
+   "file": "grand-funk-railroad-e-pluribus-funk.jpeg",
+   "key": "grand_funk_railroad",
+   "album": "E Pluribus Funk",
+   "src": "content/covers/grand-funk-railroad-e-pluribus-funk.jpeg"
+  },
+  {
+   "file": "grateful-dead-from-the-mars-hotel.jpeg",
+   "key": "grateful_dead",
+   "album": "From the Mars Hotel",
+   "src": "content/covers/grateful-dead-from-the-mars-hotel.jpeg"
+  },
+  {
+   "file": "guns-n-roses--use-your-illusion-i.jpg",
+   "key": "guns_n_roses",
+   "album": "Use Your Illusion I",
+   "src": "https://coverartarchive.org/release-group/642b183a-3e59-3cb9-9187-aeeefa0d8818/front-1200"
+  },
+  {
+   "file": "guns-n-roses-appetite-for-destruction.jpeg",
+   "key": "guns_n_roses",
+   "album": "Appetite for Destruction",
+   "src": "content/covers/guns-n-roses-appetite-for-destruction.jpeg"
+  },
+  {
+   "file": "helloween--keeper-of-the-seven-keys-part-i.jpg",
+   "key": "helloween",
+   "album": "Keeper of the Seven Keys, Part I",
+   "src": "https://coverartarchive.org/release-group/a5b25e78-2c46-3c59-ab07-e022d88699ed/front-1200"
+  },
+  {
+   "file": "helloween--keeper-of-the-seven-keys-part-ii.jpg",
+   "key": "helloween",
+   "album": "Keeper of the Seven Keys, Part II",
+   "src": "https://coverartarchive.org/release-group/a2b9a7ac-066f-3fc7-a740-725c4fb5f070/front-1200"
+  },
+  {
+   "file": "inxs--kick.jpg",
+   "key": "inxs",
+   "album": "Kick",
+   "src": "https://coverartarchive.org/release/394b13a7-d014-47fb-b1ec-cdf998080254/42731185562-1200.jpg"
+  },
+  {
+   "file": "iron-maiden--powerslave.jpg",
+   "key": "iron_maiden",
+   "album": "Powerslave",
+   "src": "https://coverartarchive.org/release-group/60a20bc8-acac-3cbb-99f9-ce458317233a/front-1200"
+  },
+  {
+   "file": "iron-maiden--the-number-of-the-beast.jpg",
+   "key": "iron_maiden",
+   "album": "The Number of the Beast",
+   "src": "https://coverartarchive.org/release-group/4ebfe175-e7ed-34cd-8e91-67c7e4a53579/front-1200"
+  },
+  {
+   "file": "jimi-hendrix--electric-ladyland.jpg",
+   "key": "jimi_hendrix",
+   "album": "Electric Ladyland",
+   "src": "https://coverartarchive.org/release-group/47ba2d59-5544-34a4-b108-dc08c0956298/front-1200"
+  },
+  {
+   "file": "jimi-hendrix-axis-bold-as-love.jpeg",
+   "key": "jimi_hendrix",
+   "album": "Axis: Bold as Love",
+   "src": "content/covers/jimi-hendrix-axis-bold-as-love.jpeg"
+  },
+  {
+   "file": "joy-division--closer.jpg",
+   "key": "joy_division",
+   "album": "Closer",
+   "src": "http://coverartarchive.org/release/040c1da8-e5e0-480b-a8ea-433d4135a9b1/33063429003-1200.jpg"
+  },
+  {
+   "file": "joy-division-unknown-pleasures.jpeg",
+   "key": "joy_division",
+   "album": "Unknown Pleasures",
+   "src": "content/covers/joy-division-unknown-pleasures.jpeg"
+  },
+  {
+   "file": "judas-priest--british-steel.jpg",
+   "key": "judas_priest",
+   "album": "British Steel",
+   "src": "https://coverartarchive.org/release-group/5bd56af7-2bd6-392e-a815-b39354e3780d/front-1200"
+  },
+  {
+   "file": "judas-priest--screaming-for-vengeance.jpg",
+   "key": "judas_priest",
+   "album": "Screaming for Vengeance",
+   "src": "https://coverartarchive.org/release-group/40f3885e-7158-3154-826d-676f2b79c6fb/front-1200"
+  },
+  {
+   "file": "the-kinks--arthur-or-the-decline-and-fall-of-the-british-empire.jpg",
+   "key": "the_kinks",
+   "album": "Arthur (or The Decline and Fall of the British Empire)",
+   "src": "https://coverartarchive.org/release-group/cd27ba91-162e-3d8a-8042-9451b84aa78e/front-1200"
+  },
+  {
+   "file": "the-kinks--face-to-face.jpg",
+   "key": "the_kinks",
+   "album": "Face to Face",
+   "src": "https://coverartarchive.org/release-group/9e3bff06-c552-345b-a10b-aeb6061e1a8a/front-1200"
+  },
+  {
+   "file": "kiss--destroyer.jpg",
+   "key": "kiss",
+   "album": "Destroyer",
+   "src": "https://coverartarchive.org/release-group/541eb339-d0c6-3740-b665-8ad6c09da331/front-1200"
+  },
+  {
+   "file": "kiss--love-gun.jpg",
+   "key": "kiss",
+   "album": "Love Gun",
+   "src": "https://coverartarchive.org/release-group/08bf1119-22bf-3740-af9c-a6215437414b/front-1200"
+  },
+  {
+   "file": "lana-del-rey-norman-fucking-rockwell.jpeg",
+   "key": "lana_del_rey",
+   "album": "Norman Fucking Rockwell!",
+   "src": "content/covers/lana-del-rey-norman-fucking-rockwell.jpeg"
+  },
+  {
+   "file": "led-zeppelin-in-through-the-out-door.jpeg",
+   "key": "led_zeppelin",
+   "album": "In Through the Out Door",
+   "src": "content/covers/led-zeppelin-in-through-the-out-door.jpeg"
+  },
+  {
+   "file": "led-zeppelin-led-zeppelin.jpeg",
+   "key": "led_zeppelin",
+   "album": "Led Zeppelin",
+   "src": "content/covers/led-zeppelin-led-zeppelin.jpeg"
+  },
+  {
+   "file": "megadeth--peace-sells-but-whos-buying.jpg",
+   "key": "megadeth",
+   "album": "Peace Sells… but Who’s Buying?",
+   "src": "https://coverartarchive.org/release-group/4eea6bcc-3226-3c0d-a71d-af682a0a1dd8/front-1200"
+  },
+  {
+   "file": "megadeth-rust-in-peace.jpeg",
+   "key": "megadeth",
+   "album": "Rust in Peace",
+   "src": "content/covers/megadeth-rust-in-peace.jpeg"
+  },
+  {
+   "file": "metallica--master-of-puppets.jpg",
+   "key": "metallica",
+   "album": "Master of Puppets",
+   "src": "https://coverartarchive.org/release-group/3d00fb45-f8ab-3436-a8e1-b4bfc4d66913/front-1200"
+  },
+  {
+   "file": "metallica--ride-the-lightning.jpg",
+   "key": "metallica",
+   "album": "Ride the Lightning",
+   "src": "https://coverartarchive.org/release-group/0da580f2-6768-498f-af9d-2becaddf15e0/front-1200"
+  },
+  {
+   "file": "motorhead--ace-of-spades.jpg",
+   "key": "motorhead",
+   "album": "Ace of Spades",
+   "src": "https://coverartarchive.org/release-group/51d51de2-0312-4798-8529-bed2ae2581c6/front-1200"
+  },
+  {
+   "file": "motorhead--overkill.jpg",
+   "key": "motorhead",
+   "album": "Overkill",
+   "src": "https://coverartarchive.org/release-group/c99d9663-dd14-3ba2-9d8c-10c8f8fa569b/front-1200"
+  },
+  {
+   "file": "motley-crue--dr-feelgood.jpg",
+   "key": "motley_crue",
+   "album": "Dr. Feelgood",
+   "src": "https://coverartarchive.org/release-group/2fc8cf0a-2370-3238-b4f3-0fcea1511c12/front-1200"
+  },
+  {
+   "file": "new-order--power-corruption-lies.jpg",
+   "key": "new_order",
+   "album": "Power, Corruption & Lies",
+   "src": "https://coverartarchive.org/release-group/16cc9dfc-594d-3fb9-b789-3e1bfcb6f9f8/front-1200"
+  },
+  {
+   "file": "new-order--technique.jpg",
+   "key": "new_order",
+   "album": "Technique",
+   "src": "https://coverartarchive.org/release-group/a0902fc4-e3d9-3b2b-bc94-cd4d0e59db29/front-1200"
+  },
+  {
+   "file": "nine-inch-nails-pretty-hate-machine.jpeg",
+   "key": "nine_inch_nails",
+   "album": "Pretty Hate Machine",
+   "src": "content/covers/nine-inch-nails-pretty-hate-machine.jpeg"
+  },
+  {
+   "file": "nirvana--nevermind.jpg",
+   "key": "nirvana",
+   "album": "Nevermind",
+   "src": "https://coverartarchive.org/release-group/1b022e01-4da6-387b-8658-8678046e4cef/front-1200"
+  },
+  {
+   "file": "nirvana-in-utero.jpg",
+   "key": "nirvana",
+   "album": "In Utero",
+   "src": "content/covers/nirvana-in-utero.jpg"
+  },
+  {
+   "file": "oasis-be-here-now.jpg",
+   "key": "oasis",
+   "album": "Be Here Now",
+   "src": "content/covers/oasis-be-here-now.jpg"
+  },
+  {
+   "file": "pantera--cowboys-from-hell.jpg",
+   "key": "pantera",
+   "album": "Cowboys From Hell",
+   "src": "https://coverartarchive.org/release-group/a0398241-a842-3593-83b4-a1aa1df23328/front-1200"
+  },
+  {
+   "file": "pantera--vulgar-display-of-power.jpg",
+   "key": "pantera",
+   "album": "Vulgar Display of Power",
+   "src": "https://coverartarchive.org/release-group/814e0b20-6884-31c5-9d99-d215f048cfd6/front-1200"
+  },
+  {
+   "file": "pink-floyd--animals.jpg",
+   "key": "pink_floyd",
+   "album": "Animals",
+   "src": "https://coverartarchive.org/release-group/20c77fb4-1c9f-33c8-9d7e-c4977f11e847/front-1200"
+  },
+  {
+   "file": "pink-floyd--the-dark-side-of-the-moon.jpg",
+   "key": "pink_floyd",
+   "album": "The Dark Side of the Moon",
+   "src": "https://coverartarchive.org/release-group/f5093c06-23e3-404f-aeaa-40f72885ee3a/front-1200"
+  },
+  {
+   "file": "pixies--doolittle.jpg",
+   "key": "pixies",
+   "album": "Doolittle",
+   "src": "https://coverartarchive.org/release-group/1aa41b19-5a72-341b-bd91-4cf61d1dab6b/front-1200"
+  },
+  {
+   "file": "pixies-bossanova.jpeg",
+   "key": "pixies",
+   "album": "Bossanova",
+   "src": "content/covers/pixies-bossanova.jpeg"
+  },
+  {
+   "file": "the-police--ghost-in-the-machine.jpg",
+   "key": "the_police",
+   "album": "Ghost in the Machine",
+   "src": "https://coverartarchive.org/release-group/b25caa9e-e35d-3243-82d7-954da613b782/front-1200"
+  },
+  {
+   "file": "the-police--synchronicity.jpg",
+   "key": "the_police",
+   "album": "Synchronicity",
+   "src": "https://coverartarchive.org/release-group/f6df6292-fd40-37c3-bd61-22c53abfe773/front-1200"
+  },
+  {
+   "file": "queen--a-night-at-the-opera.jpg",
+   "key": "queen",
+   "album": "A Night at the Opera",
+   "src": "https://coverartarchive.org/release-group/6b47c9a0-b9e1-3df9-a5e8-50a6ce0dbdbd/front-1200"
+  },
+  {
+   "file": "queen--queen-ii.jpg",
+   "key": "queen",
+   "album": "Queen II",
+   "src": "https://coverartarchive.org/release-group/93d91bd6-1b55-3751-bca7-8b9d33beb7ef/front-1200"
+  },
+  {
+   "file": "r-e-m--automatic-for-the-people.jpg",
+   "key": "rem",
+   "album": "Automatic for the People",
+   "src": "https://coverartarchive.org/release-group/c86c6af9-d10e-3079-b34b-30b682a797eb/front-1200"
+  },
+  {
+   "file": "r-e-m--murmur.jpg",
+   "key": "rem",
+   "album": "Murmur",
+   "src": "https://coverartarchive.org/release-group/de790d3d-a35c-364c-a8fb-adfb73084a45/front-1200"
+  },
+  {
+   "file": "radiohead-ok-computer.jpeg",
+   "key": "radiohead",
+   "album": "OK Computer",
+   "src": "content/covers/radiohead-ok-computer.jpeg"
+  },
+  {
+   "file": "rage-against-the-machine.jpeg",
+   "key": "rage_against_the_machine",
+   "album": "Rage Against the Machine",
+   "src": "content/covers/rage-against-the-machine.jpeg"
+  },
+  {
+   "file": "rammstein.png",
+   "key": "rammstein",
+   "album": "Rammstein",
+   "src": "content/covers/rammstein.png"
+  },
+  {
+   "file": "ramones--ramones.jpg",
+   "key": "ramones",
+   "album": "Ramones",
+   "src": "https://coverartarchive.org/release-group/7de1e321-4a53-3feb-b83e-f1dab88bf952/front-1200"
+  },
+  {
+   "file": "ramones--rocket-to-russia.jpg",
+   "key": "ramones",
+   "album": "Rocket to Russia",
+   "src": "https://coverartarchive.org/release-group/dd959091-dba1-32b8-8159-0090959ce75b/front-1200"
+  },
+  {
+   "file": "red-hot-chili-peppers--blood-sugar-sex-magik.jpg",
+   "key": "rhcp",
+   "album": "Blood Sugar Sex Magik",
+   "src": "https://coverartarchive.org/release-group/68bee70d-b425-3813-aca7-dd7b912c3d11/front-1200"
+  },
+  {
+   "file": "red-hot-chili-peppers-californication.jpeg",
+   "key": "rhcp",
+   "album": "Californication",
+   "src": "content/covers/red-hot-chili-peppers-californication.jpeg"
+  },
+  {
+   "file": "the-rolling-stones-let-it-bleed.jpeg",
+   "key": "rolling_stones",
+   "album": "Let It Bleed",
+   "src": "content/covers/the-rolling-stones-let-it-bleed.jpeg"
+  },
+  {
+   "file": "the-rolling-stones-sticky-fingers.jpeg",
+   "key": "rolling_stones",
+   "album": "Sticky Fingers",
+   "src": "content/covers/the-rolling-stones-sticky-fingers.jpeg"
+  },
+  {
+   "file": "rush--2112.jpg",
+   "key": "rush",
+   "album": "2112",
+   "src": "https://coverartarchive.org/release-group/9243ac59-9390-37e1-abee-fcf31fb8035f/front-1200"
+  },
+  {
+   "file": "rush-moving-pictures.jpeg",
+   "key": "rush",
+   "album": "Moving Pictures",
+   "src": "content/covers/rush-moving-pictures.jpeg"
+  },
+  {
+   "file": "scorpions--blackout.jpg",
+   "key": "scorpions",
+   "album": "Blackout",
+   "src": "https://coverartarchive.org/release-group/b00fbf7c-ebaf-3ec0-91d6-5eaad124d58f/front-1200"
+  },
+  {
+   "file": "scorpions-love-at-first-sting.jpeg",
+   "key": "scorpions",
+   "album": "Love at First Sting",
+   "src": "content/covers/scorpions-love-at-first-sting.jpeg"
+  },
+  {
+   "file": "sex-pistols--god-save-the-queen.jpg",
+   "key": "sex_pistols",
+   "album": "God Save the Queen",
+   "src": "https://coverartarchive.org/release/7ce7bbe6-5849-4687-a542-6eb61a49346e/front-1200"
+  },
+  {
+   "file": "sex-pistols--never-mind-the-bollocks-heres-the-sex-pistols.jpg",
+   "key": "sex_pistols",
+   "album": "Never Mind the Bollocks Here’s the Sex Pistols",
+   "src": "http://coverartarchive.org/release/155cc065-924f-3046-a73b-624e3311ce11/5003885492.jpg"
+  },
+  {
+   "file": "slayer--reign-in-blood.jpg",
+   "key": "slayer",
+   "album": "Reign in Blood",
+   "src": "https://coverartarchive.org/release/34d78ab7-d34d-33fa-9fca-70168e3f00dd/front-1200"
+  },
+  {
+   "file": "slayer--south-of-heaven.jpg",
+   "key": "slayer",
+   "album": "South of Heaven",
+   "src": "https://coverartarchive.org/release-group/74292121-e345-3f10-85ae-013f4e5a8cae/front-1200"
+  },
+  {
+   "file": "the-smiths--meat-is-murder.jpg",
+   "key": "the_smiths",
+   "album": "Meat Is Murder",
+   "src": "https://coverartarchive.org/release-group/0d56a04c-045a-37db-bcc3-6c7099e94f16/front-1200"
+  },
+  {
+   "file": "the-smiths--the-queen-is-dead.jpg",
+   "key": "the_smiths",
+   "album": "The Queen Is Dead",
+   "src": "https://coverartarchive.org/release-group/d8dde278-482c-3cc8-a530-fea70476f3a5/front-1200"
+  },
+  {
+   "file": "the-stooges--fun-house.jpg",
+   "key": "the_stooges",
+   "album": "Fun House",
+   "src": "https://coverartarchive.org/release-group/edd57263-df77-3f1a-8803-8beb5d5b1a64/front-1200"
+  },
+  {
+   "file": "the-stooges--raw-power.jpg",
+   "key": "the_stooges",
+   "album": "Raw Power",
+   "src": "https://coverartarchive.org/release-group/156cbf68-eaea-3f6a-852e-aa6afbd779db/front-1200"
+  },
+  {
+   "file": "talking-heads-more-songs-about-buildings-and-food.jpeg",
+   "key": "talking_heads",
+   "album": "More Songs About Buildings and Food",
+   "src": "content/covers/talking-heads-more-songs-about-buildings-and-food.jpeg"
+  },
+  {
+   "file": "tame-impala-the-slow-rush.jpeg",
+   "key": "tame_impala",
+   "album": "The Slow Rush",
+   "src": "content/covers/tame-impala-the-slow-rush.jpeg"
+  },
+  {
+   "file": "tears-for-fears--songs-from-the-big-chair.jpg",
+   "key": "tears_for_fears",
+   "album": "Songs From the Big Chair",
+   "src": "https://coverartarchive.org/release-group/475946e9-4b00-3f7c-9bd7-c11f55740262/front-1200"
+  },
+  {
+   "file": "tears-for-fears--the-hurting.jpg",
+   "key": "tears_for_fears",
+   "album": "The Hurting",
+   "src": "https://coverartarchive.org/release-group/6901aa79-3c37-32eb-8bd2-4061049b40c5/front-1200"
+  },
+  {
+   "file": "three-days-grace-one-x.jpeg",
+   "key": "three_days_grace",
+   "album": "One-X",
+   "src": "content/covers/three-days-grace-one-x.jpeg"
+  },
+  {
+   "file": "u2--the-joshua-tree.jpg",
+   "key": "u2",
+   "album": "The Joshua Tree",
+   "src": "https://coverartarchive.org/release-group/6f3e9fa6-be7a-3de8-a2b2-2072ece8a54d/front-1200"
+  },
+  {
+   "file": "u2-all-that-you-cant-leave-behind.jpeg",
+   "key": "u2",
+   "album": "All That You Can't Leave Behind",
+   "src": "content/covers/u2-all-that-you-cant-leave-behind.jpeg"
+  },
+  {
+   "file": "van-halen--1984.jpg",
+   "key": "van_halen",
+   "album": "1984",
+   "src": "https://coverartarchive.org/release-group/5846f0c9-fec3-3b9e-a77c-fbe9a7bdf0e7/front-1200"
+  },
+  {
+   "file": "van-halen--van-halen.jpg",
+   "key": "van_halen",
+   "album": "Van Halen",
+   "src": "https://coverartarchive.org/release-group/43a0e8b5-6059-397f-81e6-b8df5a648496/front-1200"
+  },
+  {
+   "file": "the-velvet-underground-and-nico.jpeg",
+   "key": "the_velvet_underground",
+   "album": "The Velvet Underground & Nico",
+   "src": "content/covers/the-velvet-underground-and-nico.jpeg"
+  },
+  {
+   "file": "the-white-stripes-elephant.jpg",
+   "key": "the_white_stripes",
+   "album": "Elephant",
+   "src": "content/covers/the-white-stripes-elephant.jpg"
+  },
+  {
+   "file": "whitesnake--slide-it-in.jpg",
+   "key": "whitesnake",
+   "album": "Slide It In",
+   "src": "https://coverartarchive.org/release-group/e58c6c0a-7602-3251-8111-8820a8764162/front-1200"
+  },
+  {
+   "file": "whitesnake--whitesnake.jpg",
+   "key": "whitesnake",
+   "album": "Whitesnake",
+   "src": "https://coverartarchive.org/release-group/4182146e-3f7a-38e0-96d2-8ec32077f224/front-1200"
+  },
+  {
+   "file": "the-who--tommy.jpg",
+   "key": "the_who",
+   "album": "Tommy",
+   "src": "https://coverartarchive.org/release/2d0573ce-3c17-4f0e-94c5-7ee2b833fc3e/front-1200"
+  },
+  {
+   "file": "the-who--whos-next.jpg",
+   "key": "the_who",
+   "album": "Who’s Next",
+   "src": "https://coverartarchive.org/release-group/9584e28b-66a7-3846-8d52-b3008a283539/front-1200"
+  },
+  {
+   "file": "the-zombies-odessey-and-oracle.jpeg",
+   "key": "the_zombies",
+   "album": "Odessey and Oracle",
+   "src": "content/covers/the-zombies-odessey-and-oracle.jpeg"
+  },
+  {
+   "file": "the-zombies-original-studio-recordings-vol-1.jpeg",
+   "key": "the_zombies",
+   "album": "The Original Studio Recordings, Vol. 1",
+   "src": "content/covers/the-zombies-original-studio-recordings-vol-1.jpeg"
+  }
+ ]
+}
