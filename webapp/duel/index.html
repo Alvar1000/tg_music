@@ -5,64 +5,302 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Рок-дуэль</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Teko:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
 <style>
-* {box-sizing:border-box}
-body {margin:0; min-height:100vh; padding:clamp(24px,8vh,80px) 18px; color:var(--tg-theme-text-color,#182034); background:var(--tg-theme-secondary-bg-color,#e9ebf0); font:16px/1.5 system-ui,sans-serif}
-main {max-width:470px; margin:auto; padding:clamp(22px,6vw,36px); border-radius:22px; background:var(--tg-theme-bg-color,#fff); box-shadow:0 15px 55px #1c325219}
-h1 {margin:0 0 20px; font-size:clamp(32px,9vw,48px); line-height:1.05; letter-spacing:-.045em}
-label {display:block; font-weight:600}
-input,button {width:100%; font:inherit; padding:12px 15px; margin-top:10px; border-radius:12px}
-input {background:transparent; color:inherit; border:1px solid #9199a8}
-button {border:0; color:var(--tg-theme-button-text-color,#fff); background:var(--tg-theme-button-color,#365fcc); font-weight:650; cursor:pointer}
-button:disabled {opacity:.6}
-#status {margin:12px 0; white-space:pre-line}
-a {color:var(--tg-theme-link-color,#365fcc)}
-#cover {width:100%;aspect-ratio:1;object-fit:contain;border-radius:16px;box-shadow:0 8px 28px #436bdc44}
-#facts {padding-left:1.4em}
-#facts li {margin:.55em 0}
-#choices button {display:flex;align-items:center;gap:10px;text-align:left;background:var(--tg-theme-secondary-bg-color,#edf1f9);color:inherit}
-#choices img,#reveal img {width:44px;height:44px;object-fit:cover;border-radius:50%;vertical-align:middle}
-#choices button[aria-pressed=true] {outline:2px solid var(--tg-theme-button-color,#365fcc);outline-offset:-2px}
-#choices .number {margin-left:auto;font-variant-numeric:tabular-nums}
-#wrong {text-decoration:line-through}
-#clock {float:right;font-variant-numeric:tabular-nums}
+  :root {
+    --bg: #e9ebf0; --surface: #ffffff; --surface-2: #f0f1f4;
+    --border: #e2e4ea; --border-strong: #ccd0da;
+    --text: #15161c; --text-dim: #666b80; --text-faint: #9aa0b2;
+    --hue-blue: #3b6bdc; --hue-amber: #c98a1a; --hue-green: #0f9e82; --hue-red: #d0453b;
+    --sheen-blue: #dce8f6; --sheen-pink: #f3e3ef; --sheen-mint: #e1f3ec; --sheen-light: #ffffff;
+    --aura-blue: rgba(59,107,220,0.07); --aura-pink: rgba(224,64,126,0.05);
+    --ring-blue: rgba(59,107,220,0.14);
+    --shadow-panel: 0 40px 70px -30px rgba(20,24,40,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
+    --shadow-tab: 0 1px 4px rgba(20,24,40,0.12);
+    --shadow-orb: 0 8px 18px -8px rgba(30,40,70,0.2);
+    --shadow-champ: 0 14px 30px -10px rgba(30,40,70,0.26);
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161c; --surface: #1c1f27; --surface-2: #22252e;
+    --border: #272b35; --border-strong: #343846;
+    --text: #eceef4; --text-dim: #a2a8bb; --text-faint: #757b8d;
+    --hue-blue: #7d9cf0; --hue-amber: #e0a15f; --hue-green: #3fc7aa; --hue-red: #f07a6e;
+    --sheen-blue: #2a3a5a; --sheen-pink: #3a2a3e; --sheen-mint: #22403a; --sheen-light: #2b2f3a;
+    --aura-blue: rgba(59,107,220,0.14); --aura-pink: rgba(224,64,126,0.10);
+    --ring-blue: rgba(125,156,240,0.20);
+    --shadow-panel: 0 40px 70px -30px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+    --shadow-tab: 0 1px 4px rgba(0,0,0,0.5);
+    --shadow-orb: 0 8px 18px -8px rgba(0,0,0,0.6);
+    --shadow-champ: 0 14px 30px -10px rgba(0,0,0,0.7);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    min-height: 100vh; margin: 0;
+    background: var(--bg); color: var(--text);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-block: clamp(16px, 5vw, 48px) 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background-image:
+      radial-gradient(ellipse 900px 520px at 50% -10%, var(--aura-blue), transparent 60%),
+      radial-gradient(ellipse 700px 460px at 105% 105%, var(--aura-pink), transparent 60%);
+  }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--hue-blue); outline-offset: 2px; }
+  .wrap { width: 100%; max-width: 400px; min-width: 0; }
+
+  .panel { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 26px 22px 28px; box-shadow: var(--shadow-panel); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+  .round-tag { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.04em; color: var(--hue-blue); white-space: nowrap; }
+
+  .tabbar { display: flex; gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+  .tab { flex: 1; border: none; background: none; padding: 9px 0; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--text-dim); cursor: pointer; }
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-tab); }
+
+  /* лесенка раундов */
+  .ladder { display: flex; align-items: flex-start; margin-bottom: 6px; }
+  .step { display: grid; justify-items: center; gap: 5px; background: none; border: none; padding: 0; flex: 0 1 48px; min-width: 0; }
+  .rung {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif; font-size: 15px; font-weight: 600; color: var(--text-faint);
+    transition: border-color .2s, color .2s, box-shadow .2s;
+  }
+  .step small { font-size: 10px; font-weight: 600; color: var(--text-faint); white-space: nowrap; }
+  .step.active .rung { border-color: var(--hue-blue); color: var(--text); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .step.active small { color: var(--text); }
+  .step.done .rung { border-color: var(--hue-green); color: var(--hue-green); }
+  .rung-line { flex: 1; height: 1px; background: var(--border); margin-top: 16px; }
+  .dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 18px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
+  .dots i.on { background: var(--hue-blue); }
+  .dots i.ok { background: var(--hue-green); }
+  .dots i.bad { background: var(--hue-red); }
+
+  /* кружок группы */
+  .avatar-wrap { position: relative; aspect-ratio: 1; max-width: 100%; }
+  .avatar-glow {
+    position: absolute; inset: -16%; border-radius: 50%; z-index: 0; pointer-events: none;
+    background: conic-gradient(from var(--gr,200deg), var(--sheen-blue), var(--sheen-pink), var(--sheen-mint), var(--sheen-light), var(--sheen-blue));
+    filter: blur(14px);
+  }
+  .avatar {
+    width: 100%; height: 100%; border-radius: 50%; position: relative; z-index: 1;
+    overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-orb); display: flex; align-items: center; justify-content: center;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .qmark { font-family: 'Teko', sans-serif; font-size: 64px; font-weight: 600; line-height: 1; color: var(--text-faint); transform: translateY(4px); }
+  .hero-orb { width: 38%; margin: 4px auto 18px; }
+  .solved .avatar-glow { inset: -22%; filter: blur(20px); }
+  .solved .avatar { box-shadow: var(--shadow-champ); }
+  @media (prefers-reduced-motion: no-preference) {
+    .solved .avatar-glow { animation: glow-spin 8s linear infinite; }
+    .solved .avatar, .solved .cover { animation: pop .35s ease-out; }
+  }
+  @keyframes glow-spin { to { transform: rotate(360deg); } }
+  @keyframes pop { from { transform: scale(.88); } to { transform: scale(1); } }
+
+  /* обложка: квадрат со свечением */
+  .cover-wrap { position: relative; width: 74%; margin: 6px auto 20px; aspect-ratio: 1; }
+  .cover-wrap .avatar-glow { border-radius: 30%; inset: -10%; }
+  .cover { position: relative; z-index: 1; width: 100%; height: 100%; border-radius: 18px; overflow: hidden; border: 1px solid var(--border-strong); box-shadow: var(--shadow-champ); background: var(--surface-2); }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .verdict { text-align: center; margin: -4px 0 16px; }
+  .verdict h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 4px; text-wrap: balance; }
+  .verdict p { margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .plus { color: var(--hue-green); font-weight: 700; }
+  .zero { color: var(--hue-red); font-weight: 700; }
+
+  .tale { background: var(--surface-2); border-radius: 18px; padding: 16px 18px; margin: 0 0 18px; display: grid; gap: 8px; }
+  .tale p { margin: 0; font-size: 15px; line-height: 1.6; }
+  .tale-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--hue-red); border: 1px solid currentColor; border-radius: 999px; padding: 2px 7px; line-height: 1.3; }
+  .verdict .reveal { margin-top: 6px; color: var(--text); font-size: 13px; }
+
+  .facts { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 8px; }
+  .facts li { background: var(--surface-2); border-radius: 14px; padding: 11px 14px; font-size: 14px; line-height: 1.5; display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 8px; }
+  .facts .n { font-family: 'Teko', sans-serif; font-size: 17px; line-height: 1.3; color: var(--text-faint); }
+
+  .worth { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: var(--text-dim); }
+  .worth .num { font-family: 'Teko', sans-serif; font-size: 22px; color: var(--hue-blue); font-variant-numeric: tabular-nums; line-height: 1; }
+  .clock { font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .guess { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+  .guess input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--surface); font-size: 16px; }
+  .guess input:focus { outline: none; border-color: var(--hue-blue); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .btn { border: none; border-radius: 14px; padding: 12px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: var(--text); color: var(--surface); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.wide { width: 100%; padding: 14px; }
+  .btn.soft { background: var(--surface-2); color: var(--text); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sugg {
+    position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; list-style: none; margin: 0; padding: 4px;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 14px; box-shadow: var(--shadow-panel);
+    max-height: 290px; overflow-y: auto;
+  }
+  .mini { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border-strong); overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Teko', sans-serif; font-size: 15px; color: var(--text-dim); }
+  .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .err { font-size: 12px; color: var(--hue-red); min-height: 18px; margin: 6px 2px 0; }
+  .misses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .misses span { font-size: 12px; font-weight: 600; color: var(--hue-red); background: var(--surface-2); border-radius: 999px; padding: 4px 10px; text-decoration: line-through; }
+  /* хронология */
+  .chrono { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 18px; margin: 10px 4px 22px; }
+  .pick { background: none; border: none; padding: 0; cursor: pointer; display: grid; justify-items: center; gap: 8px; position: relative; }
+  .pick .avatar-wrap { width: 72%; }
+  .pick .name { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.25; }
+  .pick .badge {
+    position: absolute; top: -4px; right: 10%; z-index: 3; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--hue-blue); color: #fff; font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; line-height: 1; padding-top: 2px;
+  }
+  .pick .badge.ok { background: var(--hue-green); } .pick .badge.bad { background: var(--hue-red); }
+  .pick .year { font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text-dim); line-height: 1; }
+  .pick:disabled { cursor: default; }
+
+  /* интро */
+  .player { display: grid; justify-items: center; gap: 14px; margin: 4px 0 18px; }
+  .play {
+    width: 96px; height: 96px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface-2);
+    box-shadow: var(--shadow-orb); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;
+  }
+  .play svg { width: 34px; height: 34px; color: var(--text); }
+  .play-wrap { position: relative; }
+  .play-wrap .avatar-glow { inset: -30%; }
+  .meter { width: 100%; height: 8px; border-radius: 999px; background: var(--surface-2); position: relative; overflow: hidden; }
+  .meter .open { position: absolute; inset: 0 auto 0 0; background: var(--sheen-blue); }
+  .meter .pos { position: absolute; inset: 0 auto 0 0; background: var(--hue-blue); width: 0; }
+  .meter-scale { width: 100%; display: flex; justify-content: space-between; font-family: 'Teko', sans-serif; font-size: 14px; color: var(--text-faint); margin-top: -8px; }
+  .opts { display: grid; gap: 8px; }
+  .lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); text-align: left; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .lb-name { font-size: 13px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+  .lb-tag { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .lb-pts { min-width: 54px; text-align: right; font-family: 'Teko', sans-serif; font-size: 18px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rules { display: grid; gap: 14px; font-size: 14px; line-height: 1.55; }
+  .rules p { margin: 0; }
+  .rules h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; margin: 0 0 4px; }
+  .note { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; margin: 14px 0 0; }
+  .state-box { background: var(--surface-2); border-radius: 18px; padding: 14px 16px; text-align: center; margin-bottom: 16px; display: grid; gap: 4px; }
+  .state-box h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; margin: 0; text-wrap: balance; }
+  .state-box p { margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .ch-form { display: grid; gap: 10px; }
+  .nick { display: flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 14px; background: var(--surface); padding-left: 14px; }
+  .nick:focus-within { border-color: var(--hue-blue); box-shadow: 0 0 0 4px var(--ring-blue); }
+  .nick span { font-size: 16px; font-weight: 700; color: var(--text-dim); }
+  .nick input { flex: 1; min-width: 0; border: none; background: none; padding: 12px 14px 12px 2px; font-size: 16px; outline: none; }
+  .lb-rank { width: 20px; flex-shrink: 0; text-align: center; font-family: 'Teko', sans-serif; font-size: 16px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .lb-rank.top { color: var(--hue-amber); }
+  .season-note { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 4px 0 8px; }
+
+  h1.eyebrow { margin: 0; }
+  #games[aria-busy=true] { pointer-events: none; }
+  .actions { display: grid; gap: 8px; margin-top: 12px; }
+  .actions:not(:has(> :not([hidden]))) { display: none; }
+  .sugg button, .opts button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .sugg button { border: 0; border-radius: 10px; background: none; padding: 8px; }
+  .sugg button:is(:hover,:focus-visible), .sugg button:first-child { background: var(--surface-2); }
+  .sugg { max-height: min(225px, 32vh); }
+  .opts button { border: 1px solid var(--border-strong); border-radius: 14px; background: var(--surface); padding: 10px 14px; }
+  .pick .avatar { font-size: 32px; font-weight: 700; color: var(--text-dim); }
+  .pick.ok .avatar { border: 2px solid var(--hue-green); }
+  .pick.bad .avatar { border: 2px solid var(--hue-red); }
+  .facts { counter-reset: fact; }
+  .facts li::before { counter-increment: fact; content: counter(fact); font: 17px 'Teko',sans-serif; color: var(--text-faint); }
+  #rating ol { padding: 0; }
+  .play .pause-icon, .play[aria-pressed="true"] .play-icon { display: none; }
+  .play[aria-pressed="true"] .pause-icon { display: block; }
+  #status { white-space: pre-line; }
+  #channel { color: var(--hue-blue); text-align: center; }
+  .err:empty, .note:empty, #status:empty, #wrong:empty, #reveal:empty, #taleTags:empty { display: none; }
+  #reveal { margin: 12px 0; }
+  .pick { min-width: 0; }
+  @media (max-width: 350px) { body { padding-inline: 8px; } .panel { padding-inline: 14px; } }
+
 </style>
 </head>
 <body>
-<main>
-<h1>⚔️ Рок-дуэль</h1>
-<form id="form" hidden>
-<label for="nickname">Ник соперника в Telegram</label>
-<input id="nickname" placeholder="@ник" maxlength="33" autocapitalize="none" spellcheck="false" required>
-<button id="send">Бросить вызов</button>
-</form>
-<p id="status" role="status">Загрузка…</p>
-<section id="card" hidden>
-<span id="clock"></span><strong id="position"></strong>
-<h2 id="prompt"></h2><ol id="facts"></ol><img id="cover" alt="Обложка загаданного альбома" hidden>
-<div id="tale" hidden><small id="taleTags"></small><p id="story"></p></div>
-<p id="wrong"></p>
-<div id="introControls" hidden>
-<button id="listen" type="button"></button>
-<button id="longer" type="button"></button>
-<p id="audioError" role="status"></p>
-</div>
-<label id="searchLabel" for="search">Найди ответ по названию</label>
-<input id="search" type="search" placeholder="Введи первые буквы" autocomplete="off">
-<button id="taleHint" hidden>Показать 4 варианта · за верный ответ 1 очко</button>
-<div id="choices"></div>
-<div id="orderControls" hidden>
-<button id="resetOrder" type="button">Сбросить</button>
-<button id="checkOrder" type="button">Проверить</button>
-</div>
-<p id="reveal" role="status"></p><ol id="timeline" hidden></ol>
-</section>
-<button id="play" hidden>Играть</button>
-<button id="home" hidden>К вызовам</button>
-<a id="channel" hidden>Подписаться на канал</a>
-<button id="cancel" hidden>Отменить вызов</button>
-<button id="refresh" hidden>Обновить</button>
-<details id="rating"><summary>Сезонный рейтинг</summary><p id="season"></p><ol id="standings"></ol></details>
+<main class="wrap panel">
+  <header class="panel-head"><h1 class="eyebrow">Рок-дуэль</h1><span class="round-tag" id="position"></span></header>
+  <nav class="tabbar" aria-label="Разделы рок-дуэли">
+    <button type="button" class="tab active" data-view="games" aria-current="page">Игры</button>
+    <button type="button" class="tab" data-view="rating">Рейтинг</button>
+    <button type="button" class="tab" data-view="rules">Правила</button>
+  </nav>
+  <section id="games">
+    <div id="lobby" hidden>
+      <div class="state-box"><h2>Сейчас дуэлей нет</h2><p>Брось вызов по @нику. Сопернику придёт приглашение в Telegram.</p></div>
+      <button type="button" id="newChallenge" class="btn wide">⚔️ Бросить вызов</button>
+    </div>
+    <form id="form" class="ch-form" hidden>
+      <label for="nickname" class="eyebrow">Ник соперника в Telegram</label>
+      <div class="nick"><span aria-hidden="true">@</span><input id="nickname" placeholder="ник" maxlength="33" autocapitalize="none" spellcheck="false" required></div>
+      <div class="row2"><button type="button" class="btn soft" id="back">Назад</button><button class="btn">Бросить вызов</button></div>
+    </form>
+    <div id="status" class="state-box" role="status">Загрузка…</div>
+    <section id="card" hidden>
+      <div id="ladder" class="ladder" aria-label="Раунды дуэли"></div><div class="dots" id="dots" aria-hidden="true"></div>
+      <div id="hero" class="avatar-wrap hero-orb" hidden><span class="avatar-glow"></span><span class="avatar" id="portrait"></span></div>
+      <div id="coverWrap" class="cover-wrap" hidden><span class="avatar-glow"></span><div class="cover"><img id="cover" alt="Обложка загаданного альбома"></div></div>
+      <ol class="facts" id="facts" hidden></ol>
+      <div id="tale" class="tale" hidden><div class="tale-head"><b class="eyebrow" id="talePrompt"></b><span id="taleTags" class="tag"></span></div><p id="story"></p></div>
+      <div id="introControls" hidden>
+        <div class="player">
+          <div class="play-wrap"><span class="avatar-glow"></span>
+            <button id="listen" type="button" class="play" aria-label="Слушать" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="play-icon" d="M8 5v14l12-7z"/><path class="pause-icon" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+          </div>
+          <div class="meter" aria-hidden="true"><span id="unlocked" class="open"></span><span id="played" class="pos"></span></div>
+          <div class="meter-scale" aria-hidden="true"><span>0</span><span>5</span><span>10</span><span>15 сек</span></div>
+        </div>
+        <p id="audioError" class="err" role="status"></p>
+      </div>
+      <div class="worth"><span id="worth"></span><span aria-label="Время">⏱ <span class="clock" id="clock"></span></span></div>
+      <form class="guess" id="guess" hidden>
+        <input id="search" type="search" autocomplete="off" enterkeyhint="go" aria-controls="suggestions">
+        <button class="btn">Ответить</button><div class="sugg" id="suggestions" hidden></div>
+      </form>
+      <p class="err" id="guessError" role="status"></p>
+      <div id="wrong" class="misses"></div>
+      <div id="choices" hidden></div>
+      <div class="actions">
+        <button class="btn soft wide" id="longer" type="button" hidden></button>
+        <button class="btn soft wide" id="taleHint" type="button" hidden>Показать 4 варианта · за верный ответ 1 очко</button>
+        <div id="orderControls" class="row2" hidden><button class="btn soft" id="resetOrder" type="button">Сбросить</button><button class="btn" id="checkOrder" type="button">Проверить</button></div>
+      </div>
+      <p class="note" id="hint"></p>
+      <div id="reveal" class="verdict" role="status"></div>
+    </section>
+    <div class="actions">
+      <button class="btn wide" id="play" hidden>Играть</button>
+      <button class="btn soft wide" id="home" hidden>К вызовам</button>
+      <a id="channel" hidden>Подписаться на канал</a>
+      <button class="btn soft wide" id="cancel" hidden>Отменить вызов</button>
+      <button class="btn soft wide" id="refresh" hidden>Обновить</button>
+    </div>
+  </section>
+  <section id="rating" hidden><h2 class="eyebrow" id="season">Сезонный рейтинг</h2><p class="season-note" id="myRating" role="status"></p><ol id="standings"></ol></section>
+  <section id="rules" class="rules" hidden>
+    <div><h3>Вызов</h3><p>Введи @ник подписчика, который уже открывал бота. У соперника есть сутки, чтобы принять вызов, затем у вас обоих ещё сутки на игру.</p></div>
+    <div><h3>Как играть</h3><p>Задания у обоих одинаковые. Каждый играет в своё время и может продолжить с того же места.</p></div>
+    <div><h3>Детектив</h3><p>Угадай исполнителя по пяти фактам. За ответ с первой попытки — 3 очка, со второй — 2, с третьей — 1.</p></div>
+    <div><h3>Обложка</h3><p>Узнай исполнителя по обложке альбома. Одна попытка, за верный ответ — 3 очка.</p></div>
+    <div><h3>Хронология</h3><p>Расставь четыре группы от самой старой к самой молодой по году основания. Каждая группа на своём месте приносит очко.</p></div>
+    <div><h3>Интро</h3><p>Три трека. Найди песню по исполнителю или названию. За 5 секунд можно взять 3 очка, за 10 — 2, за 15 — 1. На каждый трек одна попытка.</p></div>
+    <div><h3>Байка</h3><p>Угадай, о ком история. Одна попытка. Через поиск можно взять 3 очка, с подсказкой из четырёх вариантов — 1.</p></div>
+    <div><h3>Кто победил</h3><p>Выигрывает тот, кто набрал больше очков. При равенстве побеждает более быстрый игрок. На каждое задание учитывается до двух минут. Если совпало и время, это ничья.</p></div>
+    <div><h3>Сезонный рейтинг</h3><p>Каждый сезон начинается с 1500 Эло. Победа над сильным соперником приносит больше очков рейтинга. Чтобы попасть в таблицу, сыграй три дуэли за сезон.</p></div>
+  </section>
 </main>
 <script>
 const tg = window.Telegram?.WebApp;
@@ -92,50 +330,104 @@ let gameId = new URLSearchParams(location.search).get('id');
 if (!/^[0-9]{1,18}$/.test(gameId || '')) gameId = null;
 let task = null, artists = [], answerDraft = null, clockOffset = 0;
 let selectedOrder = [];
-let audioContext, audioBuffer, playing, audioUrl, listenSeconds;
+const rounds = {detective:'Детектив', cover:'Обложка', chronology:'Годы', intro:'Интро', tale:'Байка'};
+function node(tag, className, text) {
+  const item = document.createElement(tag);
+  if (className) item.className = className;
+  if (text != null) item.textContent = text;
+  return item;
+}
+function pointWord(n) { return n === 1 ? 'очко' : n >= 2 && n <= 4 ? 'очка' : 'очков'; }
+function paintProgress(progress, card) {
+  const ladder = el('ladder'), dots = el('dots');
+  ladder.replaceChildren(); dots.replaceChildren();
+  const kinds = [...new Set(progress.map(p => p.round))];
+  for (const [index, kind] of kinds.entries()) {
+    if (index) ladder.append(node('span', 'rung-line'));
+    const active = kind === card.round;
+    const group = progress.filter(p => p.round === kind);
+    const step = node('div', 'step' + (active ? ' active' : '') + (group.every(p => p.points != null) ? ' done' : ''));
+    step.append(node('span', 'rung', index + 1), node('small', '', rounds[kind]));
+    if (active) {
+      step.setAttribute('aria-current', 'step');
+      const indexInRound = card.position - progress.findIndex(p => p.round === kind);
+      const label = {intro:'Трек', tale:'Байка', chronology:'Задача'}[kind] || 'Загадка';
+      el('position').textContent = label + ' ' + indexInRound + ' из ' + group.length;
+      group.forEach((p, i) => dots.append(node('i', p.points != null ? (p.points ? 'ok' : 'bad') : i + 1 === indexInRound ? 'on' : '')));
+    }
+    ladder.append(step);
+  }
+}
+let audioContext, audioBuffer, playing, audioUrl, listenSeconds = 5, frame;
 function stopIntro() {
-  if (playing) { playing.stop(); playing = null; }
+  cancelAnimationFrame(frame);
+  if (playing) { playing.onended = null; playing.stop(); playing.disconnect(); playing = null; }
+  el('listen').setAttribute('aria-pressed', 'false');
+  el('listen').setAttribute('aria-label', 'Слушать ' + listenSeconds + ' секунд');
 }
 function resetIntro() {
   stopIntro();
   audioBuffer = audioUrl = null;
-  el('introControls').hidden = true;
+  el('played').style.width = '0%';
+  el('introControls').hidden = el('longer').hidden = true;
   el('audioError').textContent = '';
 }
 function introButtons(seconds, revealed = false) {
   listenSeconds = seconds;
   el('introControls').hidden = false;
-  const reward = {5:'3 очка', 10:'2 очка', 15:'1 очко'};
-  el('listen').textContent = '▶ Слушать ' + seconds + ' с' + (revealed ? '' : ' · ' + reward[seconds]);
-  el('longer').hidden = seconds === 15;
-  const next = seconds + 5;
-  el('longer').textContent = 'Открыть ' + next + ' с · ' + reward[next];
+  el('unlocked').style.width = seconds / 15 * 100 + '%';
+  el('listen').setAttribute('aria-label', 'Слушать ' + seconds + ' секунд');
+  el('longer').hidden = revealed || seconds === 15;
+  if (seconds < 15) el('longer').textContent = 'Открыть ' + (seconds + 5) + ' секунд · −1 очко';
+  if (!revealed) showWorth(4 - seconds / 5, ' · слушаешь ' + seconds + ' сек');
 }
-el('listen').onclick = () => run(async () => {
+async function playIntro(extend) {
   stopIntro();
+  el('audioError').textContent = '';
   try {
     audioContext ??= new AudioContext();
     await audioContext.resume();
+  } catch {
+    el('audioError').textContent = 'Звук недоступен. Попробуй включить ещё раз.';
+    return;
+  }
+  if (extend) {
+    const data = await api('duels/'+current.id+'/tasks/'+task.id+'/intro', {seconds:listenSeconds + 5});
+    if (data.duel) { render(data.duel); return; }
+    introButtons(data.seconds);
+  }
+  try {
     if (!audioBuffer) {
       const res = await fetch(audioUrl);
       if (!res.ok) throw new Error();
       audioBuffer = await audioContext.decodeAudioData(await res.arrayBuffer());
     }
-    if (document.hidden) return;
-    playing = audioContext.createBufferSource();
-    playing.buffer = audioBuffer;
-    playing.connect(audioContext.destination);
-    playing.start(0, 0, listenSeconds);
-    el('audioError').textContent = '';
+    if (document.hidden || el('games').hidden) return;
+    const source = audioContext.createBufferSource();
+    playing = source;
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    const start = audioContext.currentTime;
+    source.start(0, 0, listenSeconds);
+    const length = Math.min(listenSeconds, audioBuffer.duration);
+    function draw() {
+      el('played').style.width = Math.min(length, audioContext.currentTime - start) / 15 * 100 + '%';
+      frame = requestAnimationFrame(draw);
+    }
+    draw();
+    source.onended = () => {
+      el('played').style.width = length / 15 * 100 + '%';
+      stopIntro();
+    };
+    el('listen').setAttribute('aria-pressed', 'true');
+    el('listen').setAttribute('aria-label', 'Приостановить');
   } catch {
-    el('audioError').textContent = 'Не удалось воспроизвести фрагмент. Нажми «Слушать» ещё раз.';
+    stopIntro();
+    el('audioError').textContent = 'Не удалось воспроизвести фрагмент. Нажми ▶ ещё раз.';
   }
-});
-el('longer').onclick = () => run(async () => {
-  const data = await api('duels/'+current.id+'/tasks/'+task.id+'/intro', {seconds:listenSeconds + 5});
-  if (data.duel) { render(data.duel); return; }
-  introButtons(data.seconds);
-});
+}
+el('listen').onclick = () => run(() => playing ? stopIntro() : playIntro(false));
+el('longer').onclick = () => run(() => playIntro(true));
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopIntro(); });
 function track(id) {
   gameId = id;
@@ -151,7 +443,9 @@ function render(duel) {
   current = duel;
   task = null;
   el('card').hidden = el('play').hidden = el('home').hidden = true;
-  form.hidden = !!duel;
+  form.hidden = true;
+  el('lobby').hidden = !!duel;
+  el('position').textContent = '';
   el('cancel').hidden = duel?.status !== 'pending' || duel.role !== 'author';
   el('refresh').hidden = !duel || !['pending','active'].includes(duel.status);
   statusLine.textContent = '';
@@ -163,11 +457,11 @@ function render(duel) {
   }
   if (duel.status === 'active') {
     track(duel.id);
-    statusLine.textContent = 'Дуэль с @' + duel.peer + ' · Твои очки: ' + duel.points;
+    statusLine.replaceChildren(node('h2', '', 'Дуэль с @' + duel.peer), node('p', '', 'Твои очки: ' + duel.points));
     if (duel.next_task) {
       el('play').hidden = false;
       el('play').textContent = duel.opened ? 'Продолжить' : 'Играть';
-    } else statusLine.textContent += '\nТвоя часть готова. Ждём соперника.';
+    } else statusLine.append(node('p', '', 'Твоя часть готова. Ждём соперника.'));
     return;
   }
   el('home').hidden = false;
@@ -177,59 +471,82 @@ function render(duel) {
     return;
   }
   const title = {win:'Победа',loss:'Поражение',draw:'Ничья'}[duel.outcome];
-  statusLine.textContent = title + (duel.decided_by === 'time' ? ' по времени' : '') +
-    '\nТы — @' + duel.peer + '\n' + duel.own.points + ' : ' + duel.opponent.points +
-    '\nВремя: ' + duration(duel.own.seconds) + ' и ' + duration(duel.opponent.seconds) +
-    (duel.reason === 'timeout' ? '\nСрок игры истёк. Незавершённые задания дали 0 очков.' : '');
+  statusLine.replaceChildren(node('h2', '', title + (duel.decided_by === 'time' ? ' по времени' : '')),
+    node('p', '', 'Ты — @' + duel.peer), node('strong', 'round-tag', duel.own.points + ' : ' + duel.opponent.points),
+    node('p', '', 'Время: ' + duration(duel.own.seconds) + ' и ' + duration(duel.opponent.seconds)));
+  if (duel.reason === 'timeout') statusLine.append(node('p', '', 'Срок игры истёк. Незавершённые задания дали 0 очков.'));
 }
+el('newChallenge').onclick = () => {
+  el('lobby').hidden = true; form.hidden = false; statusLine.textContent = ''; nick.focus();
+};
+el('back').onclick = () => render(null);
 function normalized(name) {
   return name.toLowerCase().replace(/ё/g,'е').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/^the\s+/,'').replace(/[^a-zа-я0-9]/g,'');
 }
-function showArtist(parent, artist) {
-  if (artist?.photo) {
-    const img = document.createElement('img'); img.src = artist.photo; img.alt = ''; parent.append(img);
-  }
-  parent.append(document.createTextNode(artist?.name || ''));
-  if (artist?.band_name) parent.append(document.createTextNode(' · ' + artist.band_name));
+function portrait(parent, artist) {
+  parent.textContent = artist.name.replace(/^The /i, '').charAt(0);
+  if (!artist?.photo) return;
+  const img = document.createElement('img');
+  img.src = artist.photo; img.alt = '';
+  img.onerror = () => { parent.textContent = artist.name.charAt(0); };
+  parent.replaceChildren(img);
 }
 function choices() {
-  const panel = el('choices'), query = normalized(el('search').value.trim());
+  const hinted = !!task.hinted;
+  const panel = hinted ? el('choices') : el('suggestions');
+  const query = normalized(el('search').value.trim());
   panel.replaceChildren();
-  if (!task || (!query && !task.hinted)) return;
-  for (const artist of artists) {
-    if (task.round === 'intro') {
-      if (!normalized(artist.name).includes(query)) continue;
-    } else if (!task.hinted && ![artist.name,...artist.aliases].some(name => normalized(name).startsWith(query))) continue;
-    const button = document.createElement('button');
-    button.type = 'button'; showArtist(button, artist);
-    if (task.wrong.includes(artist.key)) continue;
-    button.onclick = () => run(() => submitAnswer(artist.key));
-    panel.append(button);
+  if (hinted || query) {
+    for (const artist of artists) {
+      const match = task.round === 'intro' ? normalized(artist.name).includes(query) :
+        [artist.name,...artist.aliases].some(name => normalized(name).startsWith(query));
+      if ((!hinted && !match) || task.wrong.includes(artist.key)) continue;
+      const button = node('button');
+      button.type = 'button';
+      if (task.round !== 'intro') {
+        const mini = node('span','mini'); portrait(mini, artist); button.append(mini);
+      }
+      button.append(artist.name + (artist.band_name ? ' · ' + artist.band_name : ''));
+      button.onclick = () => run(() => submitAnswer(artist.key));
+      panel.append(button);
+    }
   }
-  if (!panel.childElementCount) panel.textContent = 'Нет подходящих вариантов.';
+  panel.hidden = !panel.childElementCount;
+  el('guessError').textContent = query && panel.hidden ? 'Совпадений нет. Попробуй другой запрос.' : '';
 }
 el('search').oninput = choices;
-function updateOrder() {
-  for (const button of el('choices').children) {
-    const index = selectedOrder.indexOf(button.dataset.key);
-    button.setAttribute('aria-pressed', String(index >= 0));
-    button.lastElementChild.textContent = index >= 0 ? String(index + 1) : '';
+el('search').onfocus = () => { if (task && !el('guess').hidden) choices(); };
+document.addEventListener('pointerdown', event => {
+  if (!el('guess').contains(event.target)) el('suggestions').hidden = true;
+});
+el('guess').onkeydown = event => {
+  if (event.key === 'Escape') el('suggestions').hidden = true;
+  if (event.key === 'ArrowDown' && !el('suggestions').hidden) {
+    event.preventDefault();
+    (document.activeElement.nextElementSibling?.closest('#suggestions button') || el('suggestions').firstElementChild).focus();
   }
-  el('resetOrder').disabled = !selectedOrder.length;
-  el('checkOrder').disabled = selectedOrder.length !== 4;
-}
+};
+el('guess').onsubmit = event => {
+  event.preventDefault();
+  choices();
+  const first = el('suggestions').firstElementChild;
+  if (first) first.click();
+  else if (!el('search').value.trim()) el('search').focus();
+};
 function showOrderChoices() {
   selectedOrder = [];
   const panel = el('choices');
-  panel.replaceChildren();
+  panel.hidden = false;
   for (const artist of artists) {
-    const button = document.createElement('button');
+    const button = node('button', 'pick'), wrap = node('span', 'avatar-wrap'), face = node('span', 'avatar');
     button.type = 'button'; button.dataset.key = artist.key;
-    showArtist(button, artist);
-    const number = document.createElement('span');
-    number.className = 'number'; button.append(number);
+    wrap.setAttribute('aria-hidden', 'true');
+    portrait(face, artist);
+    wrap.append(node('span', 'avatar-glow'), face);
+    button.append(wrap, node('span', 'badge'), node('span', 'name', artist.name), node('span', 'year'));
     button.onclick = () => {
+      if (busy) return;
       const index = selectedOrder.indexOf(artist.key);
       if (index === -1) selectedOrder.push(artist.key);
       else selectedOrder.splice(index, 1);
@@ -239,10 +556,37 @@ function showOrderChoices() {
   }
   updateOrder();
 }
-el('resetOrder').onclick = () => { selectedOrder = []; updateOrder(); };
+function updateOrder() {
+  for (const button of el('choices').children) {
+    const index = selectedOrder.indexOf(button.dataset.key), badge = button.querySelector('.badge');
+    button.setAttribute('aria-pressed', String(index >= 0));
+    badge.hidden = index < 0;
+    badge.textContent = index + 1;
+    button.querySelector('.year').hidden = true;
+  }
+  el('resetOrder').disabled = !selectedOrder.length;
+  el('checkOrder').disabled = selectedOrder.length !== artists.length;
+}
+function revealOrder(correct, order) {
+  for (const button of el('choices').children) {
+    const key = button.dataset.key, index = correct.findIndex(item => item.key === key);
+    const ok = order[index] === key, mark = ok ? 'ok' : 'bad';
+    button.disabled = true;
+    button.classList.add(mark);
+    button.querySelector('.badge').classList.add(mark);
+    const year = button.querySelector('.year');
+    year.hidden = false; year.textContent = correct[index].year;
+    button.setAttribute('aria-label', [button.querySelector('.name').textContent, correct[index].year,
+      'твоё место — ' + (order.indexOf(key) + 1), ok ? 'верно' : 'неверно'].join(', '));
+  }
+}
+el('resetOrder').onclick = () => { if (!busy) { selectedOrder = []; updateOrder(); } };
 el('checkOrder').onclick = () => run(() => submitAnswer([...selectedOrder]));
+function showWorth(value, extra = '') {
+  el('worth').replaceChildren('Сейчас стоит ', node('b', 'num', value), ' ' + pointWord(value) + extra);
+}
 function showWrong() {
-  el('wrong').textContent = task.wrong.map(k => artists.find(a => a.key === k)?.name || k).join(' · ');
+  el('wrong').replaceChildren(...task.wrong.map(k => node('span', '', artists.find(a => a.key === k)?.name || k)));
 }
 function tick() {
   if (task) el('clock').textContent = duration(Math.max(0, Math.min(120, Math.floor((Date.now()+clockOffset-task.shown_at)/1000))));
@@ -260,32 +604,50 @@ async function openTask(hint = false) {
   const chronology = task.round === 'chronology';
   const intro = task.round === 'intro';
   const tale = task.round === 'tale';
-  const titles = {detective:'Рок-детектив', cover:'Обложка', chronology:'Хронология', intro:'Угадай песню', tale:'Байка'};
-  el('position').textContent = titles[task.round] + ' · ' + task.position + ' из ' + current.count;
-  el('search').hidden = el('searchLabel').hidden = chronology || !!task.hinted;
-  el('taleHint').hidden = !tale || task.hinted;
-  el('searchLabel').textContent = intro ? 'Найди песню по исполнителю или названию' : tale || cover ? 'Выбери ответ · одна попытка' : 'Найди ответ по названию';
+  paintProgress(current.progress, task);
+  el('position').hidden = el('games').hidden;
+  statusLine.textContent = '';
+  el('coverWrap').hidden = !cover;
+  el('coverWrap').classList.remove('solved');
+  if (cover) el('cover').src = task.image;
+  el('hero').hidden = !tale && task.round !== 'detective';
+  el('hero').classList.remove('solved');
+  el('portrait').replaceChildren(node('span', 'qmark', '?'));
+  el('facts').hidden = !task.facts;
+  el('facts').replaceChildren(...(task.facts || []).map(f => node('li', '', f)));
   el('tale').hidden = !tale;
   if (tale) {
+    el('talePrompt').textContent = task.prompt;
     el('taleTags').textContent = task.tags.map(tag => tag === 'death' ? 'Мрачное' : tag).join(' · ');
     el('story').textContent = task.text;
   }
+  el('guess').hidden = chronology || !!task.hinted;
+  el('search').value = '';
+  el('search').placeholder = intro ? 'Песня или артист' : cover ? 'Чья обложка?' : task.prompt;
+  el('search').setAttribute('aria-label', intro ? 'Исполнитель или название песни' : task.prompt);
+  el('suggestions').hidden = true;
+  el('guessError').textContent = '';
+  el('choices').replaceChildren();
+  el('choices').className = chronology ? 'chrono' : 'opts';
+  el('choices').hidden = true;
+  el('reveal').replaceChildren();
+  el('taleHint').hidden = !tale || task.hinted;
   el('orderControls').hidden = !chronology;
-  el('timeline').hidden = true;
-  el('cover').hidden = !cover;
-  if (cover) el('cover').src = task.image;
-  else el('cover').removeAttribute('src');
-  el('facts').hidden = task.round !== 'detective';
-  el('prompt').textContent = task.prompt;
-  el('facts').replaceChildren(...(task.facts || []).map(f => { const li = document.createElement('li'); li.textContent = f; return li; }));
-  el('reveal').replaceChildren(); el('search').value='';
+  el('hint').textContent = task.round === 'detective' ? 'Три попытки. Каждая ошибка снимает одно очко.' :
+    cover || (tale && !task.hinted) ? 'Одна попытка.' : '';
   if (intro) {
     audioUrl = task.audio;
     introButtons(task.seconds);
     artists = task.songs.map(name => ({key:name, name}));
-    choices();
-  } else if (chronology) showOrderChoices(); else choices();
+  } else if (chronology) {
+    el('worth').textContent = 'Нажимай от самой старой группы к самой молодой';
+    showOrderChoices();
+  } else {
+    showWorth(task.hinted ? 1 : 3 - task.wrong.length);
+    if (task.hinted) choices();
+  }
   showWrong(); tick();
+  if (!hint) window.scrollTo(0, 0);
 }
 async function submitAnswer(key) {
   if (!task) return;
@@ -296,37 +658,47 @@ async function submitAnswer(key) {
   const data = await api('duels/'+current.id+'/tasks/'+task.id+'/answer', {...choice, request_id:answerDraft.id});
   answerDraft = null;
   if (!data.feedback || !['active','finished'].includes(data.duel.status)) { render(data.duel); return; }
+  const progress = current.progress;
   current = data.duel;
   const feedback = data.feedback;
+  el('search').value = '';
+  el('suggestions').hidden = true;
   if (feedback.points === null) {
-    task.wrong.push(key); showWrong(); el('search').value=''; choices();
-    el('reveal').textContent = 'Пока неверно. Осталось попыток: ' + feedback.remaining;
+    task.wrong.push(key); showWrong(); showWorth(feedback.remaining);
+    el('guessError').textContent = 'Пока неверно. Осталось попыток: ' + feedback.remaining;
     return;
   }
-  el('taleHint').hidden = true;
-  task = null; el('choices').replaceChildren(); el('search').hidden = el('searchLabel').hidden = true;
-  el('orderControls').hidden = true;
+  tick();
+  progress[task.position - 1].points = feedback.points;
+  paintProgress(progress, task);
+  task = null;
+  el('guess').hidden = el('orderControls').hidden = el('taleHint').hidden = true;
+  el('guessError').textContent = el('hint').textContent = '';
+  el('choices').hidden = !feedback.chronology;
+  const verdict = el('reveal');
+  const award = node('p');
+  award.append(node('strong', feedback.points ? 'plus' : 'zero',
+    (feedback.points ? '+' : '') + feedback.points + ' ' + pointWord(feedback.points)));
+  verdict.replaceChildren(award);
   if (feedback.song) {
     stopIntro(); introButtons(15, true);
-    el('reveal').textContent = (feedback.points ? 'Верно! ' : 'Правильный ответ: ') +
-      feedback.song + ' · Очки за ответ: ' + feedback.points;
+    verdict.prepend(node('h2', '', feedback.song));
+    verdict.append(node('p', '', 'Нажми ▶, чтобы дослушать все 15 секунд.'));
   } else if (feedback.chronology) {
-    el('reveal').textContent = 'На своём месте: ' + feedback.points + ' из 4. Правильный порядок:';
-    el('timeline').replaceChildren(...feedback.chronology.map(({key, year}) => {
-      const li = document.createElement('li');
-      li.textContent = year + ' — ' + artists.find(a => a.key === key).name;
-      return li;
-    }));
-    el('timeline').hidden = false;
+    revealOrder(feedback.chronology, key);
+    award.append(' · ' + feedback.points + ' из 4 на своём месте');
+    const names = feedback.chronology.map(item => artists.find(a => a.key === item.key).name);
+    verdict.append(node('p', '', 'Верный порядок: ' + names.join(' → ')));
   } else {
-    el('reveal').replaceChildren(); showArtist(el('reveal'), artists.find(a => a.key === feedback.solution));
-    if (feedback.album) el('reveal').append(document.createTextNode(' — «'+feedback.album+'»'));
-    el('reveal').append(document.createTextNode(' · Очки за ответ: '+feedback.points));
-    if (feedback.reveal) el('reveal').append(document.createElement('br'), document.createTextNode(feedback.reveal));
+    const solution = artists.find(a => a.key === feedback.solution);
+    verdict.prepend(node('h2', '', feedback.album || solution.name));
+    if (feedback.album) { el('coverWrap').classList.add('solved'); award.prepend(solution.name + ' · '); }
+    else { portrait(el('portrait'), solution); el('hero').classList.add('solved'); }
+    if (feedback.reveal) verdict.append(node('p', 'reveal', feedback.reveal));
   }
+  el('worth').textContent = 'Твои очки: ' + (current.own?.points ?? current.points);
   el('play').hidden = false;
-  el('play').textContent = current.next_task ? 'Следующая загадка' : (current.status === 'finished' ? 'Посмотреть итог' : 'Завершить');
-  statusLine.textContent = 'Твои очки: ' + (current.own?.points ?? current.points);
+  el('play').textContent = current.next_task ? 'Следующее задание' : (current.status === 'finished' ? 'Посмотреть итог' : 'Завершить');
 }
 el('play').onclick = () => run(async () => {
   if (current.next_task) await openTask();
@@ -336,7 +708,7 @@ el('home').onclick = () => {track(null); load();};
 async function run(action) {
   if (busy) return;
   busy = true;
-  for (const control of document.querySelectorAll('button,input')) control.disabled = true;
+  el('games').setAttribute('aria-busy', 'true');
   el('channel').hidden = true;
   try { await action(); }
   catch (err) {
@@ -349,8 +721,7 @@ async function run(action) {
     }
   } finally {
     busy = false;
-    for (const control of document.querySelectorAll('button,input')) control.disabled = false;
-    if (task?.round === 'chronology') updateOrder();
+    el('games').removeAttribute('aria-busy');
   }
 }
 function load() {
@@ -358,7 +729,7 @@ function load() {
     const {duel} = await api(gameId ? 'duels/'+gameId : 'bootstrap');
     render(duel);
     if (duel?.delivery === 'sent') saveDraft(null);
-    if (!duel && draft) nick.value = draft.nickname;
+    if (!duel && draft) { el('newChallenge').click(); nick.value = draft.nickname; }
   });
 }
 form.onsubmit = event => {
@@ -371,7 +742,7 @@ form.onsubmit = event => {
       const {duel} = await api('challenges', draft);
       render(duel);
       if (!current) statusLine.textContent = 'Этот вызов уже закрыт.';
-      if (duel.delivery !== 'sending') saveDraft(null);
+      if (duel?.delivery !== 'sending') saveDraft(null);
     } catch (err) {
       if (err.error) saveDraft(null);
       throw err;
@@ -384,27 +755,55 @@ el('cancel').onclick = () => run(async () => {
   statusLine.textContent = status === 'cancelled' ? 'Вызов отменён.' : 'Этот вызов уже закрыт.';
 });
 el('refresh').onclick = load;
-el('rating').ontoggle = async () => {
-  if (!el('rating').open) return;
+async function showRating() {
+  const summary = el('myRating');
+  if (!tg?.initData) { summary.textContent = 'Открой рейтинг из меню бота в Telegram.'; return; }
   el('standings').replaceChildren();
+  summary.textContent = 'Загрузка…';
   try {
     const {season, me, rows} = await api('rating');
-    el('season').textContent = season + ' · Твой Эло: ' + me.rating +
+    el('season').textContent = season;
+    summary.textContent = 'Твой Эло: ' + me.rating +
       (me.played < 3 ? ' · Для места в таблице осталось дуэлей: ' + (3 - me.played) : '');
-    el('standings').replaceChildren(...rows.map(p => {
-      const li = document.createElement('li');
-      li.textContent = '@' + p.nickname + ' — ' + p.rating + ' · Побед: ' + p.wins;
-      return li;
+    el('standings').replaceChildren(...rows.map((p, index) => {
+      const row = node('li', 'lb-row'), player = node('span', 'lb-main');
+      player.append(node('b', 'lb-name', '@' + p.nickname), node('small', 'lb-tag', 'Побед: ' + p.wins + ' · Игр: ' + p.played));
+      row.append(node('span', 'lb-rank' + (!index ? ' top' : ''), index + 1), player, node('b', 'lb-pts', p.rating));
+      return row;
     }));
-  } catch { el('season').textContent = 'Не удалось загрузить рейтинг. Открой его ещё раз.'; }
-};
+    if (!rows.length) summary.append(node('br'), 'Пока никто не сыграл три дуэли в этом сезоне.');
+  } catch { summary.textContent = 'Не удалось загрузить рейтинг. Открой вкладку ещё раз.'; }
+}
+for (const tab of document.querySelectorAll('.tab')) {
+  tab.onclick = () => {
+    stopIntro();
+    for (const item of document.querySelectorAll('.tab')) {
+      const active = item === tab;
+      el(item.dataset.view).hidden = !active;
+      item.classList.toggle('active', active);
+      if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+    }
+    el('position').hidden = el('games').hidden;
+    el('suggestions').hidden = true;
+    if (tab.dataset.view === 'rating') showRating();
+    window.scrollTo(0, 0);
+  };
+}
+function applyTheme() {
+  const scheme = tg?.initData && tg.colorScheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = scheme;
+}
+applyTheme();
+tg?.onEvent('themeChanged', applyTheme);
 if (tg?.initData) {
   tg.ready(); load();
   setInterval(() => {
     if (!document.hidden && !task && el('card').hidden &&
         (current?.status === 'pending' || (current?.status === 'active' && !current.next_task))) load();
   }, 5000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && !task) load(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && el('card').hidden && form.hidden) load();
+  });
 } else statusLine.textContent = 'Открой рок-дуэль из меню бота в Telegram.';
 </script>
 </body>

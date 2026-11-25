@@ -1437,7 +1437,7 @@ async def accept_duel(duel_id: int, opponent_id: int, rounds: dict) -> dict:
 
 async def _score_rows(duel_id):
     async with _db.execute(
-        "SELECT p.user_id, t.id AS task_id, t.source_key, t.position, a.shown_at, a.attempts, "
+        "SELECT p.user_id, t.id AS task_id, t.round, t.position, a.shown_at, a.attempts, "
         "a.points, a.elapsed_ms FROM duel_players p JOIN duel_tasks t ON t.duel_id=p.duel_id "
         "LEFT JOIN duel_answers a ON a.task_id=t.id AND a.user_id=p.user_id "
         "WHERE p.duel_id=? ORDER BY t.position", (duel_id,),
@@ -1495,6 +1495,7 @@ async def _game_view(duel_id, user_id):
         own = [r for r in rows if r["user_id"] == user_id]
         following = next((r for r in own if r["points"] is None), None)
         view.update(points=sum(r["points"] or 0 for r in own), count=len(own),
+                    progress=[{"round": r["round"], "points": r["points"]} for r in own],
                     next_task=following["task_id"] if following else None,
                     opened=following is not None and following["shown_at"] is not None,
                     peer_done=all(r["points"] is not None for r in rows if r["user_id"] != user_id))
